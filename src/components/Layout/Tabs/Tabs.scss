@@ -1,0 +1,36 @@
+
+@import '../../../styles/variables.scss';
+
+.tabs {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 8px;
+  padding: 20px 32px 0;
+
+  &__button {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: $radius-md $radius-md 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: $transition-base;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: $text-muted;
+
+    &:hover {
+      background: $bg-white;
+      transform: translateY(-2px);
+    }
+
+    &--active {
+      background: $bg-white;
+      color: $primary-color;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    }
+  }
+}

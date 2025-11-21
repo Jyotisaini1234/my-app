@@ -1,0 +1,16 @@
+
+@import '../styles/variables';
+
+.dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+
+  &__content {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: $bg-white;
+    min-height: calc(100vh - 200px);
+    border-radius: 0 $radius-md 0 0;
+    padding: 32px;
+  }
+}

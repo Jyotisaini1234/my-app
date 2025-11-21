@@ -1,0 +1,124 @@
+@import '../../../styles/variables';
+
+.client-card {
+  background: white;
+  border: 2px solid $border-color;
+  border-radius: $radius-lg;
+  padding: 20px;
+  transition: $transition-base;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  &--master {
+    border-color: $warning-color;
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  }
+
+  &--authenticated {
+    border-color: $success-color;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: $text-primary;
+      margin: 0;
+    }
+  }
+
+  &__badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+
+    button {
+      padding: 8px;
+      background: $bg-lighter;
+      border: none;
+      border-radius: $radius-sm;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: $text-secondary;
+
+      &:hover {
+        background: $primary-color;
+        color: white;
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &--master {
+    background: $warning-color;
+    color: #78350f;
+  }
+
+  &--success {
+    background: $success-color;
+    color: white;
+  }
+
+  &--error {
+    background: $error-color;
+    color: white;
+  }
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid $border-light;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &__label {
+    font-size: 13px;
+    color: $text-muted;
+    font-weight: 600;
+  }
+
+  &__value {
+    font-size: 13px;
+    color: $text-primary;
+    font-weight: 500;
+  }
+}

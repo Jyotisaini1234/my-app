@@ -1,0 +1,52 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.clients-list {
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+  }
+}
+
+.btn {
+  @include button-base;
+
+  &--primary {
+    background: $primary-color;
+    color: white;
+  }
+
+  &--success {
+    background: $success-color;
+    color: white;
+  }
+
+  &--secondary {
+    background: $bg-light;
+    color: $text-secondary;
+  }
+
+  &--danger {
+    background: $error-color;
+    color: white;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
