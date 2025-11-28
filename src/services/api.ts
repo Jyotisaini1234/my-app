@@ -39,7 +39,7 @@ export const api = {
   },
 
   placeSingleOrder: async (clientCode: string, orderReq: OrderRequest) => {
-    const res = await fetch(`${API_BASE_URL_8080}/broker/place-order`, {
+    const res = await fetch(`${API_BASE_URL_8081}/place-order`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const api = {
   },
 
   placeMultipleOrder: async (orderReq: OrderRequest) => {
-    const res = await fetch(`${API_BASE_URL_8081}/trade/place-order`, {
+    const res = await fetch(`${API_BASE_URL_8081}/place-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderReq)

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { api } from '../../../services/api';
-import { Button } from '../../common/Button/Button';
+// import { Button } from '../../common/Button/Button';
+
 import { FormGroup } from '../../common/FormGroup/FormGroup';
 import { Modal } from '../../common/Modal/Modal';
+import { Button } from '@mui/material';
 
 
 interface AddClientModalProps {
@@ -56,7 +58,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ onClose, onSucce
         </label>
 
         <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-          <Button onClick={onClose} variant="secondary" style={{ flex: 1 }}>Cancel</Button>
+          <Button onClick={onClose} variant="contained" color="secondary">Cancel</Button>
           <Button onClick={handleSubmit} style={{ flex: 1 }}>Add Client</Button>
         </div>
       </div>

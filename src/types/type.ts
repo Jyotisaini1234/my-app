@@ -1,3 +1,16 @@
+export interface TimelineResponse {
+  status: string;
+  totalLogs: number;
+  timeline: TradeLog[];
+  statistics: {
+    successCount: number;
+    errorCount: number;
+    partialCount?: number;
+    totalCount: number;
+  };
+}
+
+
 export interface Client {
   client_code: string;
   user_id: string;
@@ -58,37 +71,6 @@ export interface OrderPayload {
   selectedClients: string[];
 }
 
-export interface TradeLog {
-  type: string;
-  timestamp: string | number | Date;
-  symbol: string;
-  side: string;
-  clients: any;
-  results(results: any): unknown;
-  id: number;
-  requestId: string;
-  traceId: string;
-  endpoint: string;
-  httpMethod: string;
-  clientCode: string;
-  masterClient: string;
-  replicatedClient: string;
-  requestTime: string;
-  responseTime: string;
-  durationMs: number;
-  status: string;
-  statusCode: number;
-  errorMessage: string;
-  message: string;
-  exchange?: string;
-  symbolToken?: string;
-  buyOrSell?: string;
-  orderType?: string;
-  quantity?: number;
-  price?: number;
-  uniqueOrderId?: string;
-}
-
 export interface LogsResponse {
   status: string;
   requestId?: string;
@@ -100,29 +82,54 @@ export interface LogsResponse {
   grafanaLokiUrl?: string;
 }
 
+export type TabType = 'clients' | 'orders' | 'logs';
+
 export interface TimelineFilters {
   clientCode?: string;
-  endpoint?: string;
   startDate?: string;
   endDate?: string;
+  status?: string;
+  action?: string;
+  endpoint?: string;
   limit?: number;
-  status?:string;
-  requestType?:string;
+}
+
+export interface TradeLog {
+  id?: number;
+  traceId?: string;
+  trace_id?: string;
+  spanId?: string;
+  span_id?: string;
+  requestId?: string;
+  request_id?: string;
+  timestamp?: string | number | Date;
+  clientCode?: string;
+  client_code?: string;
+  clientName?: string;
+  client_name?: string;
+  action?: string;
+  status?: string;
+  requestTime?: string | Date;
+  responseTime?: string | Date;
+  durationMs?: number;
+  errorMessage?: string;
+  created_at?: { $date: string } | string | Date;
+  createdAt?: string | Date;
+  unique_order_id?: string;
+  level?: string;
+  message?: string;
+  thread?: string;
+  logger?: string;
 }
 
 export interface TimelineResponse {
   status: string;
   totalLogs: number;
-  filters: Record<string, any>;
-  timeline: any[];
-  groupedByEndpoint: Record<string, any[]>;
+  timeline: TradeLog[];
   statistics: {
     successCount: number;
     errorCount: number;
-    avgDurationMs: number;
-    requestTypeBreakdown: Record<string, number>;
+    partialCount?: number;
+    totalCount: number;
   };
 }
-
-export type TabType = 'clients' | 'orders' | 'logs';
-

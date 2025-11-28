@@ -1,124 +1,186 @@
 @import '../../../styles/variables';
+@import '../../../styles/mixins';
 
 .client-card {
-  background: white;
-  border: 2px solid $border-color;
-  border-radius: $radius-lg;
-  padding: 20px;
-  transition: $transition-base;
+  background: #1e293b;
+  border: 0.125rem solid #334155;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
 
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  // Responsive padding
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 
+  @media (max-width: 480px) {
+    padding: 0.875rem;
+  }
+
+  &:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15);
+  }
+
+  // Variants
   &--master {
     border-color: $warning-color;
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #2d3748 100%);
   }
 
   &--authenticated {
     border-color: $success-color;
   }
 
+  // Header
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 16px;
-  }
+    margin-bottom: 1rem;
+    gap: 1rem;
 
-  &__title {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    h3 {
-      font-size: 20px;
-      font-weight: 700;
-      color: $text-primary;
-      margin: 0;
+    @media (max-width: 480px) {
+      flex-direction: column;
+      gap: 0.75rem;
     }
   }
 
-  &__badges {
+  // Title section
+  &__title {
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0; // Prevents text overflow
 
-  &__actions {
-    display: flex;
-    gap: 8px;
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin: 0;
+      word-break: break-word;
 
-    button {
-      padding: 8px;
-      background: $bg-lighter;
-      border: none;
-      border-radius: $radius-sm;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: $text-secondary;
+      @media (max-width: 768px) {
+        font-size: 1.125rem;
+      }
 
-      &:hover {
-        background: $primary-color;
-        color: white;
-        transform: scale(1.1);
+      @media (max-width: 480px) {
+        font-size: 1rem;
       }
     }
   }
 
+  // Badges container
+  &__badges {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  // Actions
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    @media (max-width: 480px) {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+
+  // Details section
   &__details {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.75rem;
+  }
+
+  // TOTP section
+  &__totp {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #0f172a;
+    border-radius: 0.5rem;
+    border: 0.0625rem solid #1e293b;
+
+    @media (max-width: 480px) {
+      padding: 0.625rem;
+    }
   }
 }
 
-.badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &--master {
-    background: $warning-color;
-    color: #78350f;
-  }
-
-  &--success {
-    background: $success-color;
-    color: white;
-  }
-
-  &--error {
-    background: $error-color;
-    color: white;
-  }
-}
-
+// Detail row
 .detail-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid $border-light;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 0.0625rem solid #334155;
 
   &:last-child {
     border-bottom: none;
   }
 
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.375rem 0;
+  }
+
   &__label {
-    font-size: 13px;
-    color: $text-muted;
+    font-size: 0.875rem;
+    color: #94a3b8;
     font-weight: 600;
+
+    @media (max-width: 480px) {
+      font-size: 0.8125rem;
+    }
   }
 
   &__value {
-    font-size: 13px;
-    color: $text-primary;
+    font-size: 0.875rem;
+    color: #cbd5e1;
     font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+
+    @media (max-width: 480px) {
+      font-size: 0.8125rem;
+      text-align: left;
+    }
+  }
+}
+
+// TOTP styles
+.totp {
+  &__code {
+    font-size: 1.5rem;
+    font-family: 'Courier New', monospace;
+    color: $success-color;
+    font-weight: 700;
+    letter-spacing: 0.125rem;
+    margin-bottom: 0.5rem;
+
+    @media (max-width: 768px) {
+      font-size: 1.375rem;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.25rem;
+    }
+  }
+
+  &__expiry {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+
+    @media (max-width: 480px) {
+      font-size: 0.6875rem;
+    }
   }
 }

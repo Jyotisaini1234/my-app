@@ -1,8 +1,8 @@
 import React from 'react';
 import { Send } from 'lucide-react';
-import { Button } from '../common/Button/Button';
 import { Badge } from '../common/Badge/Badge';
 import { Client } from '../../types/type';
+import { Button } from '@mui/material';
 
 interface OrdersTabProps {
   clients: Client[];
@@ -30,10 +30,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ clients, selectedClients, 
           ))}
         </div>
       </div>
-
-      <Button  icon={<Send size={20} />} onClick={onPlaceOrder} disabled={selectedClients.size === 0}variant="primary" style={{ fontSize: '1.125rem', padding: '1rem 2rem' }} >
-        Place Order for {selectedClients.size} Client{selectedClients.size !== 1 ? 's' : ''}
-      </Button>
+      <Button onClick={onPlaceOrder}  disabled={selectedClients.size === 0}color="primary" variant="contained"startIcon={<Send size={20} />} style={{ fontSize: '1.125rem', padding: '1rem 2rem' }}>Place Order for {selectedClients.size} Client{selectedClients.size !== 1 ? 's' : ''}</Button>
     </div>
   );
 };

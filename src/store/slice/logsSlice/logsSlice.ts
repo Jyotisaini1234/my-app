@@ -1,13 +1,15 @@
+// src/store/slice/logsSlice/logsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction, Draft } from '@reduxjs/toolkit';
 import { logsService } from '../../../api/logsService';
-import { TradeLog, TimelineResponse, LogsResponse } from '../../../types/type';
+import { TradeLog, TimelineResponse } from '../../../types/type';
 import { TimelineFilters } from '../../../types/type';
 
 interface LogsState {
   logs: TradeLog[];
   timeline: TimelineResponse | null;
   loading: boolean;
-  traceLogsData: LogsResponse | null;
+  traceLogsData: any | null;
+  spanLogsData: any | null;
   error: string | null;
 }
 
@@ -15,9 +17,12 @@ const initialState: LogsState = {
   logs: [],
   timeline: null,
   traceLogsData: null,
+  spanLogsData: null,
   loading: false,
   error: null,
 };
+
+// ==================== ASYNC THUNKS ====================
 
 export const fetchLogsByRequest = createAsyncThunk(
   'logs/byRequest',
@@ -29,14 +34,67 @@ export const fetchLogsByRequest = createAsyncThunk(
 export const fetchLogsByTrace = createAsyncThunk(
   'logs/byTrace',
   async ({ traceId, startDate, endDate }: { traceId: string; startDate?: string; endDate?: string }) => {
-    return await logsService.byTrace(traceId, startDate, endDate);
+    const response = await logsService.byTrace(traceId, startDate, endDate);
+    return response;
+  }
+);
+
+export const fetchLogsBySpan = createAsyncThunk(
+  'logs/bySpan',
+  async (spanId: string) => {
+    const response = await logsService.bySpan(spanId);
+    return response;
   }
 );
 
 export const fetchLogsByClient = createAsyncThunk(
   'logs/byClient',
-  async ({ clientCode, startDate, endDate }: { clientCode: string; startDate?: string; endDate?: string }) => {
-    return await logsService.byClient(clientCode, startDate, endDate);
+  async ({ 
+    clientCode, 
+    startDate, 
+    endDate, 
+    hours 
+  }: { 
+    clientCode: string; 
+    startDate?: string; 
+    endDate?: string;
+    hours?: number;
+  }) => {
+    return await logsService.byClient(clientCode, startDate, endDate, hours);
+  }
+);
+
+export const fetchLogsByClientName = createAsyncThunk(
+  'logs/byClientName',
+  async ({ 
+    clientName, 
+    hours, 
+    startDate, 
+    endDate 
+  }: { 
+    clientName: string; 
+    hours?: number; 
+    startDate?: string; 
+    endDate?: string;
+  }) => {
+    return await logsService.byClientName(clientName, hours, startDate, endDate);
+  }
+);
+
+export const fetchLogsByClientGrouped = createAsyncThunk(
+  'logs/byClientGrouped',
+  async ({ 
+    clientCode, 
+    hours, 
+    startDate, 
+    endDate 
+  }: { 
+    clientCode: string; 
+    hours?: number; 
+    startDate?: string; 
+    endDate?: string;
+  }) => {
+    return await logsService.byClientGrouped(clientCode, hours, startDate, endDate);
   }
 );
 
@@ -54,10 +112,35 @@ export const fetchLogsByStatus = createAsyncThunk(
   }
 );
 
+/**
+ * Main timeline/data fetcher - uses /api/logs/data/all endpoint
+ * Supports filters: clientCode, startDate (dd-MM-yyyy), endDate (dd-MM-yyyy), status, action
+ */
 export const fetchTimeline = createAsyncThunk(
-  'logs/data/all',
+  'logs/timeline',
   async (filters?: TimelineFilters) => {
-    return await logsService.timeline(filters);
+    console.log('🚀 Fetching timeline with filters:', filters);
+    return await logsService.getAllData(filters);
+  }
+);
+
+/**
+ * Get request count with optional data
+ */
+export const fetchRequestCount = createAsyncThunk(
+  'logs/requestCount',
+  async ({ 
+    startDate, 
+    endDate, 
+    clientCode, 
+    includeData 
+  }: { 
+    startDate: string; 
+    endDate: string; 
+    clientCode?: string; 
+    includeData?: boolean;
+  }) => {
+    return await logsService.getRequestCount(startDate, endDate, clientCode, includeData);
   }
 );
 
@@ -67,6 +150,8 @@ export const fetchStats = createAsyncThunk(
     return await logsService.stats(endpoint);
   }
 );
+
+// ==================== SLICE ====================
 
 const logsSlice = createSlice({
   name: 'logs',
@@ -79,10 +164,16 @@ const logsSlice = createSlice({
       state.logs = [];
       state.timeline = null;
     },
+    clearSpanLogs: (state) => {
+      state.spanLogsData = null;
+    },
+    clearTraceLogsData: (state) => {
+      state.traceLogsData = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // Timeline cases
+      // ==================== TIMELINE ====================
       .addCase(fetchTimeline.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -90,33 +181,73 @@ const logsSlice = createSlice({
       .addCase(fetchTimeline.fulfilled, (state, action: PayloadAction<TimelineResponse>) => {
         state.loading = false;
         state.timeline = action.payload;
+        console.log('✅ Timeline updated:', action.payload);
       })
       .addCase(fetchTimeline.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch timeline';
+        console.error('❌ Timeline fetch failed:', action.error);
       })
       
-      // Trace logs specific case
+      // ==================== TRACE LOGS ====================
       .addCase(fetchLogsByTrace.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchLogsByTrace.fulfilled, (state, action) => {
         state.loading = false;
-        // Use type assertion to handle Immer's WritableDraft
-        state.traceLogsData = action.payload as Draft<LogsResponse>;
-        if (action.payload?.logs) {
+        state.traceLogsData = action.payload as any;
+        
+        if (action.payload?.logs && Array.isArray(action.payload.logs)) {
           state.logs = action.payload.logs as Draft<TradeLog[]>;
+        } else if (action.payload?.lokiLogs && Array.isArray(action.payload.lokiLogs)) {
+          state.logs = action.payload.lokiLogs as Draft<TradeLog[]>;
+        } else {
+          state.logs = [];
         }
+        console.log('✅ Trace logs updated');
       })
       .addCase(fetchLogsByTrace.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch trace logs';
+        console.error('❌ Trace logs fetch failed:', action.error);
       })
 
-      // Generic matcher for all other fulfilled log actions
+      // ==================== SPAN LOGS ====================
+      .addCase(fetchLogsBySpan.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchLogsBySpan.fulfilled, (state, action) => {
+        state.loading = false;
+        state.spanLogsData = action.payload as any;
+        console.log('✅ Span logs updated');
+      })
+      .addCase(fetchLogsBySpan.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch span logs';
+        console.error('❌ Span logs fetch failed:', action.error);
+      })
+
+      // ==================== REQUEST COUNT ====================
+      .addCase(fetchRequestCount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRequestCount.fulfilled, (state, action) => {
+        state.loading = false;
+        console.log('✅ Request count fetched:', action.payload);
+      })
+      .addCase(fetchRequestCount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch request count';
+        console.error('❌ Request count fetch failed:', action.error);
+      })
+
+      // ==================== GENERIC MATCHERS ====================
       .addMatcher(
-        (action) => action.type.startsWith('logs/') && action.type.endsWith('/fulfilled') && action.type !== 'logs/byTrace/fulfilled' && action.type !== 'logs/timeline/fulfilled',
+        (action) => action.type.startsWith('logs/') && action.type.endsWith('/fulfilled') && 
+                   !['logs/byTrace/fulfilled', 'logs/bySpan/fulfilled', 'logs/timeline/fulfilled', 'logs/requestCount/fulfilled'].includes(action.type),
         (state, action: any) => {
           state.loading = false;
           if (action.payload?.logs) {
@@ -125,18 +256,18 @@ const logsSlice = createSlice({
         }
       )
       
-      // Generic matcher for all pending log actions
       .addMatcher(
-        (action) => action.type.startsWith('logs/') && action.type.endsWith('/pending') && action.type !== 'logs/byTrace/pending' && action.type !== 'logs/timeline/pending',
+        (action) => action.type.startsWith('logs/') && action.type.endsWith('/pending') && 
+                   !['logs/byTrace/pending', 'logs/bySpan/pending', 'logs/timeline/pending', 'logs/requestCount/pending'].includes(action.type),
         (state) => {
           state.loading = true;
           state.error = null;
         }
       )
       
-      // Generic matcher for all rejected log actions
       .addMatcher(
-        (action) => action.type.startsWith('logs/') && action.type.endsWith('/rejected') && action.type !== 'logs/byTrace/rejected' && action.type !== 'logs/timeline/rejected',
+        (action) => action.type.startsWith('logs/') && action.type.endsWith('/rejected') && 
+                   !['logs/byTrace/rejected', 'logs/bySpan/rejected', 'logs/timeline/rejected', 'logs/requestCount/rejected'].includes(action.type),
         (state, action: any) => {
           state.loading = false;
           state.error = action.error?.message || 'Failed to fetch logs';
@@ -145,5 +276,5 @@ const logsSlice = createSlice({
   },
 });
 
-export const { clearError, clearLogs } = logsSlice.actions;
+export const { clearError, clearLogs, clearSpanLogs, clearTraceLogsData } = logsSlice.actions;
 export default logsSlice.reducer;

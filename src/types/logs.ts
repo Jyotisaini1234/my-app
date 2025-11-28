@@ -12,66 +12,37 @@ export interface NewClientData {
   secretKey: string;
   totp: string;
 }
+export interface LokiLog {
+  id?: number;
+  client_code?: string;
+  clientCode?: string;
+  client_name?: string;
+  clientName?: string;
+  trace_id?: string;
+  traceId?: string;
+  request_id?: string;
+  requestId?: string;
+  span_id?: string;
+  spanId?: string;
+  unique_order_id?: string;
+  action?: string;
+  status?: string;
+  created_at?: { $date: string } | string | Date;
+  createdAt?: string | Date;
+  requestTime?: string | Date;
+  timestamp?: number | string | Date;
+  level?: string;
+  message?: string;
+  thread?: string;
+  logger?: string;
+  timestampReadable?: string;
+}
 
-// export interface OrderRequest {
-//   clientcode?: string;
-//   exchange: string;
-//   symboltoken: string;
-//   buyorsell: string;
-//   ordertype: string;
-//   quantity: number;
-//   price?: number;
-//   triggerprice?: number;
-//   producttype?: string;
-// }
-
-// export interface TradeLog {
-//   id: number;
-//   requestId: string;
-//   traceId: string;
-//   endpoint: string;
-//   httpMethod: string;
-//   clientCode: string;
-//   masterClient: string;
-//   replicatedClient: string;
-//   requestTime: string;
-//   responseTime: string;
-//   durationMs: number;
-//   status: string;
-//   statusCode: number;
-//   errorMessage: string;
-//   message: string;
-//   exchange?: string;
-//   symbolToken?: string;
-//   buyOrSell?: string;
-//   orderType?: string;
-//   quantity?: number;
-//   price?: number;
-//   uniqueOrderId?: string;
-// }
-
-// // export interface LogsResponse {
-// //   status: string;
-// //   requestId?: string;
-// //   traceId?: string;
-// //   clientCode?: string;
-// //   count: number;
-// //   logs: TradeLog[];
-// //   lokiLogs?: any[];
-// //   grafanaLokiUrl?: string;
-// // }
-
-
-// // export interface TimelineResponse {
-// //   status: string;
-// //   totalLogs: number;
-// //   filters: Record<string, any>;
-// //   timeline: any[];
-// //   groupedByEndpoint: Record<string, any[]>;
-// //   statistics: {
-// //     successCount: number;
-// //     errorCount: number;
-// //     avgDurationMs: number;
-// //     requestTypeBreakdown: Record<string, number>;
-// //   };
-// // }
+export interface LogsModalProps {
+  traceId: string;
+  lokiLogs: LokiLog[];
+  grafanaUrl?: string;
+  loading: boolean;
+  onClose: () => void;
+  fullData?: any;
+}

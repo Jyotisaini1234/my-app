@@ -1,174 +1,214 @@
-import React from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, ExternalLink, Copy, Check } from 'lucide-react';
 import './LogsModal.scss';
 
-interface LokiLog {
-  timestamp: number;
-  level: string;
-  message: string;
-  thread: string;
-  logger: string;
-  requestId: string;
-  traceId: string;
-  spanId: string;
-  clientCode: string;
-  timestampReadable: string;
-}
-
 interface LogsModalProps {
-  traceId: string;
-  lokiLogs: LokiLog[];
-  grafanaUrl?: string;
-  loading: boolean;
+  id: string;
+  type: 'trace' | 'span';
   onClose: () => void;
+  fullData: any;
+  loading?: boolean;
 }
 
-export const LogsModal: React.FC<LogsModalProps> = ({traceId,lokiLogs,grafanaUrl,loading,onClose}) => {
-  const getLevelClass = (level: string): string => {
-    const levelUpper = level.toUpperCase();
-    switch (levelUpper) {
-      case 'ERROR':
-        return 'error';
-      case 'WARN':
-        return 'warn';
-      case 'INFO':
-        return 'info';
-      case 'DEBUG':
-        return 'debug';
-      default:
-        return 'default';
-    }
-  };
-
-  const formatTimestamp = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3
-    });
-  };
-
-  // Handle ESC key press
-  React.useEffect(() => {
+export const LogsModal: React.FC<LogsModalProps> = ({id,type,onClose, fullData,loading}) => {
+  const [copied, setCopied] = useState(false);
+  
+  useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
+  const handleCopy = () => {
+    const jsonString = JSON.stringify(fullData, null, 2);
+    navigator.clipboard.writeText(jsonString);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const jsonString = fullData ? JSON.stringify(fullData, null, 2) : '{}';
+  
+  const getTitle = () => {
+    if (type === 'trace') return 'Trade Response JSON';
+    return ' Motilal Oswal Response JSON';
+  };
+
+  const getIdLabel = () => {
+    if (type === 'trace') return 'TraceID';
+    return 'SpanID';
+  };
+
+  const renderJsonWithHighlighting = (jsonStr: string) => {
+    return jsonStr.split('\n').map((line, i) => {
+      let coloredLine = line;
+      
+      // Keys (in quotes)
+      coloredLine = coloredLine.replace(
+        /"([^"]+)":/g, 
+        '<span style="color: #38bdf8">"$1"</span>:'
+      );
+      
+      // String values
+      coloredLine = coloredLine.replace(
+        /: "([^"]*)"/g,
+        ': <span style="color: #a3e635">"$1"</span>'
+      );
+      
+      // Numbers
+      coloredLine = coloredLine.replace(
+        /: (\d+\.?\d*)/g,
+        ': <span style="color: #f472b6">$1</span>'
+      );
+      
+      // Booleans
+      coloredLine = coloredLine.replace(
+        /: (true|false)/g,
+        ': <span style="color: #fbbf24">$1</span>'
+      );
+      
+      // null
+      coloredLine = coloredLine.replace(
+        /: null/g,
+        ': <span style="color: #94a3b8">null</span>'
+      );
+      
+      return (
+        <div key={i} dangerouslySetInnerHTML={{ __html: coloredLine }}/>
+      );
+    });
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+    <div className="logs-modal-overlay" onClick={onClose}>
+      <div className="logs-modal-container" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="modal-header">
-          <div className="header-content">
-            <h2 className="title">Loki Trace Logs</h2>
-            <div className="subtitle">
-              <span>Trace ID: {traceId}</span>
-              {grafanaUrl && (
-                <a href={grafanaUrl} target="_blank" rel="noopener noreferrer" className="grafana-link" >
-                  <ExternalLink size={14} />
-                  View in Grafana
+        <div className="logs-modal-header">
+          <div className="header-info">
+            <h2 className="modal-title">{getTitle()}</h2>
+            <div className="modal-subtitle">
+              <span className="id-label">
+                {getIdLabel()}: <strong>
+                  {id.length > 16 ? `${id.substring(0, 16)}...` : id}
+                </strong>
+              </span>
+              
+              {type === 'trace' && fullData?.masterClientCode && (
+                <span className="master-label">
+                  Master: <strong>{fullData.masterClientCode}</strong>
+                </span>
+              )}
+              
+              {fullData?.status && (
+                <span className="status-label">
+                  Status: <strong className={fullData.status === 'SUCCESS' ? 'success' : 'error'}>
+                    {fullData.status}
+                  </strong>
+                </span>
+              )}
+              
+              {type === 'trace' && fullData?.grafanaUrl && (
+                <a href={fullData.grafanaUrl} target="_blank" rel="noopener noreferrer"className="grafana-link" >
+                  <ExternalLink size={12} /> Grafana
                 </a>
               )}
             </div>
           </div>
-          <button className="close-button" onClick={onClose}>
-            <X size={24} />
-          </button>
+          
+          <div className="header-actions">
+            <button onClick={handleCopy} className={`copy-button ${copied ? 'copied' : ''}`}  >
+              {copied ? (
+                <>
+                  <Check size={16} />
+                  <span className="copy-text">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={16} />
+                  <span className="copy-text">Copy JSON</span>
+                </>
+              )}
+            </button>
+            
+            <button onClick={onClose} className="close-button">
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Logs Content */}
-        <div className="logs-content">
+        {/* Content */}
+        <div className="logs-modal-content">
           {loading ? (
             <div className="loading-state">
-              <div className="spinner">⏳</div>
-              <div className="loading-text">Loading trace logs...</div>
+              <div className="loading-spinner">⏳</div>
+              <div className="loading-text">Loading response data...</div>
             </div>
-          ) : lokiLogs.length === 0 ? (
+          ) : !fullData ? (
             <div className="empty-state">
-              <p>No Loki logs found for this trace</p>
+              <div className="empty-icon">📭</div>
+              <div className="empty-title">No data available</div>
+              <div className="empty-subtitle">
+                {getIdLabel()}: {id}
+              </div>
             </div>
           ) : (
-            <div className="logs-list">
-              {lokiLogs.map((log, index) => (
-                <div key={index} className={`log-item level-${log.level.toLowerCase()}`}>
-                  {/* Log Header */}
-                  <div className="log-header">
-                    <div className="log-header-left">
-                      <span className={`level-badge ${getLevelClass(log.level)}`}>
-                        {log.level}
-                      </span>
-                      {log.clientCode && (
-                        <span className="client-code">
-                          Client: <strong>{log.clientCode}</strong>
-                        </span>
-                      )}
-                    </div>
-                    <div className="timestamp">
-                      {formatTimestamp(log.timestamp)}
-                    </div>
-                  </div>
-
-                  {/* Log Message */}
-                  <div className="log-message">{log.message}</div>
-
-                  {/* Additional Info */}
-                  {(log.thread || log.logger || log.requestId || log.spanId) && (
-                    <div className="log-additional-info">
-                      {log.thread && (
-                        <div className="info-item">
-                          <span className="info-label">Thread: </span>
-                          <span className="info-value">{log.thread}</span>
-                        </div>
-                      )}
-                      {log.logger && (
-                        <div className="info-item">
-                          <span className="info-label">Logger: </span>
-                          <span className="info-value">{log.logger}</span>
-                        </div>
-                      )}
-                      {log.requestId && (
-                        <div className="info-item">
-                          <span className="info-label">Request ID: </span>
-                          <span className="info-value request-id">
-                            {log.requestId}
-                          </span>
-                        </div>
-                      )}
-                      {log.spanId && (
-                        <div className="info-item">
-                          <span className="info-label">Span ID: </span>
-                          <span className="info-value span-id">
-                            {log.spanId}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            <pre className="json-pre">
+              <code className="json-code">
+                {renderJsonWithHighlighting(jsonString)}
+              </code>
+            </pre>
           )}
         </div>
 
-        {/* Footer with count */}
-        {!loading && lokiLogs.length > 0 && (
-          <div className="modal-footer">
-            <span>
-              Total Logs: <strong>{lokiLogs.length}</strong>
-            </span>
-            <span className="footer-hint">
-              Press ESC or click outside to close
-            </span>
+        {/* Footer */}
+        {!loading && fullData && (
+          <div className="logs-modal-footer">
+            <div className="footer-stats">
+              {type === 'trace' && fullData.totalLogs !== undefined && (
+                <span className="stat-item">
+                  Total Logs: <strong>{fullData.totalLogs}</strong>
+                </span>
+              )}
+              
+              {type === 'trace' && fullData.durationReadable && (
+                <span className="stat-item">
+                  Duration: <strong>{fullData.durationReadable}</strong>
+                </span>
+              )}
+              
+              {type === 'trace' && fullData.originalResponse?.totalClients !== undefined && (
+                <span className="stat-item">
+                  Clients: <strong>{fullData.originalResponse.totalClients}</strong>
+                </span>
+              )}
+              
+              {type === 'trace' && fullData.originalResponse?.successCount !== undefined && (
+                <span className="stat-item success">
+                  ✓ {fullData.originalResponse.successCount}
+                </span>
+              )}
+              
+              {type === 'trace' && fullData.originalResponse?.failedCount !== undefined && (
+                <span className="stat-item error">
+                  ✗ {fullData.originalResponse.failedCount}
+                </span>
+              )}
+              
+              {type === 'span' && fullData.clientCode && (
+                <span className="stat-item">
+                  Client: <strong>{fullData.clientCode}</strong>
+                </span>
+              )}
+              
+              {type === 'span' && fullData.orderStatus && (
+                <span className="stat-item">
+                  Order Status: <strong>{fullData.orderStatus}</strong>
+                </span>
+              )}
+            </div>
+            
+            <span className="footer-hint">ESC to close</span>
           </div>
         )}
       </div>
