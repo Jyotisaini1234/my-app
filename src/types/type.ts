@@ -133,3 +133,61 @@ export interface TimelineResponse {
     totalCount: number;
   };
 }
+
+// Types
+export interface Client {
+  client_code: string;
+  is_master: boolean;
+  is_authenticated: boolean;
+}
+
+export interface SymbolData {
+  exchange: string;
+  scripcode: number;
+  scripfullname: string;
+  scripshortname: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+
+export interface OrderModalProps {
+  selectedClients: string[];
+  clients: Record<string, Client>;
+  onClose: () => void;
+  onSuccess: (log: any) => void;
+}
+export interface ApiResponse<T = any> {
+  status: string;
+  data?: T;
+  message?: string;
+  results?: any;
+  clients?: T;
+  [key: string]: any;
+}
+
+export interface SymbolSearchResponse {
+  status: string;
+  data: Array<{
+    exchange: string;
+    scripcode: number;
+    scripfullname: string;
+    scripshortname: string;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    date: string;
+  }>;
+}
+
+export interface OrderResponse {
+  status: string;
+  data?: any;
+  results?: Record<string, any>;
+  message?: string;
+}

@@ -1,6 +1,6 @@
 import { LogsResponse, TimelineResponse, TradeLog } from '../types/type';
 import { TimelineFilters } from '../types/type';
-import { API_CONFIG, ENDPOINTS } from './config';
+import { API_CONFIG, ENDPOINTS } from '../utils/ApiConstants';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
@@ -35,9 +35,7 @@ export const logsService = {
     return request<LogsResponse>(`${API_CONFIG.TRADE}${ENDPOINTS.LOGS_CLIENT(clientCode)}${query}`);
   },
   
-  /**
-   * Get logs by client name (e.g., "SANGEETA ARORA")
-   */
+
   byClientName: (clientName: string, hours?: number, startDate?: string, endDate?: string) => {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
@@ -47,9 +45,7 @@ export const logsService = {
     return request<LogsResponse>(`${API_CONFIG.TRADE}/api/logs/client-name/${encodeURIComponent(clientName)}${query}`);
   },
   
-  /**
-   * Get logs grouped by master and child clients
-   */
+
   byClientGrouped: (clientCode: string, hours?: number, startDate?: string, endDate?: string) => {
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);
@@ -58,8 +54,6 @@ export const logsService = {
     const query = params.toString() ? `?${params}` : '';
     return request<any>(`${API_CONFIG.TRADE}/api/logs/client/${clientCode}/grouped${query}`);
   },
-
-  // ==================== DATA ENDPOINTS (NEW) ====================
 
   getAllData: async (filters?: {
     startDate?: string;
@@ -104,10 +98,8 @@ export const logsService = {
       const result = await response.json();
       console.log('📦 API Response:', result);
       
-      // Backend returns: { status, totalRecords, data }
       let allLogs: TradeLog[] = result.data || [];
       
-      // Sort by date (newest first)
       allLogs.sort((a, b) => {
         if (!a.createdAt && !a.requestTime) return 1;
         if (!b.createdAt && !b.requestTime) return -1;
@@ -116,7 +108,6 @@ export const logsService = {
         return dateB.getTime() - dateA.getTime();
       });
       
-      // Calculate statistics
       const successCount = allLogs.filter(log => 
         log.status?.toUpperCase() === 'SUCCESS'
       ).length;
@@ -170,8 +161,6 @@ export const logsService = {
     return request<any>(url);
   },
 
-  // ==================== LEGACY ENDPOINTS ====================
-  
   byRequest: (requestId: string) =>
     request<LogsResponse>(`${API_CONFIG.TRADE}${ENDPOINTS.LOGS_REQUEST(requestId)}`),
   

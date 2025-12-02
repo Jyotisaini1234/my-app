@@ -2,7 +2,9 @@
 @import '../../../styles/mixins';
 
 .logs-tab {
+  background: $bg-white;
   padding: 1.5rem;
+  border-radius: 0.5rem;
 
   @media (max-width: 1200px) {
     padding: 1.25rem;
@@ -17,7 +19,6 @@
   }
 }
 
-// Header Section
 .logs-header {
   @include flex-between;
   margin-bottom: 1.5rem;
@@ -89,7 +90,6 @@
   }
 }
 
-// Search Section
 .search-section {
   background: $bg-white;
   border: 0.125rem solid $border-color;
@@ -386,6 +386,7 @@
 }
 
 .log-card {
+  background: $bg-white;
   @include card;
   padding: 1.25rem;
   transition: all 0.3s ease;

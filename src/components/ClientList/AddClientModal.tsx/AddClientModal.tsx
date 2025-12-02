@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { api } from '../../../services/api';
-// import { Button } from '../../common/Button/Button';
-
 import { FormGroup } from '../../common/FormGroup/FormGroup';
 import { Modal } from '../../common/Modal/Modal';
 import { Button } from '@mui/material';
+import { clientService } from '../../../api/clientService';
 
 
 interface AddClientModalProps {
@@ -17,7 +15,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ onClose, onSucce
 
   const handleSubmit = async () => {
     try {
-      await api.addClient(formData);
+      await clientService.add(formData);
       onSuccess();
       onClose();
     } catch (err) {

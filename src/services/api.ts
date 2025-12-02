@@ -1,82 +1,97 @@
-import { OrderRequest } from "../types/type";
-import { API_BASE_URL_8080, API_BASE_URL_8081 } from "../utils/ApiConstants";
+import { NewClientData, OrderRequest, Client, ApiResponse, OrderResponse, SymbolSearchResponse } from "../types/type";
+import { API_BASE_URL_8080, API_BASE_URL_8081, API_ENDPOINTS } from "../utils/ApiConstants";
 
 
-export const api = {
-  fetchClients: async () => {
-    const res = await fetch(`${API_BASE_URL_8080}/client/list`);
-    return res.json();
-  },
-  
-  authenticateClient: async (clientCode: string) => {
-    const res = await fetch(`${API_BASE_URL_8080}/client/authenticate/${clientCode}`, {
-      method: 'POST'
+async function request<T = any>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options);
+  if (!res.ok) throw new Error(`API Error: ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+
+export const brokerApi = {
+  searchSymbols: (clientCode: string, exchange: string, query?: string) => {
+    const params = new URLSearchParams({
+      clientCode,
+      exchange,
+      ...(query && { query })
     });
-    return res.json();
+    
+    return request<SymbolSearchResponse>(
+      `${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.SEARCH_SYMBOLS}?${params}`,
+      {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      }
+    );
   },
-  
-  authenticateAll: async () => {
-    const res = await fetch(`${API_BASE_URL_8080}/client/authenticate-all`, {
-      method: 'POST'
-    });
-    return res.json();
-  },
-  
-  deleteClient: async (clientCode: string) => {
-    const res = await fetch(`${API_BASE_URL_8080}/client/delete/${clientCode}`, {
-      method: 'DELETE'
-    });
-    return res.json();
-  },
-  
-  addClient: async (data: any) => {
-    const res = await fetch(`${API_BASE_URL_8080}/client/add`, {
+
+  getProfile: (clientCode: string) =>
+    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PROFILE(clientCode)}`),
+
+  healthCheck: () =>
+    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.HEALTH}`),
+
+  placeOrder: (clientCode: string, orderData: any) =>
+    request<OrderResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Client-Code': clientCode
+      },
+      body: JSON.stringify(orderData)
+    }),
+
+  cancelOrder: (clientCode: string, uniqueOrderId: string) =>
+    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.CANCEL_ORDER}`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Client-Code': clientCode
+      },
+      body: JSON.stringify({ uniqueorderid: uniqueOrderId })
+    }),
+};
+
+export const tradeService = {
+  placeOrder: (orderData: any) =>
+    request<OrderResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    }),
+
+  placeSingleOrder: (clientCode: string, orderData: any) =>
+    request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Client-Code': clientCode
+      },
+      body: JSON.stringify(orderData)
+    }),
+
+  cancelOrder: (uniqueOrderId: string) =>
+    request<ApiResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.CANCEL_ORDER}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uniqueorderid: uniqueOrderId })
+    }),
+
+  cancelSingleOrder: (data: { clientcode: string; uniqueorderid: string }) =>
+    request<ApiResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.CANCEL_SINGLE_ORDER}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    });
-    return res.json();
-  },
-
-  placeSingleOrder: async (clientCode: string, orderReq: OrderRequest) => {
-    const res = await fetch(`${API_BASE_URL_8081}/place-order`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'X-Client-Code': clientCode
-      },
-      body: JSON.stringify(orderReq)
-    });
-    return res.json();
-  },
-
-  placeMultipleOrder: async (orderReq: OrderRequest) => {
-    const res = await fetch(`${API_BASE_URL_8081}/place-order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderReq)
-    });
-    return res.json();
-  },
-
-  cancelSingleOrder: async (clientCode: string, uniqueOrderId: string) => {
-    const res = await fetch(`${API_BASE_URL_8080}/broker/cancel-order`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'X-Client-Code': clientCode
-      },
-      body: JSON.stringify({ uniqueorderid: uniqueOrderId })
-    });
-    return res.json();
-  },
-
-  cancelMultipleOrder: async (uniqueOrderId: string) => {
-    const res = await fetch(`${API_BASE_URL_8081}/trade/cancel-order-all`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uniqueorderid: uniqueOrderId })
-    });
-    return res.json();
-  }
+    }),
 };
+
+
+export const api = {
+  ...brokerApi,
+  ...tradeService,
+};
+
+export const apiService = api;
+
+export type { ApiResponse, SymbolSearchResponse, OrderResponse };

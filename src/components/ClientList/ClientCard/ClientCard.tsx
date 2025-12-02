@@ -11,11 +11,7 @@ interface ClientCardProps {
   onDelete: () => void;
 }
 
-export const ClientCard: React.FC<ClientCardProps> = ({ 
-  client, 
-  onAuth, 
-  onDelete 
-}) => {
+export const ClientCard: React.FC<ClientCardProps> = ({ client, onAuth,  onDelete }) => {
   return (
     <div className={`client-card ${client.is_master ? 'client-card--master' : ''} ${client.is_authenticated ? 'client-card--authenticated' : ''}`}>
       <div className="client-card__header">
@@ -35,16 +31,8 @@ export const ClientCard: React.FC<ClientCardProps> = ({
         </div>
 
         <div className="client-card__actions">
-          <IconButton 
-            icon={<Power size={16} />} 
-            onClick={onAuth} 
-            title="Authenticate" 
-          />
-          <IconButton 
-            icon={<Trash2 size={16} />} 
-            onClick={onDelete} 
-            title="Delete" 
-          />
+          <IconButton  icon={<Power size={16} />}  onClick={onAuth}  title="Authenticate"  />
+          <IconButton  icon={<Trash2 size={16} />}   onClick={onDelete}   title="Delete" />
         </div>
       </div>
 

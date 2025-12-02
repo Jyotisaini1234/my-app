@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { OrderRequest } from '../../../types/type';
-import { tradeService } from '../../../api/tradeService';
+import { tradeService } from '../../../services/api';
 
 interface TradeState {
   loading: boolean;

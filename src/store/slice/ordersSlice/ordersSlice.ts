@@ -1,7 +1,7 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { apiService } from '../../../services/api.service';
 import { OrderRequest } from '../../../types/type';
+import { apiService } from '../../../services/api';
 
 
 interface OrdersState {
@@ -18,8 +18,10 @@ export const placeOrder = createAsyncThunk('orders/place',
   async (data: OrderRequest) => apiService.placeOrder(data)
 );
 export const placeSingleOrder = createAsyncThunk('orders/placeSingle', 
-  async (data: OrderRequest) => apiService.placeSingleOrder(data)
+  async ({ clientCode, data }: { clientCode: string; data: OrderRequest }) => 
+    apiService.placeSingleOrder(clientCode, data)
 );
+
 export const cancelOrder = createAsyncThunk('orders/cancel', 
   async (uniqueorderid: string) => apiService.cancelOrder(uniqueorderid)
 );

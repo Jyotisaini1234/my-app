@@ -24,31 +24,8 @@ export const LogsTab: React.FC = () => {
   const [loadingData, setLoadingData] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [requestTypes, setRequestTypes] = useState<string[]>([]);
-  const [filters, setFilters] = useState<SearchFilters>({
-    clientCode: '',
-    startDate: '',
-    endDate: '',
-    status: '',
-    action: ''
-  });
+  const [filters, setFilters] = useState<SearchFilters>({clientCode: '',startDate: '', endDate: '',   status: '', action: ''});
 
-  // Get today's date in dd-MM-yyyy format
-  const getTodayDate = () => {
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  };
-
-  // Convert dd-MM-yyyy to yyyy-MM-dd for input field
-  const convertToInputFormat = (ddmmyyyy: string) => {
-    if (!ddmmyyyy) return '';
-    const [dd, mm, yyyy] = ddmmyyyy.split('-');
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  // Convert yyyy-MM-dd to dd-MM-yyyy for API
   const convertToAPIFormat = (yyyymmdd: string) => {
     if (!yyyymmdd) return '';
     const [yyyy, mm, dd] = yyyymmdd.split('-');
@@ -80,7 +57,6 @@ export const LogsTab: React.FC = () => {
       console.warn('Invalid traceId');
       return;
     }
-    console.log('🔍 Clicking trace:', traceId);
     setSelectedId(traceId);
     setModalType('trace');
     setLoadingData(true);
@@ -99,13 +75,11 @@ export const LogsTab: React.FC = () => {
       console.warn('Invalid spanId');
       return;
     }
-    console.log('🔍 Clicking span:', spanId);
     setSelectedId(spanId);
     setModalType('span');
     setLoadingData(true);
     try {
       const result = await dispatch(fetchLogsBySpan(spanId)).unwrap();
-      console.log('✅ Span logs fetched:', result);
     } catch (error) {
       console.error('❌ Error fetching span logs:', error);
     } finally {
@@ -119,11 +93,9 @@ export const LogsTab: React.FC = () => {
   };
 
 const handleSearch = () => {
-    // Convert dates to dd-MM-yyyy format for API
     const apiStartDate = filters.startDate ? convertToAPIFormat(filters.startDate) : undefined;
     const apiEndDate = filters.endDate ? convertToAPIFormat(filters.endDate) : undefined;
 
-    // Build filters object with only non-empty values
     const timelineFilters: TimelineFilters = {
       limit: 100,
       ...(filters.clientCode && { clientCode: filters.clientCode.trim() }),
@@ -133,32 +105,18 @@ const handleSearch = () => {
       ...(filters.action && { action: filters.action }),
     };
 
-    console.log('🔍 Searching with filters:', {
-      original: filters,
-      apiFormat: timelineFilters,
-      queryString: new URLSearchParams(Object.entries(timelineFilters).map(([k, v]) => [k, String(v)])).toString()
-    });
     
     dispatch(fetchTimeline(timelineFilters));
   };
 
   const handleReset = () => {
-    setFilters({
-      clientCode: '',
-      startDate: '',
-      endDate: '',
-      status: '',
-      action: ''
-    });
-    console.log('🔄 Resetting filters - fetching all logs');
+    setFilters({ clientCode: '', startDate: '',endDate: '',status: '',action: '' });
     dispatch(fetchTimeline());
   };
 
   const handleFilterChange = (field: keyof SearchFilters, value: string) => {
     setFilters(prev => {
       const updated = { ...prev, [field]: value };
-      
-      // Auto-validation: if end date is before start date, clear end date
       if (field === 'startDate' && prev.endDate && value > prev.endDate) {
         updated.endDate = '';
         console.warn('⚠️ End date cleared as it was before start date');
@@ -285,47 +243,21 @@ const handleSearch = () => {
 
         {showFilters && (
           <div className="filters-container">
-            {/* Quick Date Filters */}
-            {/* <div className="quick-filters">
-              <span className="quick-label">Quick Date Range:</span>
-              <button className="quick-btn" onClick={() => handleQuickDateFilter(1)}>
-                Today
-              </button>
-              <button className="quick-btn" onClick={() => handleQuickDateFilter(7)}>
-                Last 7 Days
-              </button>
-              <button className="quick-btn" onClick={() => handleQuickDateFilter(30)}>
-                Last 30 Days
-              </button>
-              <button className="quick-btn" onClick={() => handleQuickDateFilter(90)}>
-                Last 90 Days
-              </button>
-            </div> */}
 
             <div className="filters-grid">
               <div className="filter-field">
                 <label>Client Code</label>
-                <input
-                  type="text"
-                  placeholder="e.g., SOAR1439"
-                  value={filters.clientCode}
-                  onChange={(e) => handleFilterChange('clientCode', e.target.value)}
-                />
+                <input  type="text"  placeholder="e.g., SOAR1439"  value={filters.clientCode} onChange={(e) => handleFilterChange('clientCode', e.target.value)} />
               </div>
 
               <div className="filter-field">
                 <label>
                   <Calendar size={14} /> Start Date
                 </label>
-                <input
-                  type="date"
-                  value={filters.startDate}
-                  max={filters.endDate || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                />
+                <input type="date" value={filters.startDate}max={filters.endDate || new Date().toISOString().split('T')[0]}   onChange={(e) => handleFilterChange('startDate', e.target.value)} />
                 {filters.startDate && (
                   <small className="date-hint">
-                    📅 {convertToAPIFormat(filters.startDate)}
+                    {convertToAPIFormat(filters.startDate)}
                   </small>
                 )}
               </div>
@@ -334,27 +266,17 @@ const handleSearch = () => {
                 <label>
                   <Calendar size={14} /> End Date
                 </label>
-                <input
-                  type="date"
-                  value={filters.endDate}
-                  min={filters.startDate}
-                  max={new Date().toISOString().split('T')[0]}
-                  onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                  disabled={!filters.startDate}
-                />
+                <input type="date" value={filters.endDate} min={filters.startDate}max={new Date().toISOString().split('T')[0]} onChange={(e) => handleFilterChange('endDate', e.target.value)} disabled={!filters.startDate}/>
                 {filters.endDate && (
                   <small className="date-hint">
-                    📅 {convertToAPIFormat(filters.endDate)}
+                  {convertToAPIFormat(filters.endDate)}
                   </small>
                 )}
               </div>
 
               <div className="filter-field">
                 <label>Status</label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                >
+                <select value={filters.status} onChange={(e) => handleFilterChange('status', e.target.value)} >
                   <option value="">All Status</option>
                   <option value="SUCCESS">✅ Success</option>
                   <option value="ERROR">❌ Error</option>
@@ -365,10 +287,7 @@ const handleSearch = () => {
 
               <div className="filter-field">
                 <label>Action Type</label>
-                <select
-                  value={filters.action}
-                  onChange={(e) => handleFilterChange('action', e.target.value)}
-                >
+                <select value={filters.action} onChange={(e) => handleFilterChange('action', e.target.value)} >
                   <option value="">All Actions</option>
                   {requestTypes.map(type => (
                     <option key={type} value={type}>{type}</option>
@@ -431,9 +350,7 @@ const handleSearch = () => {
         <div className="empty-state">
           <p className="empty-title">📭 No trade logs found</p>
           <p className="empty-subtitle">
-            {hasActiveFilters()
-              ? '🔍 Try adjusting your filters or clearing them'
-              : 'Logs will appear here once trades are executed'}
+            {hasActiveFilters() ? '🔍 Try adjusting your filters or clearing them' : 'Logs will appear here once trades are executed'}
           </p>
           {hasActiveFilters() && (
             <button className="reset-empty-btn" onClick={handleReset}>
@@ -464,12 +381,7 @@ const handleSearch = () => {
                     <div
                       className={`field-value trace-id ${(log.traceId || log.trace_id) ? 'clickable' : ''}`}
                       onClick={() => (log.traceId || log.trace_id) && handleTraceClick(log.traceId || log.trace_id)}
-                      style={{
-                        cursor: (log.traceId || log.trace_id) ? 'pointer' : 'default',
-                        opacity: (log.traceId || log.trace_id) ? 1 : 0.5
-                      }}
-                      title={log.traceId || log.trace_id || 'N/A'}
-                    >
+                      style={{ cursor: (log.traceId || log.trace_id) ? 'pointer' : 'default', opacity: (log.traceId || log.trace_id) ? 1 : 0.5 }} title={log.traceId || log.trace_id || 'N/A'} >
                       {getTraceIdDisplay(log.traceId || log.trace_id)}
                     </div>
                   </div>
@@ -479,12 +391,7 @@ const handleSearch = () => {
                     <div
                       className={`field-value span-id ${(log.spanId || log.span_id) ? 'clickable' : ''}`}
                       onClick={() => (log.spanId || log.span_id) && handleSpanClick(log.spanId || log.span_id)}
-                      style={{
-                        cursor: (log.spanId || log.span_id) ? 'pointer' : 'default',
-                        opacity: (log.spanId || log.span_id) ? 1 : 0.5
-                      }}
-                      title={log.spanId || log.span_id || 'N/A'}
-                    >
+                      style={{ cursor: (log.spanId || log.span_id) ? 'pointer' : 'default', opacity: (log.spanId || log.span_id) ? 1 : 0.5}} title={log.spanId || log.span_id || 'N/A'}   >
                       {getSpanIdDisplay(log.spanId || log.span_id)}
                     </div>
                   </div>
@@ -492,14 +399,7 @@ const handleSearch = () => {
                   <div className="log-field">
                     <div className="field-label">STATUS</div>
                     <div className="field-value">
-                      <span
-                        className={`status-badge ${(log.status || '').toLowerCase()}`}
-                        style={{
-                          background: getStatusColor(log.status) + '20',
-                          color: getStatusColor(log.status),
-                          borderColor: getStatusColor(log.status)
-                        }}
-                      >
+                      <span className={`status-badge ${(log.status || '').toLowerCase()}`}style={{ background: getStatusColor(log.status) + '20', color: getStatusColor(log.status), borderColor: getStatusColor(log.status)  }}>
                         {log.status || 'UNKNOWN'}
                       </span>
                     </div>
@@ -519,13 +419,7 @@ const handleSearch = () => {
       )}
 
       {selectedId && modalType && (
-        <LogsModal
-          id={selectedId}
-          type={modalType}
-          fullData={modalType === 'trace' ? traceLogsData : spanLogsData}
-          loading={loadingData}
-          onClose={handleCloseModal}
-        />
+        <LogsModal id={selectedId} type={modalType}  fullData={modalType === 'trace' ? traceLogsData : spanLogsData}loading={loadingData}  onClose={handleCloseModal}/>
       )}
     </div>
   );

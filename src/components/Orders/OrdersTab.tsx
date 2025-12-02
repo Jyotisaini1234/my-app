@@ -17,10 +17,10 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ clients, selectedClients, 
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Select Clients for Order</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color:'white' }}>Select Clients for Order</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
           {authenticatedClients.map((client) => (
-            <label  key={client.client_code} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: selectedClients.has(client.client_code) ? '#1e40af' : '#1e293b',border: `2px solid ${selectedClients.has(client.client_code) ? '#3b82f6' : '#334155'}`,borderRadius: '0.5rem',  cursor: 'pointer',transition: 'all 0.2s' }}>
+            <label  key={client.client_code} style={{color:'white', display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem', background: selectedClients.has(client.client_code) ? '#1e40af' : '#1e293b',border: `2px solid ${selectedClients.has(client.client_code) ? '#3b82f6' : '#334155'}`,borderRadius: '0.5rem',  cursor: 'pointer',transition: 'all 0.2s' }}>
               <input type="checkbox" checked={selectedClients.has(client.client_code)} onChange={() => onToggleClient(client.client_code)} style={{ width: '18px', height: '18px', cursor: 'pointer' }}/>
               <div>
                 <div style={{ fontWeight: 'bold' }}>{client.client_code}</div>
@@ -30,7 +30,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({ clients, selectedClients, 
           ))}
         </div>
       </div>
-      <Button onClick={onPlaceOrder}  disabled={selectedClients.size === 0}color="primary" variant="contained"startIcon={<Send size={20} />} style={{ fontSize: '1.125rem', padding: '1rem 2rem' }}>Place Order for {selectedClients.size} Client{selectedClients.size !== 1 ? 's' : ''}</Button>
+      <Button onClick={onPlaceOrder}  disabled={selectedClients.size === 0}color="primary" variant="contained"startIcon={<Send size={20} />} style={{ fontSize: '1.125rem', padding: '1rem 2rem' ,color:'white',border:'1px solid grey'}}>Place Order for {selectedClients.size} Client{selectedClients.size !== 1 ? 's' : ''}</Button>
     </div>
   );
 };

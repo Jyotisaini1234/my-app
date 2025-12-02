@@ -1,5 +1,5 @@
 import { Client, NewClientData } from '../types/type';
-import { API_CONFIG, ENDPOINTS } from './config';
+import { API_CONFIG, ENDPOINTS } from '../utils/ApiConstants';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
