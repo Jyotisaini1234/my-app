@@ -1,0 +1,144 @@
+@import '../../styles/variables';
+
+.trade-history {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: $text-primary;
+    }
+  }
+
+  &__filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: $text-muted;
+      text-transform: uppercase;
+    }
+
+    input, select {
+      padding: 7px 10px;
+      border: 1.5px solid $border;
+      border-radius: $radius-sm;
+      font-size: 13px;
+      color: $text-primary;
+      background: $bg-page;
+      outline: none;
+
+      &:focus { border-color: $primary; }
+    }
+
+    .filter-sep {
+      height: 24px;
+      width: 1px;
+      background: $border;
+    }
+  }
+
+  &__table-wrap {
+    background: $bg-card;
+    border: 1px solid $border;
+    border-radius: $radius-md;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: $bg-page;
+      border-bottom: 1.5px solid $border;
+
+      th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: $text-muted;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid $border-light;
+      transition: $transition;
+
+      &:last-child { border-bottom: none; }
+      &:hover { background: rgba($primary, 0.02); }
+    }
+
+    td {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: $text-primary;
+      vertical-align: middle;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: $text-muted;
+  }
+}
+
+.trade-id {
+  font-family: $font-mono;
+  font-size: 12px;
+  color: $info;
+  font-weight: 600;
+}
+
+.order-type-buy  { color: $success; font-weight: 700; }
+.order-type-sell { color: $error;   font-weight: 700; }
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+
+  &--estimated  { background: rgba($warning, 0.12); color: darken($warning, 15%); }
+  &--executed   { background: $success-bg; color: $success; }
+  &--executing  { background: rgba($info, 0.12); color: $info; }
+  &--failed     { background: $error-bg;   color: $error; }
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: $radius-sm;
+  background: $bg-page;
+  border: 1px solid $border;
+  color: $text-secondary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover { background: $primary; color: white; border-color: $primary; }
+}

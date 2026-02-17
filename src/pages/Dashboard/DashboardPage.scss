@@ -1,0 +1,251 @@
+@import '../../styles/variables';
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+
+    @media (max-width: 1100px) { grid-template-columns: 1fr; }
+  }
+}
+
+.stat-card {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  transition: $transition;
+
+  &:hover {
+    box-shadow: $shadow-card;
+    transform: translateY(-1px);
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__value {
+    font-size: 28px;
+    font-weight: 800;
+    color: $text-primary;
+    line-height: 1;
+  }
+
+  &__change {
+    font-size: 12px;
+    color: $success;
+    font-weight: 500;
+
+    &--down { color: $error; }
+  }
+
+  &__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: $radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &--blue    { background: rgba($info, 0.12);    color: $info; }
+    &--green   { background: $success-bg;          color: $success; }
+    &--orange  { background: rgba($accent, 0.12);  color: $accent; }
+    &--purple  { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+  }
+}
+
+.quick-actions {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  &__head {
+    padding: 16px 20px;
+    border-bottom: 1px solid $border;
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: $text-primary;
+    }
+  }
+
+  &__grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  &__btn {
+    padding: 14px;
+    border-radius: $radius-sm;
+    border: 1.5px solid $border;
+    background: $bg-page;
+    cursor: pointer;
+    text-align: left;
+    transition: $transition;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &:hover {
+      border-color: $primary;
+      background: rgba($primary, 0.04);
+
+      .quick-actions__btn-icon { background: $primary; color: white; }
+    }
+
+    &-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba($primary, 0.08);
+      color: $primary;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: $transition;
+    }
+
+    &-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: $text-primary;
+    }
+
+    &-desc {
+      font-size: 11px;
+      color: $text-muted;
+    }
+  }
+}
+
+.recent-activity {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid $border;
+
+    h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: $text-primary;
+    }
+
+    a {
+      font-size: 12.5px;
+      color: $info;
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover { text-decoration: underline; }
+    }
+  }
+
+  &__list {
+    padding: 8px 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid $border-light;
+    transition: $transition;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: $bg-page; }
+
+    &-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba($primary, 0.08);
+      color: $primary;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    &-content {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+
+      span {
+        font-size: 11.5px;
+        color: $text-muted;
+      }
+    }
+
+    &-meta {
+      text-align: right;
+
+      .amount {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+
+        &--buy  { color: $success; }
+        &--sell { color: $error; }
+      }
+
+      time {
+        font-size: 11px;
+        color: $text-muted;
+      }
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 32px;
+    color: $text-muted;
+    font-size: 13px;
+  }
+}

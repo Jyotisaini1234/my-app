@@ -6,7 +6,8 @@ import ordersReducer from './slice/ordersSlice/ordersSlice';
 import uiReducer from './slice/uiSlice/uiSlice';
 import tradeReducer from './slice/tradeSlice/tradeSlice';
 import logsReducer from './slice/logsSlice/logsSlice';
-
+import bulkTradeReducer from './slice/bulkTradeSlice/bulkTradeSlice';
+import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,8 @@ export const store = configureStore({
     ui: uiReducer,
     trades: tradeReducer,
     logs: logsReducer,
+    bulkTrade: bulkTradeReducer,
+    tradeHistory: tradeHistoryReducer,
   }
 });
 

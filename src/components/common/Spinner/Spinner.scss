@@ -1,0 +1,36 @@
+@import '../../../styles/variables';
+
+.spinner-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  flex-direction: column;
+  gap: 12px;
+
+  p {
+    color: $text-muted;
+    font-size: 13px;
+  }
+}
+
+.spinner-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid $border;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  &--sm {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+  }
+
+  &--lg {
+    width: 52px;
+    height: 52px;
+    border-width: 4px;
+  }
+}

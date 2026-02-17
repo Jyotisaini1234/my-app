@@ -55,14 +55,14 @@ export const brokerApi = {
 
 export const tradeService = {
   placeOrder: (orderData: any) =>
-    request<OrderResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+    request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     }),
 
   placeSingleOrder: (clientCode: string, orderData: any) =>
-    request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+    request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

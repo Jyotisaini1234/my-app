@@ -1,6 +1,6 @@
 
-export const API_BASE_URL_8080 = 'http://ec2-13-202-238-201.ap-south-1.compute.amazonaws.com:8080/broker';
-export const API_BASE_URL_8081 = 'http://ec2-13-233-121-193.ap-south-1.compute.amazonaws.com:8081';
+export const API_BASE_URL_8080 = 'http://localhost:8080/broker';
+export const API_BASE_URL_8081 = 'http://localhost:8081';
 
 export const API_ENDPOINTS = {
   CLIENTS: {

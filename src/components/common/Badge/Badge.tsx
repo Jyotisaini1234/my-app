@@ -1,13 +1,13 @@
 import React from 'react';
+import './Badge.scss';
+
+type BadgeColor = 'success' | 'warning' | 'error' | 'info' | 'default';
 
 interface BadgeProps {
+  color?: BadgeColor;
   children: React.ReactNode;
-  color: string;
-  style?: React.CSSProperties;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, color, style = {} }) => (
-  <span style={{display: 'inline-block',padding: '0.25rem 0.75rem',background: color,color: 'white',borderRadius: '9999px', fontSize: '0.75rem',  fontWeight: 'bold', ...style}}>
-    {children}
-  </span>
-);
+export const Badge: React.FC<BadgeProps> = ({ color = 'default', children }) => {
+  return <span className={`badge badge--${color}`}>{children}</span>;
+};

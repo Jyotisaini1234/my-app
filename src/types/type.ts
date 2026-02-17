@@ -39,21 +39,21 @@ export interface NewClientData {
   master: boolean;
 }
 
-export interface OrderRequest {
-  clientcode?: string;
-  exchange: string;
-  symboltoken: string;
-  buyorsell: string;
-  ordertype: string;
-  price: string;
-  quantityinlot: string;
-  disclosedquantity?: string;
-  triggerprice?: string;
-  producttype: string;
-  orderduration?: string;
-  amoorder?: string;
-  selectedClients?: string[];
-}
+// export interface OrderRequest {
+//   clientcode?: string;
+//   exchange: string;
+//   symboltoken: string;
+//   buyorsell: string;
+//   ordertype: string;
+//   price: string;
+//   quantityinlot: string;
+//   disclosedquantity?: string;
+//   triggerprice?: string;
+//   producttype: string;
+//   orderduration?: string;
+//   amoorder?: string;
+//   selectedClients?: string[];
+// }
 
 export interface OrderPayload {
   clientcode: string;
@@ -189,5 +189,161 @@ export interface OrderResponse {
   status: string;
   data?: any;
   results?: Record<string, any>;
-  message?: string;
+  // message?: string;
+}
+
+
+// ─── Client Types ───────────────────────────────────────────────────────────
+
+export interface TotpInfo {
+  current_totp: string;
+  expires_in_seconds: number;
+}
+
+export interface Client {
+  client_code: string;
+  user_id: string;
+  password: string;
+  api_key: string;
+  totp_secret: string;
+  two_fa: string;
+  is_active: boolean;
+  is_master: boolean;
+  is_authenticated: boolean;
+  totp_info?: any;
+  last_login?: { $date: string };
+  token_expiry?: { $date: string };
+  created_at?: { $date: string };
+  updated_at?: { $date: string };
+}
+
+export interface ClientsState {
+  data: Record<string, Client>;
+  loading: boolean;
+  error: string | null;
+  authenticatingAll: boolean;
+}
+
+// ─── Order / Trade Types ─────────────────────────────────────────────────────
+
+export interface OrderRequest {
+  clientcode: string;
+  variety: string;
+  tradingsymbol: string;
+  symboltoken: string;
+  transactiontype: 'BUY' | 'SELL';
+  exchange: string;
+  ordertype: string;
+  producttype: string;
+  duration: string;
+  price: string;
+  squareoff: string;
+  stoploss: string;
+  quantity: string;
+  buyorsell?: string;
+}
+
+export interface OrderResponse {
+  status: string;
+  message: string;
+  orderid: string;
+  uniqueorderid: string;
+  clientCode?: string;
+  clientName?: string;
+  traceId?: string;
+  requestId?: string;
+}
+
+export interface BulkTradeResult {
+  [clientCode: string]: OrderResponse;
+}
+
+export interface BulkTradeResponse {
+  status: string;
+  message: string;
+  masterClientCode: string;
+  masterClientName: string;
+  results: BulkTradeResult;
+  totalClients: number;
+  successCount: number;
+  failedCount: number;
+  traceId?: string;
+}
+
+export interface BulkTradeState {
+  loading: boolean;
+  error: string | null;
+  lastResult: BulkTradeResponse | null;
+  selectedClients: string[];
+}
+
+// ─── Trade History / Log Types ───────────────────────────────────────────────
+
+export interface TradeLogEntry {
+  id?: string;
+  tradeId?: string;
+  symbol?: string;
+  smallcase?: string;
+  orderType?: string;
+  quantity?: number | string;
+  date?: string;
+  status?: 'Estimated' | 'Executed' | 'Executing' | 'Failed' | string;
+  actions?: string;
+  clientCode?: string;
+  createdAt?: string;
+}
+
+export interface TradeHistoryState {
+  data: TradeLogEntry[];
+  loading: boolean;
+  error: string | null;
+  filters: {
+    type: string;
+    clientCode: string;
+    startDate: string;
+    endDate: string;
+  };
+}
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+
+export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history' | 'settings';
+
+export interface NavItem {
+  id: NavPage;
+  label: string;
+  icon: string;
+}
+
+// ─── API Response Wrappers ───────────────────────────────────────────────────
+
+// export interface ApiResponse<T = unknown> {
+//   status: 'SUCCESS' | 'ERROR';
+//   message?: string;
+//   data?: T;
+//   traceId?: string;
+//   requestId?: string;
+// }
+
+export interface AccessibleClientsResponse {
+  status: string;
+  role: string;
+  clients: Client[];
+  masterClient?: Client;
+}
+
+export interface SymbolSearchResult {
+  token: string;
+  symbol: string;
+  name: string;
+  expiry: string;
+  exchange: string;
+}
+
+// ─── Store Root ──────────────────────────────────────────────────────────────
+
+export interface RootState {
+  clients: ClientsState;
+  bulkTrade: BulkTradeState;
+  tradeHistory: TradeHistoryState;
 }

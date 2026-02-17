@@ -1,0 +1,73 @@
+@import '../../../styles/variables';
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-elevated;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.2s ease;
+
+  &--wide { max-width: 700px; }
+  &--narrow { max-width: 380px; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid $border;
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: $text-primary;
+    }
+
+    &-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: $bg-page;
+      color: $text-secondary;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: $transition;
+
+      &:hover { background: $error; color: white; }
+    }
+  }
+
+  &__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    padding: 16px 24px;
+    border-top: 1px solid $border;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+}

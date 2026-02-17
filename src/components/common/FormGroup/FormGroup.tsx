@@ -1,23 +1,20 @@
 import React from 'react';
+import './FormGroup.scss';
 
 interface FormGroupProps {
   label: string;
   children: React.ReactNode;
+  error?: string;
+  hint?: string;
 }
 
-export const FormGroup: React.FC<FormGroupProps> = ({ label, children }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-    <label style={{ fontSize: '0.875rem', fontWeight: '600', color: '#cbd5e1' }}>{label}</label>
-    <div>
-      {React.Children.map(children, child => {
-        if (React.isValidElement(child) && (child.type === 'input' || child.type === 'select')) {
-          return React.cloneElement(child as React.ReactElement<any>, {style: { width: '100%',  padding: '0.75rem', background: '#0f172a', border: '1px solid #334155',borderRadius: '0.5rem',  color: '#e2e8f0',fontSize: '1rem',
-            //   ...(child.props.style || {})
-            }
-          });
-        }
-        return child;
-      })}
+export const FormGroup: React.FC<FormGroupProps> = ({ label, children, error, hint }) => {
+  return (
+    <div className={`form-group ${error ? 'form-group--error' : ''}`}>
+      <label>{label}</label>
+      {children}
+      {error && <span className="form-group__error">{error}</span>}
+      {hint && !error && <span className="form-group__hint">{hint}</span>}
     </div>
-  </div>
-);
+  );
+};

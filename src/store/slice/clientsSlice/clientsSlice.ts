@@ -1,75 +1,183 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { clientService } from '../../../api/clientService';
-import { Client, NewClientData } from '../../../types/type';
+import { Client, ClientsState } from '../../../types/type';
+import { clientService } from '../../../services/clientService';
 
-interface ClientsState {
-  data: Record<string, Client>;
-  loading: boolean;
-  error: string | null;
-}
+// ─── Async Thunks ─────────────────────────────────────────────────────────────
+
+export const fetchClients = createAsyncThunk(
+  'clients/fetchAll',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await clientService.list();
+      return res.clients as Record<string, Client>;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const fetchActiveClients = createAsyncThunk(
+  'clients/fetchActive',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await clientService.listActive();
+      return res.clients as Record<string, Client>;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const addClient = createAsyncThunk(
+  'clients/add',
+  async (
+    data: {
+      clientCode: string;
+      userId: string;
+      password: string;
+      apiKey: string;
+      totpSecret?: string;
+      twoFa?: string;
+      active?: boolean;
+      master?: boolean;
+    },
+    { rejectWithValue, dispatch }
+  ) => {
+    try {
+      await clientService.add(data);
+      dispatch(fetchClients());
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const authenticateClient = createAsyncThunk(
+  'clients/authenticate',
+  async (clientCode: string, { rejectWithValue, dispatch }) => {
+    try {
+      await clientService.authenticate(clientCode);
+      dispatch(fetchClients());
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const authenticateAllClients = createAsyncThunk(
+  'clients/authenticateAll',
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      await clientService.authenticateAll();
+      dispatch(fetchClients());
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const deleteClient = createAsyncThunk(
+  'clients/delete',
+  async (clientCode: string, { rejectWithValue, dispatch }) => {
+    try {
+      await clientService.delete(clientCode);
+      dispatch(fetchClients());
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+// ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState: ClientsState = {
   data: {},
   loading: false,
   error: null,
+  authenticatingAll: false,
 };
 
-export const fetchClients = createAsyncThunk('clients/fetch', async () => {
-  return await clientService.list();
-});
-
-export const addClient = createAsyncThunk('clients/add', async (data: NewClientData) => {
-  return await clientService.add(data);
-});
-
-export const deleteClient = createAsyncThunk('clients/delete', async (code: string) => {
-  await clientService.delete(code);
-  return code;
-});
-
-export const authenticateClient = createAsyncThunk('clients/auth', async (code: string) => {
-  return await clientService.authenticate(code);
-});
-
-export const authenticateAllClients = createAsyncThunk('clients/authAll', async () => {
-  return await clientService.authenticateAll();
-});
-
-export const logoutClient = createAsyncThunk('clients/logout', async (code: string) => {
-  await clientService.logout(code);
-  return code;
-});
+// ─── Slice ────────────────────────────────────────────────────────────────────
 
 const clientsSlice = createSlice({
   name: 'clients',
   initialState,
   reducers: {
-    clearError: (state) => {
+    clearError(state) {
       state.error = null;
     },
   },
   extraReducers: (builder) => {
+    // fetchClients
     builder
       .addCase(fetchClients.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchClients.fulfilled, (state, action) => {
+      .addCase(fetchClients.fulfilled, (state, action: PayloadAction<Record<string, Client>>) => {
         state.loading = false;
-        if (action.payload.status === 'SUCCESS') {
-          state.data = action.payload.clients;
-        }
+        state.data = action.payload;
       })
       .addCase(fetchClients.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch clients';
+        state.error = action.payload as string;
+      });
+
+    // fetchActiveClients
+    builder
+      .addCase(fetchActiveClients.pending, (state) => {
+        state.loading = true;
       })
-      .addCase(deleteClient.fulfilled, (state, action: PayloadAction<string>) => {
-        delete state.data[action.payload];
+      .addCase(fetchActiveClients.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = action.payload;
+      })
+      .addCase(fetchActiveClients.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // addClient
+    builder
+      .addCase(addClient.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addClient.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(addClient.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // authenticateAllClients
+    builder
+      .addCase(authenticateAllClients.pending, (state) => {
+        state.authenticatingAll = true;
+        state.error = null;
+      })
+      .addCase(authenticateAllClients.fulfilled, (state) => {
+        state.authenticatingAll = false;
+      })
+      .addCase(authenticateAllClients.rejected, (state, action) => {
+        state.authenticatingAll = false;
+        state.error = action.payload as string;
+      });
+
+    // authenticateClient
+    builder
+      .addCase(authenticateClient.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // deleteClient
+    builder
+      .addCase(deleteClient.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });
 
 export const { clearError } = clientsSlice.actions;
 export default clientsSlice.reducer;
-

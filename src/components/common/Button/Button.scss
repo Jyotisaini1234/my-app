@@ -1,0 +1,91 @@
+@import '../../../styles/variables';
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: $radius-sm;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+  border: none;
+  white-space: nowrap;
+  outline: none;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // ── Variants ──
+  &--primary {
+    background: $primary;
+    color: $text-white;
+    &:hover { background: $primary-light; }
+  }
+
+  &--accent {
+    background: $accent;
+    color: $text-white;
+    &:hover { background: $accent-hover; }
+  }
+
+  &--success {
+    background: $success;
+    color: $text-white;
+    &:hover { background: darken($success, 6%); }
+  }
+
+  &--danger {
+    background: $error;
+    color: $text-white;
+    &:hover { background: darken($error, 6%); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $text-secondary;
+    border: 1px solid $border;
+    &:hover { background: $bg-page; color: $text-primary; }
+  }
+
+  &--outline-primary {
+    background: transparent;
+    color: $primary;
+    border: 1px solid $primary;
+    &:hover { background: $primary; color: white; }
+  }
+
+  // ── Sizes ──
+  &--sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  &--lg {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  &--full { width: 100%; }
+
+  // ── Loading ──
+  &--loading {
+    cursor: wait;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}

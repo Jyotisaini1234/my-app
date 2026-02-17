@@ -1,0 +1,105 @@
+@import '../../styles/variables';
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 700px;
+}
+
+.settings-section {
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 14px;
+  }
+}
+
+.settings-card {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  &--muted { background: $bg-page; }
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid $border-light;
+
+  &:last-child { border-bottom: none; }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  p {
+    font-size: 12px;
+    color: $text-muted;
+    margin-top: 2px;
+  }
+
+  &--info {
+    background: $bg-page;
+    code {
+      font-family: $font-mono;
+      font-size: 12px;
+      color: $info;
+      background: rgba($info, 0.08);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+  }
+}
+
+.settings-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+}
+
+.settings-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &--active { background: $success-bg; color: $success; }
+  &--inactive { background: $error-bg; color: $error; }
+}
+
+.broker-list { padding: 8px 0; }
+
+.broker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid $border-light;
+
+  &:last-child { border-bottom: none; }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-secondary;
+  }
+
+  &__badge {
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba($text-muted, 0.12);
+    color: $text-muted;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+}

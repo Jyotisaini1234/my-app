@@ -1,0 +1,18 @@
+@import '../../../styles/variables';
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  &--success { background: $success-bg;  color: $success; }
+  &--warning { background: $warning-bg;  color: darken($warning, 10%); }
+  &--error   { background: $error-bg;    color: $error; }
+  &--info    { background: rgba($info, 0.12); color: $info; }
+  &--default { background: $border-light; color: $text-secondary; }
+}

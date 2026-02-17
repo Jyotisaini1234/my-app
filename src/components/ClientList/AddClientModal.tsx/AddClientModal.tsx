@@ -1,63 +1,147 @@
 import React, { useState } from 'react';
-import { FormGroup } from '../../common/FormGroup/FormGroup';
+import './AddClientModal.scss';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { addClient } from '../../../store/slice/clientsSlice/clientsSlice';
 import { Modal } from '../../common/Modal/Modal';
-import { Button } from '@mui/material';
-import { clientService } from '../../../api/clientService';
-
+import { Button } from '../../common/Button/Button';
+import { FormGroup } from '../../common/FormGroup/FormGroup';
 
 interface AddClientModalProps {
   onClose: () => void;
-  onSuccess: () => void;
 }
 
-export const AddClientModal: React.FC<AddClientModalProps> = ({ onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({clientCode: '',userId: '', password: '', apiKey: '',totpSecret: '', twoFa: 'Y', active: true, master: false});
+interface FormData {
+  clientCode: string;
+  userId: string;
+  password: string;
+  apiKey: string;
+  totpSecret: string;
+  twoFa: string;
+  active: boolean;
+  master: boolean;
+}
 
-  const handleSubmit = async () => {
-    try {
-      await clientService.add(formData);
-      onSuccess();
-      onClose();
-    } catch (err) {
-      alert('Failed to add client: ' + err);
-    }
+const initialForm: FormData = {
+  clientCode: '',
+  userId: '',
+  password: '',
+  apiKey: '',
+  totpSecret: '',
+  twoFa: 'Y',
+  active: true,
+  master: false,
+};
+
+export const AddClientModal: React.FC<AddClientModalProps> = ({ onClose }) => {
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((s) => s.clients);
+  const [form, setForm] = useState<FormData>(initialForm);
+  const [errors, setErrors] = useState<Partial<FormData>>({});
+
+  const validate = (): boolean => {
+    const e: Partial<Record<keyof FormData, string>> = {};
+    if (!form.clientCode.trim()) e.clientCode = 'Client code is required';
+    if (!form.userId.trim()) e.userId = 'User ID is required';
+    if (!form.password.trim()) e.password = 'Password is required';
+    if (!form.apiKey.trim()) e.apiKey = 'API key is required';
+    setErrors(e as Partial<FormData>);
+    return Object.keys(e).length === 0;
   };
 
-  return (
-    <Modal title="Add New Client" onClose={onClose}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <FormGroup label="Client Code *">
-          <input  value={formData.clientCode} onChange={e => setFormData({...formData, clientCode: e.target.value})}  placeholder="SOAR1234" />
-        </FormGroup>
-        
-        <FormGroup label="User ID *">
-          <input  value={formData.userId}  onChange={e => setFormData({...formData, userId: e.target.value})} />
-        </FormGroup>
-        
-        <FormGroup label="Password *">
-          <input type="password"  value={formData.password}   onChange={e => setFormData({...formData, password: e.target.value})} />
-        </FormGroup>
-        
-        <FormGroup label="API Key *">
-          <input  value={formData.apiKey}  onChange={e => setFormData({...formData, apiKey: e.target.value})}  />
-        </FormGroup>
-        
-        <FormGroup label="TOTP Secret">
-          <input value={formData.totpSecret} onChange={e => setFormData({...formData, totpSecret: e.target.value})}  />
-        </FormGroup>
-        
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#cbd5e1' }}>
-          <input  type="checkbox" checked={formData.active} onChange={e => setFormData({...formData, active: e.target.checked})}  style={{ width: '18px', height: '18px' }}/>Active
-        </label>
-        
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#cbd5e1' }}>
-          <input  type="checkbox" checked={formData.master}  onChange={e => setFormData({...formData, master: e.target.checked})} style={{ width: '18px', height: '18px' }}/>
-          Master Client
-        </label>
+  const handleChange = (key: keyof FormData, value: string | boolean) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
 
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-          <Button onClick={onClose} variant="contained" color="secondary">Cancel</Button>
-          <Button onClick={handleSubmit} style={{ flex: 1 }}>Add Client</Button>
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    await dispatch(addClient(form));
+    onClose();
+  };
+
+  const footer = (
+    <>
+      <Button variant="ghost" onClick={onClose}>Cancel</Button>
+      <Button variant="primary" loading={loading} onClick={handleSubmit}>
+        Add Client
+      </Button>
+    </>
+  );
+
+  return (
+    <Modal title="Add New Client" onClose={onClose} footer={footer}>
+      <div className="add-client-form">
+        {error && <div className="add-client-form__error">{error}</div>}
+
+        <div className="form-row">
+          <FormGroup label="Client Code *" error={errors.clientCode as string}>
+            <input
+              value={form.clientCode}
+              onChange={(e) => handleChange('clientCode', e.target.value.toUpperCase())}
+              placeholder="SOAR1234"
+            />
+          </FormGroup>
+          <FormGroup label="User ID *" error={errors.userId as string}>
+            <input
+              value={form.userId}
+              onChange={(e) => handleChange('userId', e.target.value)}
+              placeholder="user@broker"
+            />
+          </FormGroup>
+        </div>
+
+        <div className="form-row">
+          <FormGroup label="Password *" error={errors.password as string}>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              placeholder="••••••••"
+            />
+          </FormGroup>
+          <FormGroup label="API Key *" error={errors.apiKey as string}>
+            <input
+              value={form.apiKey}
+              onChange={(e) => handleChange('apiKey', e.target.value)}
+              placeholder="API Key from broker"
+            />
+          </FormGroup>
+        </div>
+
+        <div className="form-row">
+          <FormGroup label="TOTP Secret" hint="Optional – for 2FA auto-login">
+            <input
+              value={form.totpSecret}
+              onChange={(e) => handleChange('totpSecret', e.target.value)}
+              placeholder="Base32 secret"
+            />
+          </FormGroup>
+          <FormGroup label="2FA PIN" hint="Static 2FA PIN if no TOTP">
+            <input
+              value={form.twoFa}
+              onChange={(e) => handleChange('twoFa', e.target.value)}
+              placeholder="Y or 6-digit PIN"
+            />
+          </FormGroup>
+        </div>
+
+        <div className="add-client-form__flags">
+          <label className="form-checkbox">
+            <input
+              type="checkbox"
+              checked={form.active}
+              onChange={(e) => handleChange('active', e.target.checked)}
+            />
+            <span>Active</span>
+          </label>
+          <label className="form-checkbox">
+            <input
+              type="checkbox"
+              checked={form.master}
+              onChange={(e) => handleChange('master', e.target.checked)}
+            />
+            <span>Master Client</span>
+          </label>
         </div>
       </div>
     </Modal>

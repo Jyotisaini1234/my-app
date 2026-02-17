@@ -1,92 +1,46 @@
-@import './variables';
-@import './mixins';
+@import '../styles/variables';
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {  
-  font-size: 16px;
-  
-  @media (max-width: $breakpoint-xl) {
-    font-size: 15px;
-  }
-  
-  @media (max-width: $breakpoint-lg) {
-    font-size: 14px;
-  }
-  
-  @media (max-width: $breakpoint-md) {
-    font-size: 14px;
-  }
-  
-  @media (max-width: $breakpoint-xs) {
-    font-size: 13px;
-  }
-}
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: $text-dark;
-  font-size: $font-base;
-  line-height: 1.5;
+html, body, #root {
+  height: 100%;
+  font-family: $font-base;
+  background: $bg-page;
+  color: $text-primary;
+  font-size: 14px;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
 }
 
-button {
+input, select, textarea, button {
   font-family: inherit;
+  font-size: inherit;
 }
 
-input, select, textarea {
-  font-family: inherit;
-  font-size: $font-base;
-  
-  @media (max-width: $breakpoint-md) {
-    font-size: $font-sm;
-  }
+// ─── Scrollbar ────────────────────────────────────────────────────────────────
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: $border; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: $text-muted; }
+
+// ─── Animations ───────────────────────────────────────────────────────────────
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
 }
 
-.container {
-  width: 100%;
-  max-width: 87.5rem;
-  margin: 0 auto;
-  padding: 0 $spacing-xl;
+.spin  { animation: spin 1s linear infinite; }
+.fadeIn { animation: fadeIn 0.25s ease; }
 
-  @media (max-width: $breakpoint-2xl) {
-    padding: 0 $spacing-lg;
-  }
-
-  @media (max-width: $breakpoint-md) {
-    padding: 0 $spacing-md;
-  }
-
-  @media (max-width: $breakpoint-xs) {
-    padding: 0 $spacing-sm;
-  }
-}
-
-.hide-mobile {
-  @media (max-width: $breakpoint-md) {
-    display: none !important;
-  }
-}
-
-.hide-desktop {
-  display: none !important;
-  
-  @media (max-width: $breakpoint-md) {
-    display: block !important;
-  }
-}
-
-.show-mobile {
-  display: none !important;
-  
-  @media (max-width: $breakpoint-md) {
-    display: block !important;
-  }
-}
+// ─── Utility ──────────────────────────────────────────────────────────────────
+.text-success { color: $success; }
+.text-error   { color: $error; }
+.text-warning { color: $warning; }
+.text-muted   { color: $text-muted; }

@@ -1,0 +1,15 @@
+@import '../../../styles/variables';
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+
+  &__main {
+    margin-left: $sidebar-w;
+    margin-top: $navbar-h;
+    flex: 1;
+    padding: 28px;
+    min-height: calc(100vh - #{$navbar-h});
+    animation: fadeIn 0.2s ease;
+  }
+}
