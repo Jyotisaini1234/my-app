@@ -3,8 +3,6 @@
 const BROKER_BASE = 'http://ec2-13-202-238-201.ap-south-1.compute.amazonaws.com:8080/broker';
 const TRADE_BASE  = 'http://ec2-13-233-121-193.ap-south-1.compute.amazonaws.com:8081';
 
-
-
 async function apiCall<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json', ...options?.headers },
@@ -73,11 +71,30 @@ export const clientService = {
 // ─── Trade Service ───────────────────────────────────────────────────────────
 
 export const tradeService = {
-  placeOrder: (orderRequest: any) =>
-    apiCall(`${TRADE_BASE}/api/trade/place-order`, {
+  placeOrder: (orderRequest: any) => {
+    const payload = {
+      clientcode:        orderRequest.clientcode,
+      exchange:          orderRequest.exchange,
+      symboltoken:       Number(orderRequest.symboltoken),    
+      buyorsell:         orderRequest.buyorsell || orderRequest.transactiontype,
+      ordertype:         orderRequest.ordertype,
+      producttype:       orderRequest.producttype,
+      orderduration:     orderRequest.duration || orderRequest.orderduration || 'DAY',
+      price:             Number(orderRequest.price) || 0,      
+      triggerprice:      Number(orderRequest.triggerprice) || 0,
+      quantityinlot:     Number(orderRequest.quantity) || Number(orderRequest.quantityinlot), 
+      disclosedquantity: Number(orderRequest.disclosedquantity) || 0,
+      amoorder:          orderRequest.amoorder || 'N',
+      selectedClients:   orderRequest.selectedClients || [],    
+    };
+
+    console.log('Order payload being sent:', JSON.stringify(payload, null, 2));
+
+    return apiCall(`${TRADE_BASE}/api/trade/place-order`, {
       method: 'POST',
-      body: JSON.stringify(orderRequest),
-    }),
+      body: JSON.stringify(payload),
+    });
+  },
 
   cancelOrder: (uniqueorderid: string) =>
     apiCall(`${TRADE_BASE}/api/trade/cancel-order-all`, {
@@ -88,23 +105,13 @@ export const tradeService = {
   getConfig: () => apiCall(`${TRADE_BASE}/api/trade/config`),
 };
 
-// ─── Client Access Service ───────────────────────────────────────────────────
-
-export const clientAccessService = {
-  getAccessibleClients: (clientCode: string) =>
-    apiCall(`${TRADE_BASE}/api/client-access/accessible-clients?clientCode=${clientCode}`),
-
-  getUserProfile: (clientCode: string) =>
-    apiCall(`${TRADE_BASE}/api/client-access/profile?clientCode=${clientCode}`),
-};
-
 // ─── Log Service ─────────────────────────────────────────────────────────────
 
 export const logService = {
   getAllData: (params?: { startDate?: string; endDate?: string; clientCode?: string }) => {
     const q = new URLSearchParams();
     if (params?.startDate) q.append('startDate', params.startDate);
-    if (params?.endDate) q.append('endDate', params.endDate);
+    if (params?.endDate)   q.append('endDate',   params.endDate);
     if (params?.clientCode) q.append('clientCode', params.clientCode);
     return apiCall(`${TRADE_BASE}/api/logs/data/all?${q.toString()}`);
   },

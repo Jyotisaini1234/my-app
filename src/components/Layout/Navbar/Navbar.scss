@@ -6,148 +6,161 @@
   left: $sidebar-w;
   right: 0;
   height: $navbar-h;
-  background: $bg-card;
-  border-bottom: 1px solid $border;
+  background: #ffffff;
+  border-bottom: 0.0625rem solid #e8edf2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 1.75rem;
   z-index: 90;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.05);
+
+  // ── Left: Page Title ────────────────────────────────────────────────────────
 
   &__left {
     display: flex;
     align-items: center;
-    gap: 8px;
 
     h2 {
-      font-size: 20px;
+      font-size: 1.375rem;
       font-weight: 700;
-      color: $text-primary;
+      color: #1a2332; // same dark navy as sidebar
+      letter-spacing: -0.01em;
     }
   }
+
+  // ── Right: Search + Bell + User ─────────────────────────────────────────────
 
   &__right {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 0.875rem;
   }
 
+  // Search — pill shaped, light gray bg, matches screenshot exactly
   &__search {
     position: relative;
 
     input {
-      background: $bg-page;
-      border: 1px solid $border;
-      border-radius: 20px;
-      padding: 7px 16px 7px 38px;
-      font-size: 13px;
-      color: $text-primary;
+      background: #f4f6f9;
+      border: 0.0625rem solid #e8edf2;
+      border-radius: 1.5rem;
+      padding: 0.5rem 1rem 0.5rem 2.375rem;
+      font-size: 0.8125rem;
+      color: #1a2332;
       outline: none;
-      width: 220px;
-      transition: $transition;
+      width: 14rem;
+      transition: width 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 
-      &::placeholder { color: $text-muted; }
+      &::placeholder { color: #9eaabb; }
+
       &:focus {
-        border-color: $info;
-        background: $bg-card;
-        width: 260px;
+        border-color: #3b82f6;
+        background: #ffffff;
+        width: 17rem;
+        box-shadow: 0 0 0 0.1875rem rgba(59, 130, 246, 0.1);
       }
     }
 
     svg {
       position: absolute;
-      left: 12px;
+      left: 0.75rem;
       top: 50%;
       transform: translateY(-50%);
-      color: $text-muted;
+      color: #9eaabb;
+      pointer-events: none;
     }
   }
 
+  // Bell icon button — circular, bordered, matches screenshot
   &__icon-btn {
     position: relative;
-    width: 38px;
-    height: 38px;
+    width: 2.375rem;
+    height: 2.375rem;
     border-radius: 50%;
-    background: $bg-page;
-    border: 1px solid $border;
+    background: #ffffff;
+    border: 0.0625rem solid #e8edf2;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: $transition;
-    color: $text-secondary;
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    color: #64748b;
 
     &:hover {
-      background: $primary;
-      color: $text-white;
-      border-color: $primary;
+      background: #f4f6f9;
+      border-color: #cbd5e1;
+      color: #1a2332;
     }
 
     .badge {
       position: absolute;
-      top: 2px;
-      right: 2px;
-      width: 16px;
-      height: 16px;
-      background: $error;
+      top: 0.125rem;
+      right: 0.125rem;
+      width: 1rem;
+      height: 1rem;
+      background: #ef4444;
       border-radius: 50%;
-      font-size: 9px;
-      color: white;
+      font-size: 0.5625rem;
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      border: 2px solid $bg-card;
+      border: 0.125rem solid #ffffff;
     }
   }
 
+  // User section — dark navy avatar + name, matches screenshot exactly
   &__user {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 6px 12px;
+    gap: 0.625rem;
+    padding: 0.3125rem 0.75rem 0.3125rem 0.375rem;
     border-radius: $radius-md;
     cursor: pointer;
-    transition: $transition;
-    border: 1px solid $border;
-    background: $bg-card;
+    transition: background 0.18s ease;
+    border: 0.0625rem solid #e8edf2;
+    background: #ffffff;
 
-    &:hover { background: $bg-page; }
+    &:hover { background: #f4f6f9; }
 
     &-avatar {
-      width: 34px;
-      height: 34px;
+      width: 2.125rem;
+      height: 2.125rem;
       border-radius: 50%;
-      background: linear-gradient(135deg, $primary 0%, $info 100%);
+      background: #1e2d45; // dark navy — exact match from screenshot
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
-      font-size: 13px;
+      color: #ffffff;
+      font-size: 0.8125rem;
       font-weight: 700;
       flex-shrink: 0;
+      letter-spacing: 0.02em;
     }
 
     &-info {
       display: flex;
       flex-direction: column;
+      gap: 0.0625rem;
 
       strong {
-        font-size: 13px;
+        font-size: 0.8125rem;
         font-weight: 600;
-        color: $text-primary;
+        color: #1a2332;
         line-height: 1.2;
       }
 
       span {
-        font-size: 11px;
-        color: $text-muted;
+        font-size: 0.6875rem;
+        color: #9eaabb;
       }
     }
 
     &-caret {
-      color: $text-muted;
+      color: #9eaabb;
+      margin-left: 0.125rem;
     }
   }
 }

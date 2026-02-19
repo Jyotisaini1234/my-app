@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { BulkTradeState, BulkTradeResponse, OrderRequest } from '../../../types/type';
-import { tradeService } from '../../../services/clientService';
+import { tradeService } from '../../../services/api';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ export const placeOrderForAll = createAsyncThunk(
   async (orderRequest: OrderRequest, { rejectWithValue }) => {
     try {
       const res = await tradeService.placeOrder(orderRequest);
-      return res as BulkTradeResponse;
+      return res as unknown as BulkTradeResponse;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }

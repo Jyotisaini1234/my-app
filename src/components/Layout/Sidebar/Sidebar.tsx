@@ -42,8 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           <button
             key={item.id}
             className={`sidebar__item ${activePage === item.id ? 'sidebar__item--active' : ''}`}
-            onClick={() => onNavigate(item.id)}
-          >
+            onClick={() => onNavigate(item.id)} >
             {item.icon}
             <span>{item.label}</span>
           </button>

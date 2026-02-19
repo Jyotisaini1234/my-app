@@ -12,6 +12,12 @@ export interface TimelineResponse {
 
 
 export interface Client {
+  client_name: any;
+  broker: string;
+  invested_amount: any;
+  account_status: any;
+  current_value: any;
+  profit_loss: null;
   client_code: string;
   user_id: string;
   password: string;
@@ -38,22 +44,6 @@ export interface NewClientData {
   active: boolean;
   master: boolean;
 }
-
-// export interface OrderRequest {
-//   clientcode?: string;
-//   exchange: string;
-//   symboltoken: string;
-//   buyorsell: string;
-//   ordertype: string;
-//   price: string;
-//   quantityinlot: string;
-//   disclosedquantity?: string;
-//   triggerprice?: string;
-//   producttype: string;
-//   orderduration?: string;
-//   amoorder?: string;
-//   selectedClients?: string[];
-// }
 
 export interface OrderPayload {
   clientcode: string;
@@ -134,7 +124,6 @@ export interface TimelineResponse {
   };
 }
 
-// Types
 export interface Client {
   client_code: string;
   is_master: boolean;
@@ -189,11 +178,9 @@ export interface OrderResponse {
   status: string;
   data?: any;
   results?: Record<string, any>;
-  // message?: string;
 }
 
 
-// ─── Client Types ───────────────────────────────────────────────────────────
 
 export interface TotpInfo {
   current_totp: string;
@@ -224,7 +211,6 @@ export interface ClientsState {
   authenticatingAll: boolean;
 }
 
-// ─── Order / Trade Types ─────────────────────────────────────────────────────
 
 export interface OrderRequest {
   clientcode: string;
@@ -239,15 +225,17 @@ export interface OrderRequest {
   price: string;
   squareoff: string;
   stoploss: string;
-  quantity: string;
+  quantity: number;
   buyorsell?: string;
+  selectedClients?: string[];  
+
 }
 
 export interface OrderResponse {
   status: string;
   message: string;
   orderid: string;
-  uniqueorderid: string;
+  uniqueOrderId: string;
   clientCode?: string;
   clientName?: string;
   traceId?: string;
@@ -277,22 +265,21 @@ export interface BulkTradeState {
   selectedClients: string[];
 }
 
-// ─── Trade History / Log Types ───────────────────────────────────────────────
 
 export interface TradeLogEntry {
   id?: string;
-  tradeId?: string;
-  symbol?: string;
-  smallcase?: string;
-  orderType?: string;
-  quantity?: number | string;
-  date?: string;
-  status?: 'Estimated' | 'Executed' | 'Executing' | 'Failed' | string;
-  actions?: string;
   clientCode?: string;
+  clientName?: string;
+  action?: string;           
+  status?: string;          
   createdAt?: string;
+  traceId?: string;
+  requestId?: string;
+  spanId?: string;
+  uniqueOrderId?: string;
+  masterClientCode?: string;
+  quantity?: number;
 }
-
 export interface TradeHistoryState {
   data: TradeLogEntry[];
   loading: boolean;
@@ -305,7 +292,6 @@ export interface TradeHistoryState {
   };
 }
 
-// ─── Navigation ──────────────────────────────────────────────────────────────
 
 export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history' | 'settings';
 
@@ -315,15 +301,6 @@ export interface NavItem {
   icon: string;
 }
 
-// ─── API Response Wrappers ───────────────────────────────────────────────────
-
-// export interface ApiResponse<T = unknown> {
-//   status: 'SUCCESS' | 'ERROR';
-//   message?: string;
-//   data?: T;
-//   traceId?: string;
-//   requestId?: string;
-// }
 
 export interface AccessibleClientsResponse {
   status: string;

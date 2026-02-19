@@ -1,159 +1,142 @@
 @import '../../styles/variables';
 
+// ─── Dashboard Layout ────────────────────────────────────────────────────────
+
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5rem;
 
   &__stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 1rem;
 
-    @media (max-width: 1100px) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 68.75rem) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 40rem)    { grid-template-columns: 1fr; }
   }
 
   &__row {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
-    gap: 20px;
+    gap: 1.25rem;
 
-    @media (max-width: 1100px) { grid-template-columns: 1fr; }
+    @media (max-width: 68.75rem) { grid-template-columns: 1fr; }
   }
 }
 
+// ─── Stat Cards ──────────────────────────────────────────────────────────────
+
 .stat-card {
   background: $bg-card;
-  border: 1px solid $border;
+  border: 0.0625rem solid $border;
   border-radius: $radius-md;
-  padding: 20px;
+  padding: 1.25rem 1.25rem 1rem;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 0.875rem;
   transition: $transition;
+  cursor: default;
 
   &:hover {
-    box-shadow: $shadow-card;
-    transform: translateY(-1px);
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+    transform: translateY(-0.125rem);
   }
 
-  &__info {
+  &__body {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  &__label {
-    font-size: 12px;
-    font-weight: 600;
-    color: $text-muted;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  &__value {
-    font-size: 28px;
-    font-weight: 800;
-    color: $text-primary;
-    line-height: 1;
-  }
-
-  &__change {
-    font-size: 12px;
-    color: $success;
-    font-weight: 500;
-
-    &--down { color: $error; }
+    align-items: center;
+    gap: 1rem;
   }
 
   &__icon {
-    width: 44px;
-    height: 44px;
+    width: 2.75rem;
+    height: 2.75rem;
     border-radius: $radius-md;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
 
-    &--blue    { background: rgba($info, 0.12);    color: $info; }
-    &--green   { background: $success-bg;          color: $success; }
-    &--orange  { background: rgba($accent, 0.12);  color: $accent; }
-    &--purple  { background: rgba(139,92,246,0.12); color: #8b5cf6; }
-  }
-}
-
-.quick-actions {
-  background: $bg-card;
-  border: 1px solid $border;
-  border-radius: $radius-md;
-  overflow: hidden;
-
-  &__head {
-    padding: 16px 20px;
-    border-bottom: 1px solid $border;
-
-    h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: $text-primary;
-    }
+    &--blue   { background: rgba($info, 0.12);         color: $info; }
+    &--green  { background: $success-bg;               color: $success; }
+    &--orange { background: rgba($accent, 0.12);       color: $accent; }
+    &--purple { background: rgba(139, 92, 246, 0.12);  color: #8b5cf6; }
   }
 
-  &__grid {
-    padding: 16px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  &__btn {
-    padding: 14px;
-    border-radius: $radius-sm;
-    border: 1.5px solid $border;
-    background: $bg-page;
-    cursor: pointer;
-    text-align: left;
-    transition: $transition;
+  &__info {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.125rem;
+  }
 
-    &:hover {
-      border-color: $primary;
-      background: rgba($primary, 0.04);
+  &__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
 
-      .quick-actions__btn-icon { background: $primary; color: white; }
+  &__value {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: $text-primary;
+    line-height: 1;
+
+    &--sm { font-size: 1.125rem; margin-top: 0.125rem; }
+  }
+
+  &__footer {
+    padding-top: 0.625rem;
+    border-top: 0.0625rem solid $border-light;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 2rem;
+    padding: 0.1875rem 0.5rem;
+
+    &--success {
+      background: $success-bg;
+      color: $success;
     }
 
-    &-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: rgba($primary, 0.08);
-      color: $primary;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: $transition;
+    &--danger {
+      background: rgba($error, 0.1);
+      color: $error;
     }
 
-    &-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: $text-primary;
-    }
-
-    &-desc {
-      font-size: 11px;
+    &--neutral {
+      background: rgba($text-muted, 0.1);
       color: $text-muted;
     }
   }
+
+  &__dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background: $success;
+    animation: pulse 2s infinite;
+    display: inline-block;
+  }
 }
 
-.recent-activity {
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+// ─── Generic Panel ────────────────────────────────────────────────────────────
+
+.panel {
   background: $bg-card;
-  border: 1px solid $border;
+  border: 0.0625rem solid $border;
   border-radius: $radius-md;
   overflow: hidden;
 
@@ -161,91 +144,197 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid $border;
+    padding: 1rem 1.25rem;
+    border-bottom: 0.0625rem solid $border;
+  }
 
-    h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: $text-primary;
-    }
+  &__title {
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: $text-primary;
+  }
 
-    a {
-      font-size: 12.5px;
-      color: $info;
-      text-decoration: none;
-      font-weight: 500;
+  &__link {
+    background: none;
+    border: none;
+    font-size: 0.78125rem;
+    color: $info;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    transition: $transition;
 
-      &:hover { text-decoration: underline; }
+    &:hover { text-decoration: underline; }
+  }
+}
+
+// ─── Trade Table ─────────────────────────────────────────────────────────────
+
+.trade-table {
+  &__header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
+    padding: 0.5rem 1.25rem;
+    background: $bg-page;
+    border-bottom: 0.0625rem solid $border;
+
+    span {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: $text-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
   }
 
-  &__list {
-    padding: 8px 0;
-  }
-
-  &__item {
-    display: flex;
+  &__row {
+    // display: flex;
+     display: grid;
+    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
+    // justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    padding: 12px 20px;
-    border-bottom: 1px solid $border-light;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 0.0625rem solid $border-light;
     transition: $transition;
 
     &:last-child { border-bottom: none; }
     &:hover { background: $bg-page; }
+  }
 
-    &-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: rgba($primary, 0.08);
-      color: $primary;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+  &__symbol {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+
+    strong {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: $text-primary;
     }
+  }
 
-    &-content {
-      flex: 1;
+  &__symbol-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: rgba($primary, 0.08);
+    color: $primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
-      strong {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: $text-primary;
+  &__client {
+    font-size: 0.75rem;
+    color: $text-muted;
+  }
+
+  &__date {
+    font-size: 0.6875rem;
+    color: $text-muted;
+  }
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.1875rem 0.5625rem;
+    border-radius: 2rem;
+    text-transform: uppercase;
+
+    &--buy  { color: $success; margin-left: -0.7rem; }
+    &--sell { 
+      color: $error; 
+      margin-left: -0.7rem;
       }
-
-      span {
-        font-size: 11.5px;
-        color: $text-muted;
-      }
-    }
-
-    &-meta {
-      text-align: right;
-
-      .amount {
-        display: block;
-        font-size: 13px;
-        font-weight: 700;
-
-        &--buy  { color: $success; }
-        &--sell { color: $error; }
-      }
-
-      time {
-        font-size: 11px;
-        color: $text-muted;
-      }
-    }
   }
 
   &__empty {
     text-align: center;
-    padding: 32px;
+    padding: 2rem;
     color: $text-muted;
-    font-size: 13px;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+}
+
+// ─── Quick Actions ───────────────────────────────────────────────────────────
+
+.quick-actions {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border-radius: $radius-sm;
+  border: 0.09375rem solid $border;
+  background: $bg-page;
+  cursor: pointer;
+  text-align: left;
+  transition: $transition;
+  width: 100%;
+
+  &:hover {
+    border-color: $primary;
+    background: rgba($primary, 0.04);
+    transform: translateX(0.125rem);
+
+    .quick-action__arrow { opacity: 1; transform: translateX(0); }
+    .quick-action__icon  { color: white; }
+  }
+
+  &--blue:hover .quick-action__icon   { background: $info; }
+  &--green:hover .quick-action__icon  { background: $success; }
+  &--orange:hover .quick-action__icon { background: $accent; }
+  &--purple:hover .quick-action__icon { background: #8b5cf6; }
+
+  &__icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: $transition;
+
+    // default tint colors per variant
+    .quick-action--blue   & { background: rgba($info, 0.1);         color: $info; }
+    .quick-action--green  & { background: $success-bg;               color: $success; }
+    .quick-action--orange & { background: rgba($accent, 0.1);       color: $accent; }
+    .quick-action--purple & { background: rgba(139,92,246,0.1);     color: #8b5cf6; }
+  }
+
+  &__text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  &__desc {
+    font-size: 0.6875rem;
+    color: $text-muted;
+  }
+
+  &__arrow {
+    color: $text-muted;
+    opacity: 0;
+    transform: translateX(-0.25rem);
+    transition: $transition;
+    flex-shrink: 0;
   }
 }
