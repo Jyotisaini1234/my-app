@@ -4,11 +4,12 @@ import { NavPage } from '../../../types/type';
 import './Navbar.scss';
 
 const pageTitles: Record<NavPage, string> = {
-  dashboard:     'Dashboard',
-  clients:       'Client Management',
-  'bulk-trading':'Bulk Trading',
-  'trade-history':'Trade History',
-  settings:      'Settings',
+  dashboard: 'Dashboard',
+  clients: 'Client Management',
+  'bulk-trading': 'Bulk Trading',
+  'trade-history': 'Trade History',
+  settings: 'Settings',
+  'order-logs': 'Order Logs'
 };
 
 interface NavbarProps {

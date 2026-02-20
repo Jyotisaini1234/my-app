@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Power, Plus, Search, Users, ChevronRight, Filter } from 'lucide-react';
-
+import { RefreshCw, Power, Plus, Search, Users, Filter } from 'lucide-react';
 import './ClientsList.scss';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import {fetchClients,authenticateAllClients,authenticateClient,} from '../../../store/slice/clientsSlice/clientsSlice';
@@ -10,15 +9,15 @@ import { Button } from '../../common/Button/Button';
 
 export const ClientsList: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { data: clients, loading, authenticatingAll } = useAppSelector((s) => s.clients);
+  const { data: clients, loading, authenticatingAll, isFetched } = useAppSelector((s) => s.clients);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-  if (Object.keys(clients).length === 0) {
-    dispatch(fetchClients());
-  }
-}, []);
+    if (!isFetched) {
+      dispatch(fetchClients());
+    }
+  }, []); 
 
   const clientsList = Object.values(clients).filter((c) => {
     if (!search) return true;
@@ -37,7 +36,7 @@ export const ClientsList: React.FC = () => {
 
   const getStatusClass = (status?: string) => {
     if (!status) return '';
-    if (status === 'Active')      return 'status--active';
+    if (status === 'Active') return 'status--active';
     if (status === 'Pending KYC') return 'status--pending';
     return 'status--inactive';
   };
@@ -45,38 +44,36 @@ export const ClientsList: React.FC = () => {
   return (
     <div className="clients-list">
 
-      {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="clients-list__topbar">
         <div className="clients-list__search-wrap">
           <Search size={14} />
-          <input placeholder="Search Clients" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input
+            placeholder="Search Clients"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-
-        <Button variant="primary" size="sm" icon={<Plus size={15} />}  onClick={() => setShowAddModal(true)}>
+        <Button variant="primary" size="sm" icon={<Plus size={15} />} onClick={() => setShowAddModal(true)}>
           Add client
         </Button>
       </div>
 
-      {/* ── Sub-toolbar ────────────────────────────────────────────────── */}
       <div className="clients-list__subtoolbar">
         <div className="clients-list__subtoolbar-left">
           <button className="subtoolbar__nav-btn">‹</button>
           <span className="subtoolbar__hint">Search 10000 Client for keywords</span>
         </div>
         <div className="clients-list__subtoolbar-right">
-          <Button variant="ghost" size="sm" icon={<RefreshCw size={14} className={loading ? 'spin' : ''} />}
-            onClick={() => dispatch(fetchClients())} disabled={loading}>
+          <Button variant="ghost" size="sm" icon={<RefreshCw size={14} className={loading ? 'spin' : ''} />} onClick={() => dispatch(fetchClients())}disabled={loading} >
             Refresh
           </Button>
-          <Button variant="success" size="sm" icon={<Power size={14} />}
-            loading={authenticatingAll} onClick={() => dispatch(authenticateAllClients())}>
+          <Button variant="success" size="sm" icon={<Power size={14} />} loading={authenticatingAll}onClick={() => dispatch(authenticateAllClients())} >
             Auth All
           </Button>
           <button className="subtoolbar__filter-btn"><Filter size={14} /></button>
         </div>
       </div>
 
-      {/* ── Table ──────────────────────────────────────────────────────── */}
       {loading ? (
         <Spinner text="Loading clients…" />
       ) : clientsList.length === 0 ? (
@@ -95,12 +92,11 @@ export const ClientsList: React.FC = () => {
                 <th>Client Name</th>
                 <th>Account Status</th>
                 <th>Invested Amount</th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
               {clientsList.map((client) => (
-                <tr key={client.client_code}  >
+                <tr key={client.client_code}>
                   {/* Client ID */}
                   <td>
                     <div className="client-id-cell">
@@ -119,10 +115,10 @@ export const ClientsList: React.FC = () => {
                     </span>
                   </td>
 
-                  {/* / Invested */}
+                  {/* Client Name */}
                   <td>
                     <span className="amount-cell">
-                    <strong>{client.client_name || client.user_id || '—'}</strong>
+                      <strong>{client.client_name || client.user_id || '—'}</strong>
                     </span>
                   </td>
 
@@ -144,7 +140,6 @@ export const ClientsList: React.FC = () => {
                       </span>
                     )}
                   </td>
-                 
                 </tr>
               ))}
             </tbody>

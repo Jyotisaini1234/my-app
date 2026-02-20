@@ -1,3 +1,11 @@
+/**
+ * bulkTradeSlice.ts
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Handles ALL order operations (bulk place, bulk cancel).
+ * Replaces the old tradeSlice, ordersSlice, and bulkTradeSlice.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { BulkTradeState, BulkTradeResponse, OrderRequest } from '../../../types/type';
 import { tradeService } from '../../../services/api';
@@ -8,8 +16,7 @@ export const placeOrderForAll = createAsyncThunk(
   'bulkTrade/placeOrder',
   async (orderRequest: OrderRequest, { rejectWithValue }) => {
     try {
-      const res = await tradeService.placeOrder(orderRequest);
-      return res as unknown as BulkTradeResponse;
+      return (await tradeService.placeOrder(orderRequest)) as unknown as BulkTradeResponse;
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -47,11 +54,8 @@ const bulkTradeSlice = createSlice({
     },
     toggleSelectedClient(state, action: PayloadAction<string>) {
       const idx = state.selectedClients.indexOf(action.payload);
-      if (idx === -1) {
-        state.selectedClients.push(action.payload);
-      } else {
-        state.selectedClients.splice(idx, 1);
-      }
+      if (idx === -1) state.selectedClients.push(action.payload);
+      else            state.selectedClients.splice(idx, 1);
     },
     clearResult(state) {
       state.lastResult = null;

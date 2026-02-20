@@ -1,28 +1,21 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { TrendingUp, TrendingDown, CheckCircle, XCircle, X, Search, Loader2 } from 'lucide-react';
-
 import './BulkTradingPage.scss';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setSelectedClients, placeOrderForAll, toggleSelectedClient, clearResult } from '../../store/slice/bulkTradeSlice/bulkTradeSlice';
+import {setSelectedClients, placeOrderForAll,toggleSelectedClient, clearResult,} from '../../store/slice/bulkTradeSlice/bulkTradeSlice';
 import { fetchActiveClients } from '../../store/slice/clientsSlice/clientsSlice';
 import { Badge } from '../../components/common/Badge/Badge';
 import { Button } from '../../components/common/Button/Button';
 import { FormGroup } from '../../components/common/FormGroup/FormGroup';
-import { brokerService } from '../../services/clientService';
+import { brokerService } from '../../services/api';
 
-// ─── Symbol Search Types ──────────────────────────────────────────────────────
 interface SymbolSuggestion {
   exchange: string;
   scripcode: number;
   scripfullname: string;
   scripshortname: string;
-  open?: number;
-  high?: number;
-  low?: number;
-  close?: number;
 }
 
-// ─── Symbol Search Dropdown Component ────────────────────────────────────────
 interface SymbolSearchProps {
   exchange: string;
   masterClientCode: string;
@@ -30,16 +23,14 @@ interface SymbolSearchProps {
   initialSymbol?: string;
 }
 
-const SymbolSearch: React.FC<SymbolSearchProps> = ({ exchange, masterClientCode, onSelect, initialSymbol }) => {
+const SymbolSearch: React.FC<SymbolSearchProps> = ({exchange,masterClientCode,onSelect,initialSymbol,}) => {
   const [query, setQuery] = useState(initialSymbol || '');
   const [suggestions, setSuggestions] = useState<SymbolSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -50,158 +41,92 @@ const SymbolSearch: React.FC<SymbolSearchProps> = ({ exchange, masterClientCode,
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const search = useCallback(async (q: string) => {
-    if (!q || q.length < 2) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
-    if (!masterClientCode) return;
-
-    setLoading(true);
-    try {
-      const res = await brokerService.searchSymbols(masterClientCode, exchange, q);
-      // Handle both {data: [...]} and direct array responses
-      const list: SymbolSuggestion[] = Array.isArray(res)
-        ? res
-        : (res as any)?.data ?? [];
-      setSuggestions(list.slice(0, 10));
-      setOpen(list.length > 0);
-    } catch (err) {
-      console.error('Symbol search error:', err);
-      setSuggestions([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [exchange, masterClientCode]);
+  const search = useCallback(
+    async (q: string) => {
+      if (!q || q.length < 2) { setSuggestions([]); setOpen(false); return; }
+      if (!masterClientCode) return;
+      setLoading(true);
+      try {
+        const res = await brokerService.searchSymbols(masterClientCode, exchange, q);
+        const list: SymbolSuggestion[] = Array.isArray(res) ? res : (res as any)?.data ?? [];
+        setSuggestions(list.slice(0, 10));
+        setOpen(list.length > 0);
+      } catch (err) {
+        console.error('Symbol search error:', err);
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [exchange, masterClientCode]
+  );
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toUpperCase();
     setQuery(val);
-    setSelected(false);
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => search(val), 350);
   };
 
   const handleSelect = (item: SymbolSuggestion) => {
     const symbolName = item.scripshortname || item.scripfullname;
-    const token = String(item.scripcode);
     setQuery(symbolName);
-    setSelected(true);
     setOpen(false);
     setSuggestions([]);
-    onSelect(symbolName, token);
+    onSelect(symbolName, String(item.scripcode));
   };
 
   const handleClear = () => {
     setQuery('');
-    setSelected(false);
     setSuggestions([]);
     setOpen(false);
     onSelect('', '');
   };
 
   return (
-    <div ref={wrapperRef} style={{ position: 'relative', width: '100%' }}>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-        {/* Search icon */}
-        <span style={{
-          position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
-          color: 'rgba(255,255,255,0.35)', pointerEvents: 'none', display: 'flex'
-        }}>
+    <div ref={wrapperRef} className="symbol-search">
+      <div className="symbol-search__input-wrap">
+        <span className="symbol-search__icon">
           {loading
-            ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+            ? <Loader2 size={14} className="spin" />
             : <Search size={14} />
           }
         </span>
 
-        <input
-          value={query}
-          onChange={handleChange}
-          onFocus={() => suggestions.length > 0 && setOpen(true)}
-          placeholder="Search symbol e.g. NIFTY, RELIANCE"
-          style={{ paddingLeft: 32, paddingRight: selected ? 32 : 10 }}
-        />
+        <input value={query} onChange={handleChange} onFocus={() => suggestions.length > 0 && setOpen(true)} placeholder="Search symbol e.g. NIFTY, RELIANCE" className={query ? 'has-clear' : ''} />
 
-        {/* Clear button when selected */}
         {query && (
-          <button
-            onClick={handleClear}
-            style={{
-              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-              background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
-              cursor: 'pointer', display: 'flex', padding: 2,
-            }}
-          >
+          <button className="symbol-search__clear" onClick={handleClear}>
             <X size={12} />
           </button>
         )}
       </div>
 
-      {/* Dropdown */}
       {open && suggestions.length > 0 && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999,
-          background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          maxHeight: 280, overflowY: 'auto', marginTop: 4,
-        }}>
+        <div className="symbol-search__dropdown">
           {suggestions.map((item, idx) => (
-            <div
-              key={`${item.scripcode}-${idx}`}
-              onClick={() => handleSelect(item)}
-              style={{
-                padding: '10px 14px',
-                cursor: 'pointer',
-                borderBottom: idx < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>
-                  {item.scripshortname}
-                </span>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {item.scripfullname}
-                </span>
+            <div key={`${item.scripcode}-${idx}`} className="symbol-search__item" onClick={() => handleSelect(item)} >
+              <div className="symbol-search__item-left">
+                <span className="symbol-search__item-name">{item.scripshortname}</span>
+                <span className="symbol-search__item-fullname">{item.scripfullname}</span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-                <span style={{
-                  fontSize: 10, padding: '2px 6px', borderRadius: 4,
-                  background: 'rgba(99,102,241,0.2)', color: '#818cf8', fontWeight: 600,
-                }}>
-                  {item.exchange}
-                </span>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>
-                  Token: {item.scripcode}
-                </span>
+              <div className="symbol-search__item-right">
+                <span className="symbol-search__item-exchange">{item.exchange}</span>
+                <span className="symbol-search__item-token">Token: {item.scripcode}</span>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* No results */}
       {open && !loading && suggestions.length === 0 && query.length >= 2 && (
-        <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 999,
-          background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 8, padding: '12px 14px', marginTop: 4,
-          fontSize: 13, color: 'rgba(255,255,255,0.4)', textAlign: 'center',
-        }}>
+        <div className="symbol-search__empty">
           No symbols found for "{query}"
         </div>
       )}
     </div>
   );
 };
-
-
-// ─── Main BulkTradingPage ─────────────────────────────────────────────────────
 
 export const BulkTradingPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -211,13 +136,13 @@ export const BulkTradingPage: React.FC = () => {
   const [direction, setDirection] = useState<'BUY' | 'SELL'>('BUY');
   const [form, setForm] = useState({
     tradingsymbol: '',
-    symboltoken:   '',
-    exchange:      'NSE',
-    ordertype:     'MARKET',
-    producttype:   'INTRADAY',   // ← Fixed: was 'MIS', broker expects 'INTRADAY'
-    duration:      'DAY',
-    price:         '0',
-    quantity:      '',
+    symboltoken: '',
+    exchange: 'NSE',
+    ordertype: 'MARKET',
+    producttype: 'INTRADAY',
+    duration: 'DAY',
+    price: '0',
+    quantity: '',
   });
 
   useEffect(() => {
@@ -225,8 +150,8 @@ export const BulkTradingPage: React.FC = () => {
   }, [dispatch]);
 
   const activeClients = Object.values(clients).filter((c) => c.is_active);
-  const masterClient  = activeClients.find((c) => c.is_master);
-  const allSelected   = activeClients.length > 0 && selectedClients.length === activeClients.length;
+  const masterClient = activeClients.find((c) => c.is_master);
+  const allSelected = activeClients.length > 0 && selectedClients.length === activeClients.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
@@ -236,35 +161,32 @@ export const BulkTradingPage: React.FC = () => {
     }
   };
 
-  // Called when user selects a symbol from dropdown
   const handleSymbolSelect = (symbol: string, token: string) => {
-    setForm(prev => ({ ...prev, tradingsymbol: symbol, symboltoken: token }));
+    setForm((prev) => ({ ...prev, tradingsymbol: symbol, symboltoken: token }));
   };
 
   const handlePlaceOrder = () => {
-    if (!masterClient)      { alert('No master client found'); return; }
-    if (!form.symboltoken)  { alert('Symbol Token is required — please search and select a symbol'); return; }
-    if (!form.quantity)     { alert('Quantity is required'); return; }
+    if (!masterClient)              { alert('No master client found'); return; }
+    if (!form.symboltoken)          { alert('Symbol Token is required — please search and select a symbol'); return; }
+    if (!form.quantity)             { alert('Quantity is required'); return; }
     if (selectedClients.length === 0) { alert('Please select at least one client'); return; }
 
     dispatch(placeOrderForAll({
-      clientcode:    masterClient.client_code,
-      exchange:      form.exchange,
-      symboltoken:   form.symboltoken,
-      buyorsell:     direction,
-      ordertype:     form.ordertype,
-      producttype:   form.producttype,
-      duration:      form.duration,
-      price:         form.price,
-      quantity:      form.quantity,
+      clientcode:      masterClient.client_code,
+      exchange:        form.exchange,
+      symboltoken:     form.symboltoken,
+      buyorsell:       direction,
+      ordertype:       form.ordertype,
+      producttype:     form.producttype,
+      duration:        form.duration,
+      price:           form.price,
+      quantity:        form.quantity,
       selectedClients: selectedClients,
-
-      // TypeScript required fields
-      variety:        'NORMAL',
-      tradingsymbol:  form.tradingsymbol,
+      variety:         'NORMAL',
+      tradingsymbol:   form.tradingsymbol,
       transactiontype: direction,
-      squareoff:      '0',
-      stoploss:       '0',
+      squareoff:       '0',
+      stoploss:        '0',
     } as any));
   };
 
@@ -273,8 +195,9 @@ export const BulkTradingPage: React.FC = () => {
 
   return (
     <div className="bulk-trading">
-      {/* LEFT COLUMN */}
+
       <div className="bulk-trading__left">
+
         <div className="card">
           <div className="card__head">
             <div>
@@ -293,19 +216,9 @@ export const BulkTradingPage: React.FC = () => {
                   return (
                     <div
                       key={client.client_code}
-                      className={[
-                        'client-selection__item',
-                        isSelected ? 'client-selection__item--selected' : '',
-                        client.is_master ? 'client-selection__item--master' : '',
-                      ].filter(Boolean).join(' ')}
-                      onClick={() => dispatch(toggleSelectedClient(client.client_code))}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => dispatch(toggleSelectedClient(client.client_code))}
-                        onClick={(e) => e.stopPropagation()}
-                      />
+                      className={['client-selection__item', isSelected ? 'client-selection__item--selected' : '', client.is_master ? 'client-selection__item--master' : '', ].filter(Boolean).join(' ')}
+                      onClick={() => dispatch(toggleSelectedClient(client.client_code))} >
+                      <input type="checkbox" checked={isSelected} onChange={() => dispatch(toggleSelectedClient(client.client_code))} onClick={(e) => e.stopPropagation()}/>
                       <div className="client-selection__item-icon">
                         {client.client_code.slice(0, 2)}
                       </div>
@@ -333,7 +246,6 @@ export const BulkTradingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Trade Result */}
         {lastResult && (
           <div className="trade-result">
             <div className="trade-result__header">
@@ -344,10 +256,7 @@ export const BulkTradingPage: React.FC = () => {
                   <span className="chip chip--error">✗ {lastResult.failedCount} Failed</span>
                 )}
               </div>
-              <button
-                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}
-                onClick={() => dispatch(clearResult())}
-              >
+              <button className="trade-result__header-close" onClick={() => dispatch(clearResult())}>
                 <X size={16} />
               </button>
             </div>
@@ -359,11 +268,10 @@ export const BulkTradingPage: React.FC = () => {
                     <span>{res.message}</span>
                   </div>
                   <div className="trade-result__row-right">
-                    {res.status === 'SUCCESS' ? (
-                      <CheckCircle size={16} color="#10b981" />
-                    ) : (
-                      <XCircle size={16} color="#ef4444" />
-                    )}
+                    {res.status === 'SUCCESS'
+                      ? <CheckCircle size={16} color="#10b981" />
+                      : <XCircle size={16} color="#ef4444" />
+                    }
                     {res.uniqueOrderId && (
                       <span className="order-id">{res.uniqueOrderId}</span>
                     )}
@@ -375,7 +283,6 @@ export const BulkTradingPage: React.FC = () => {
         )}
       </div>
 
-      {/* RIGHT COLUMN */}
       <div className="bulk-trading__right">
         <div className="card">
           <div className="card__head">
@@ -386,23 +293,17 @@ export const BulkTradingPage: React.FC = () => {
           </div>
           <div className="card__body">
             <div className="order-form">
-              {/* BUY / SELL */}
+
               <div className="order-form__direction">
-                <button
-                  className={`btn-direction btn-direction--buy ${direction === 'BUY' ? 'btn-direction--buy--active' : ''}`}
-                  onClick={() => setDirection('BUY')}
-                >
+                <button className={`btn-direction btn-direction--buy ${direction === 'BUY' ? 'btn-direction--buy--active' : ''}`} onClick={() => setDirection('BUY')} >
                   <TrendingUp size={16} /> BUY
                 </button>
-                <button
-                  className={`btn-direction btn-direction--sell ${direction === 'SELL' ? 'btn-direction--sell-active' : ''}`}
-                  onClick={() => setDirection('SELL')}
-                >
+                <button className={`btn-direction btn-direction--sell ${direction === 'SELL' ? 'btn-direction--sell-active' : ''}`} onClick={() => setDirection('SELL')} >
                   <TrendingDown size={16} /> SELL
                 </button>
               </div>
 
-              <div className="form-row" style={{ marginBottom: 0 }}>
+              <div className="form-row">
                 <FormGroup label="Exchange">
                   <select value={form.exchange} onChange={(e) => setF('exchange', e.target.value)}>
                     <option value="NSE">NSE</option>
@@ -415,28 +316,19 @@ export const BulkTradingPage: React.FC = () => {
 
               <FormGroup label="Search Symbol *">
                 {masterClient ? (
-                  <SymbolSearch
-                    exchange={form.exchange}
-                    masterClientCode={masterClient.client_code}
-                    onSelect={handleSymbolSelect}
-                    initialSymbol={form.tradingsymbol}
-                  />
+                  <SymbolSearch exchange={form.exchange} masterClientCode={masterClient.client_code} onSelect={handleSymbolSelect} initialSymbol={form.tradingsymbol}/>
                 ) : (
                   <input disabled placeholder="No master client — cannot search" />
                 )}
               </FormGroup>
 
-              {/* Show selected token as read-only info */}
+              {/* Selected symbol info bar */}
               {form.symboltoken && (
-                <div style={{
-                  display: 'flex', gap: 12, marginBottom: 12, padding: '8px 12px',
-                  background: 'rgba(16,185,129,0.08)', borderRadius: 8,
-                  border: '1px solid rgba(16,185,129,0.2)', fontSize: 12,
-                }}>
-                  <span style={{ color: 'rgba(255,255,255,0.5)' }}>Selected:</span>
-                  <span style={{ color: '#10b981', fontWeight: 600 }}>{form.tradingsymbol}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>Token: {form.symboltoken}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>{form.exchange}</span>
+                <div className="symbol-info">
+                  <span className="symbol-info__label">Selected:</span>
+                  <span className="symbol-info__name">{form.tradingsymbol}</span>
+                  <span className="symbol-info__token">Token: {form.symboltoken}</span>
+                  <span className="symbol-info__exchange">{form.exchange}</span>
                 </div>
               )}
 
@@ -460,22 +352,10 @@ export const BulkTradingPage: React.FC = () => {
 
               <div className="form-row">
                 <FormGroup label="Quantity *">
-                  <input
-                    type="number"
-                    value={form.quantity}
-                    onChange={(e) => setF('quantity', e.target.value)}
-                    placeholder="Qty"
-                    min="1"
-                  />
+                  <input type="number" value={form.quantity} onChange={(e) => setF('quantity', e.target.value)}  placeholder="Qty"   min="1"/>
                 </FormGroup>
                 <FormGroup label="Price">
-                  <input
-                    type="number"
-                    value={form.price}
-                    onChange={(e) => setF('price', e.target.value)}
-                    placeholder="0 = Market"
-                    min="0"
-                  />
+                  <input type="number" value={form.price} onChange={(e) => setF('price', e.target.value)} placeholder="0 = Market" min="0"/>
                 </FormGroup>
               </div>
 
@@ -491,7 +371,7 @@ export const BulkTradingPage: React.FC = () => {
                 </div>
                 <div className="order-form__summary-row">
                   <span>Direction</span>
-                  <span style={{ color: direction === 'BUY' ? '#10b981' : '#ef4444' }}>
+                  <span className={`order-form__summary-direction--${direction === 'BUY' ? 'buy' : 'sell'}`}>
                     {direction}
                   </span>
                 </div>
@@ -505,32 +385,29 @@ export const BulkTradingPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Actions */}
               <div className="order-form__actions">
-                <Button
-                  variant="accent"
-                  fullWidth
-                  loading={loading}
-                  disabled={selectedClients.length === 0 || !masterClient || !form.symboltoken}
-                  onClick={handlePlaceOrder}
-                  icon={direction === 'BUY' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                >
+                <Button variant="accent" fullWidth loading={loading} disabled={selectedClients.length === 0 || !masterClient || !form.symboltoken} onClick={handlePlaceOrder} icon={direction === 'BUY' ? <TrendingUp size={16} /> : <TrendingDown size={16} />} >
                   Execute {direction} for {selectedClients.length} Clients
                 </Button>
+
                 {!masterClient && (
-                  <p style={{ fontSize: 12, color: '#ef4444', textAlign: 'center' }}>
+                  <p className="order-form__hint order-form__hint--error">
                     No master client found. Please mark one client as master.
                   </p>
                 )}
                 {masterClient && !form.symboltoken && (
-                  <p style={{ fontSize: 12, color: '#f59e0b', textAlign: 'center' }}>
+                  <p className="order-form__hint order-form__hint--warning">
                     Please search and select a symbol above.
                   </p>
                 )}
               </div>
+
             </div>
           </div>
         </div>
       </div>
+
     </div>
   );
 };

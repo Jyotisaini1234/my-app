@@ -6,6 +6,7 @@ import {
   History,
   Settings,
   BarChart3,
+  ScrollText,
 } from 'lucide-react';
 import { NavPage } from '../../../types/type';
 import './Sidebar.scss';
@@ -16,11 +17,12 @@ interface SidebarProps {
 }
 
 const navItems: { id: NavPage; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',     label: 'Dashboard',     icon: <LayoutDashboard size={18} /> },
-  { id: 'clients',       label: 'Clients',        icon: <Users size={18} /> },
-  { id: 'bulk-trading',  label: 'Bulk Trading',   icon: <TrendingUp size={18} /> },
-  { id: 'trade-history', label: 'Trade History',  icon: <History size={18} /> },
-  { id: 'settings',      label: 'Settings',       icon: <Settings size={18} /> },
+  { id: 'dashboard',    label: 'Dashboard',    icon: <LayoutDashboard size={18} /> },
+  { id: 'clients',      label: 'Clients',      icon: <Users size={18} /> },
+  { id: 'bulk-trading', label: 'Bulk Trading', icon: <TrendingUp size={18} /> },
+  { id: 'trade-history',label: 'Trade History',icon: <History size={18} /> },
+  { id: 'order-logs',   label: 'Order Logs',   icon: <ScrollText size={18} /> },
+  { id: 'settings',     label: 'Settings',     icon: <Settings size={18} /> },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
@@ -42,7 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onNavigate }) => {
           <button
             key={item.id}
             className={`sidebar__item ${activePage === item.id ? 'sidebar__item--active' : ''}`}
-            onClick={() => onNavigate(item.id)} >
+            onClick={() => onNavigate(item.id)}
+          >
             {item.icon}
             <span>{item.label}</span>
           </button>

@@ -1,8 +1,7 @@
-// ─── Color Palette ────────────────────────────────────────────────────────────
-$primary:          #1a2b5c;   // Deep navy sidebar
+$primary:          #1a2b5c;  
 $primary-dark:     #111e42;
 $primary-light:    #223370;
-$accent:           #f97316;   // Orange CTA (Motilal brand orange)
+$accent:           #f97316;   
 $accent-hover:     #ea6c0a;
 $success:          #10b981;
 $success-bg:       rgba(16, 185, 129, 0.12);
@@ -11,8 +10,11 @@ $warning-bg:       rgba(245, 158, 11, 0.12);
 $error:            #ef4444;
 $error-bg:         rgba(239, 68, 68, 0.12);
 $info:             #3b82f6;
-
-// ─── Surface / Background ─────────────────────────────────────────────────────
+$surface:          #f8fafc;
+$surface-hover:    #f1f5f9;
+$bg:               #ffffff;
+$traceId:          #7c3aed;
+$spanId:           #0891b2;
 $bg-page:          #f0f4f8;
 $bg-card:          #ffffff;
 $bg-card-hover:    #f7fafc;

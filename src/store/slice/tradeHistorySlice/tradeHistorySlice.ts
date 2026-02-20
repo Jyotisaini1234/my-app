@@ -1,16 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { TradeHistoryState, TradeLogEntry } from '../../../types/type';
-import { logService } from '../../../services/clientService';
+import { logService } from '../../../services/api';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type TradeFilters = {
   startDate?: string;
   endDate?: string;
   clientCode?: string;
 };
-
-// ─── Async Thunks ─────────────────────────────────────────────────────────────
 
 export const fetchTradeHistory = createAsyncThunk<TradeLogEntry[], TradeFilters>(
   'tradeHistory/fetchAll',
@@ -38,12 +35,12 @@ export const fetchTradeCount = createAsyncThunk(
   }
 );
 
-// ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState: TradeHistoryState = {
   data: [],
   loading: false,
   error: null,
+  isFetched: false,
   filters: {
     type: 'All',
     clientCode: '',
@@ -52,7 +49,6 @@ const initialState: TradeHistoryState = {
   },
 };
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
 
 const tradeHistorySlice = createSlice({
   name: 'tradeHistory',
@@ -76,10 +72,12 @@ const tradeHistorySlice = createSlice({
       })
       .addCase(fetchTradeHistory.fulfilled, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.data = action.payload;
       })
       .addCase(fetchTradeHistory.rejected, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.error = action.payload as string;
       });
   },

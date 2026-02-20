@@ -1,95 +1,220 @@
-import { ApiResponse, OrderResponse, SymbolSearchResponse } from "../types/type";
-import { API_BASE_URL_8080, API_BASE_URL_8081, API_ENDPOINTS } from "../utils/ApiConstants";
+import { BROKER_BASE, TRADE_BASE, API_ENDPOINTS } from '../utils/ApiConstants';
+
 
 async function request<T = any>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, options);
-  if (!res.ok) throw new Error(`API Error: ${res.status}`);
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    ...options,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(err.message || `HTTP ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
-export const brokerApi = {
+export const clientService = {
+
+  list: () =>
+    request<{ status: string; total: number; clients: Record<string, any> }>(
+      `${BROKER_BASE}${API_ENDPOINTS.CLIENT.LIST}`
+    ),
+
+  listActive: () =>
+    request<{ status: string; total: number; clients: Record<string, any> }>(
+      `${BROKER_BASE}${API_ENDPOINTS.CLIENT.LIST_ACTIVE}`
+    ),
+
+  details: (clientCode: string) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.DETAILS(clientCode)}`),
+
+  add: (data: {
+    clientCode: string;
+    userId: string;
+    password: string;
+    apiKey: string;
+    totpSecret?: string;
+    twoFa?: string;
+    active?: boolean;
+    master?: boolean;
+  }) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.ADD}`, {
+      method: 'POST',
+      body: JSON.stringify({
+        clientCode:  data.clientCode,
+        userId:      data.userId,
+        password:    data.password,
+        apiKey:      data.apiKey,
+        totpSecret:  data.totpSecret  ?? '',
+        twoFa:       data.twoFa       ?? 'Y',
+        active:      data.active      ?? true,
+        master:      data.master      ?? false,
+      }),
+    }),
+
+  update: (clientCode: string, data: Record<string, unknown>) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.UPDATE(clientCode)}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  updateField: (clientCode: string, updates: Record<string, unknown>) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.UPDATE_FIELD(clientCode)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    }),
+
+  authenticate: (clientCode: string) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.AUTHENTICATE(clientCode)}`, {
+      method: 'POST',
+    }),
+
+  authenticateAll: () =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.AUTHENTICATE_ALL}`, {
+      method: 'POST',
+    }),
+
+  delete: (clientCode: string) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.DELETE(clientCode)}`, {
+      method: 'DELETE',
+    }),
+};
+
+export const brokerService = {
+
+  placeOrder: (orderRequest: any) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
+      method: 'POST',
+      body: JSON.stringify(orderRequest),
+    }),
+
+  cancelOrder: (cancelRequest: any) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.CANCEL_ORDER}`, {
+      method: 'POST',
+      body: JSON.stringify(cancelRequest),
+    }),
+
   searchSymbols: (clientCode: string, exchange: string, query?: string) => {
-    const params = new URLSearchParams({ clientCode, exchange, ...(query && { query }) });
-    return request<SymbolSearchResponse>(
-      `${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.SEARCH_SYMBOLS}?${params}`,
-      { method: 'GET', headers: { 'Accept': 'application/json' } }
+    const params = new URLSearchParams({ clientCode, exchange });
+    if (query) params.append('query', query);
+    return request(
+      `${BROKER_BASE}${API_ENDPOINTS.BROKER.SEARCH_SYMBOLS}?${params}`
     );
   },
 
-  getProfile: (clientCode: string) =>
-    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PROFILE(clientCode)}`),
+  getClientProfile: (clientCode: string) =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.PROFILE(clientCode)}`),
 
-  healthCheck: () =>
-    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.HEALTH}`),
-
-  placeOrder: (clientCode: string, orderData: any) =>
-    request<OrderResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Client-Code': clientCode },
-      body: JSON.stringify(orderData),
-    }),
-
-  cancelOrder: (clientCode: string, uniqueOrderId: string) =>
-    request<ApiResponse>(`${API_BASE_URL_8080}${API_ENDPOINTS.BROKER.CANCEL_ORDER}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Client-Code': clientCode },
-      body: JSON.stringify({ uniqueorderid: uniqueOrderId }),
-    }),
+  health: () =>
+    request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.HEALTH}`),
 };
 
 export const tradeService = {
+
   placeOrder: (orderRequest: any) => {
-    // ── Backend exactly wahi expect karta hai jo yahan map ho raha hai ──
     const payload = {
       clientcode:        orderRequest.clientcode,
       exchange:          orderRequest.exchange,
-      symboltoken:       Number(orderRequest.symboltoken),                               // string → number
+      symboltoken:       Number(orderRequest.symboltoken),
       buyorsell:         orderRequest.buyorsell || orderRequest.transactiontype,
       ordertype:         orderRequest.ordertype,
-      producttype:       orderRequest.producttype,                                       // MIS / CNC / NRML
-      orderduration:     orderRequest.duration || orderRequest.orderduration || 'DAY',  // sahi field name
-      price:             Number(orderRequest.price) || 0,
-      triggerprice:      Number(orderRequest.triggerprice) || 0,
-      quantityinlot:     Number(orderRequest.quantity) || Number(orderRequest.quantityinlot), // sahi field + number
-      disclosedquantity: 0,
-      amoorder:          'N',
+      producttype:       orderRequest.producttype,
+      orderduration:     orderRequest.duration || orderRequest.orderduration || 'DAY',
+      price:             Number(orderRequest.price)         || 0,
+      triggerprice:      Number(orderRequest.triggerprice)  || 0,
+      quantityinlot:     Number(orderRequest.quantity)      || Number(orderRequest.quantityinlot),
+      disclosedquantity: Number(orderRequest.disclosedquantity) || 0,
+      amoorder:          orderRequest.amoorder || 'N',
       selectedClients:   orderRequest.selectedClients || [],
     };
-
-    console.log('Order payload:', JSON.stringify(payload, null, 2));
-
-    return request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
-  method: 'POST',
-  headers: { 
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  },
-  body: JSON.stringify(payload),
-});
+    return request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 
-  placeSingleOrder: (clientCode: string, orderData: any) =>
-    request<OrderResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
+  cancelOrder: (uniqueorderid: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.CANCEL_ORDER}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Client-Code': clientCode },
-      body: JSON.stringify(orderData),
+      body: JSON.stringify({ uniqueorderid }),
     }),
 
-  cancelOrder: (uniqueOrderId: string) =>
-    request<ApiResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.CANCEL_ORDER}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uniqueorderid: uniqueOrderId }),
-    }),
+  getConfig: () =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.CONFIG}`),
 
-  cancelSingleOrder: (data: { clientcode: string; uniqueorderid: string }) =>
-    request<ApiResponse>(`${API_BASE_URL_8081}${API_ENDPOINTS.TRADE.CANCEL_SINGLE_ORDER}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }),
+  health: () =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.HEALTH}`),
 };
 
-export const api = { ...brokerApi, ...tradeService };
-export const apiService = api;
-export type { ApiResponse, SymbolSearchResponse, OrderResponse };
+export const logService = {
+
+  getTrace: (traceId: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.TRACE(traceId)}`),
+
+  getSpan: (spanId: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.SPAN(spanId)}`),
+
+  getTraceSpan: (traceId: string, spanId: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.TRACE_SPAN(traceId, spanId)}`),
+
+  getByClient: (clientCode: string, hours = 24, params?: { startDate?: string; endDate?: string }) => {
+    const q = new URLSearchParams({ hours: String(hours) });
+    if (params?.startDate) q.append('startDate', params.startDate);
+    if (params?.endDate)   q.append('endDate', params.endDate);
+    return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.CLIENT(clientCode)}?${q}`);
+  },
+
+  getByClientName: (clientName: string, hours = 24) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.CLIENT_NAME(clientName)}?hours=${hours}`),
+
+  getByClientGrouped: (clientCode: string, hours = 24) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.CLIENT_GROUPED(clientCode)}?hours=${hours}`),
+
+  getAllData: (params?: { startDate?: string; endDate?: string; clientCode?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.startDate)  q.append('startDate',  params.startDate);
+    if (params?.endDate)    q.append('endDate',    params.endDate);
+    if (params?.clientCode) q.append('clientCode', params.clientCode);
+    return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.DATA_ALL}?${q}`);
+  },
+
+  getCount: (startDate: string, endDate: string, clientCode?: string, includeData = false) => {
+    const q = new URLSearchParams({ startDate, endDate, includeData: String(includeData) });
+    if (clientCode) q.append('clientCode', clientCode);
+    return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.DATA_COUNT}?${q}`);
+  },
+};
+
+export const exportService = {
+
+  listRemote: () =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.LIST_REMOTE}`),
+
+  downloadRemote: (filename: string) =>
+    fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DOWNLOAD_REMOTE(filename)}`),
+
+  uploadArchive: (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.UPLOAD_ARCHIVE}`, {
+      method: 'POST',
+      body: form,
+    }).then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    });
+  },
+
+  deleteRemote: (filename: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DELETE_REMOTE(filename)}`, {
+      method: 'DELETE',
+    }),
+
+  restoreArchive: (filename: string) =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.RESTORE_ARCHIVE(filename)}`, {
+      method: 'POST',
+    }),
+
+  getLokiStatus: () =>
+    request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.LOKI_STATUS}`),
+};

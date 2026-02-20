@@ -209,6 +209,7 @@ export interface ClientsState {
   loading: boolean;
   error: string | null;
   authenticatingAll: boolean;
+  isFetched: boolean, 
 }
 
 
@@ -284,6 +285,7 @@ export interface TradeHistoryState {
   data: TradeLogEntry[];
   loading: boolean;
   error: string | null;
+  isFetched: boolean, 
   filters: {
     type: string;
     clientCode: string;
@@ -293,7 +295,7 @@ export interface TradeHistoryState {
 }
 
 
-export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history' | 'settings';
+export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history'  | 'order-logs' | 'settings';
 
 export interface NavItem {
   id: NavPage;

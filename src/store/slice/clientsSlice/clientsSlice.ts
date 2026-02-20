@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Client, ClientsState } from '../../../types/type';
-import { clientService } from '../../../services/clientService';
+import { clientService } from '../../../services/api';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
@@ -95,6 +95,7 @@ const initialState: ClientsState = {
   loading: false,
   error: null,
   authenticatingAll: false,
+  isFetched: false, 
 };
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
@@ -108,7 +109,6 @@ const clientsSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // fetchClients
     builder
       .addCase(fetchClients.pending, (state) => {
         state.loading = true;
@@ -116,20 +116,20 @@ const clientsSlice = createSlice({
       })
       .addCase(fetchClients.fulfilled, (state, action: PayloadAction<Record<string, Client>>) => {
         state.loading = false;
+        state.isFetched = true; 
         state.data = action.payload;
       })
       .addCase(fetchClients.rejected, (state, action) => {
-        state.loading = false;
+          state.loading = false;
+          state.isFetched = true;
         state.error = action.payload as string;
       });
 
-    // fetchActiveClients
     builder
-      .addCase(fetchActiveClients.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(fetchActiveClients.pending, (state) => { state.loading = true; })
       .addCase(fetchActiveClients.fulfilled, (state, action) => {
         state.loading = false;
+        state.isFetched = true;
         state.data = action.payload;
       })
       .addCase(fetchActiveClients.rejected, (state, action) => {
@@ -137,45 +137,32 @@ const clientsSlice = createSlice({
         state.error = action.payload as string;
       });
 
-    // addClient
     builder
-      .addCase(addClient.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(addClient.fulfilled, (state) => {
-        state.loading = false;
-      })
+      .addCase(addClient.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(addClient.fulfilled, (state) => { state.loading = false; })
       .addCase(addClient.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
 
-    // authenticateAllClients
     builder
       .addCase(authenticateAllClients.pending, (state) => {
         state.authenticatingAll = true;
         state.error = null;
       })
-      .addCase(authenticateAllClients.fulfilled, (state) => {
-        state.authenticatingAll = false;
-      })
+      .addCase(authenticateAllClients.fulfilled, (state) => { state.authenticatingAll = false; })
       .addCase(authenticateAllClients.rejected, (state, action) => {
         state.authenticatingAll = false;
         state.error = action.payload as string;
       });
 
-    // authenticateClient
-    builder
-      .addCase(authenticateClient.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+    builder.addCase(authenticateClient.rejected, (state, action) => {
+      state.error = action.payload as string;
+    });
 
-    // deleteClient
-    builder
-      .addCase(deleteClient.rejected, (state, action) => {
-        state.error = action.payload as string;
-      });
+    builder.addCase(deleteClient.rejected, (state, action) => {
+      state.error = action.payload as string;
+    });
   },
 });
 

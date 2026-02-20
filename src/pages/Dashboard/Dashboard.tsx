@@ -1,16 +1,5 @@
-import React, { useEffect } from 'react';
-import {
-  Users,
-  TrendingUp,
-  Activity,
-  ShieldCheck,
-  BarChart2,
-  PlusCircle,
-  Power,
-  History,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
+import React, { useEffect, useMemo } from 'react';
+import { Users, TrendingUp,Activity,ShieldCheck,BarChart2,PlusCircle,Power,History, ArrowUpRight,} from 'lucide-react';
 import './DashboardPage.scss';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClients } from '../../store/slice/clientsSlice/clientsSlice';
@@ -23,22 +12,22 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const dispatch = useAppDispatch();
-  const { data: clients } = useAppSelector((s) => s.clients);
-  const { data: trades } = useAppSelector((s) => s.tradeHistory);
 
- useEffect(() => {
-  if (Object.keys(clients).length === 0) {
-    dispatch(fetchClients());
-  }
-  if (trades.length === 0) {
-    dispatch(fetchTradeHistory({}));
-  }
-}, []);
+  const { data: clients, isFetched: clientsFetched } = useAppSelector((s) => s.clients);
+  const { data: trades, isFetched: tradesFetched } = useAppSelector((s) => s.tradeHistory);
 
-  const clientList = Object.values(clients);
+  useEffect(() => {
+    if (!clientsFetched) {
+      dispatch(fetchClients());
+    }
+    if (!tradesFetched) {
+      dispatch(fetchTradeHistory({}));
+    }
+  }, []); 
+  const clientList = useMemo(() => Object.values(clients), [clients]);
   const totalClients = clientList.length;
-  const authClients = clientList.filter((c) => c.is_authenticated).length;
-  const activeClients = clientList.filter((c) => c.is_active).length;
+  const authClients = useMemo(() => clientList.filter((c) => c.is_authenticated).length, [clientList]);
+  const activeClients = useMemo(() => clientList.filter((c) => c.is_active).length, [clientList]);
   const totalTrades = trades.length;
 
   const quickActions = [
@@ -75,7 +64,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   return (
     <div className="dashboard">
 
-      {/* Stats Row */}
       <div className="dashboard__stats">
 
         <div className="stat-card">
@@ -166,39 +154,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span>Type</span>
               <span>Date</span>
             </div>
-{trades.length === 0 ? (
-  <div className="trade-table__empty">
-    No recent trades. Place your first bulk trade to get started.
-  </div>
-) : (
-  trades.slice(0, 6).map((t, i) => {
-    const action = t.action || '—';
-    const tradeDate = t.createdAt;
-    const isPlace = action === 'PLACE_ORDER';
+            {trades.length === 0 ? (
+              <div className="trade-table__empty">
+                No recent trades. Place your first bulk trade to get started.
+              </div>
+            ) : (
+              trades.slice(0, 6).map((t, i) => {
+                const action = t.action || '—';
+                const tradeDate = t.createdAt;
+                const isPlace = action === 'PLACE_ORDER';
 
-    return (
-      <div key={t.id || i} className="trade-table__row">
-        <div className="trade-table__symbol">
-          <div className="trade-table__symbol-icon">
-            <TrendingUp size={14} />
-          </div>
-          <strong>{t.clientName || t.clientCode || 'Trade'}</strong>
-        </div>
-        <span className="trade-table__client">
-          {t.masterClientCode || t.clientCode || '—'}
-        </span>
-        <span className={`trade-table__badge trade-table__badge--${isPlace ? 'buy' : 'sell'}`}>
-          {isPlace ? 'PLACE' : action === 'CANCEL_ORDER' ? 'CANCEL' : action}
-        </span>
-        <time className="trade-table__date">
-          {tradeDate ? new Date(tradeDate).toLocaleString('en-IN', {
-            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-          }) : '—'}
-        </time>
-      </div>
-    );
-  })
-)}
+                return (
+                  <div key={t.id || i} className="trade-table__row">
+                    <div className="trade-table__symbol">
+                      <div className="trade-table__symbol-icon">
+                        <TrendingUp size={14} />
+                      </div>
+                      <strong>{t.clientName || t.clientCode || 'Trade'}</strong>
+                    </div>
+                    <span className="trade-table__client">
+                      {t.masterClientCode || t.clientCode || '—'}
+                    </span>
+                    <span className={`trade-table__badge trade-table__badge--${isPlace ? 'buy' : 'sell'}`}>
+                      {isPlace ? 'PLACE' : action === 'CANCEL_ORDER' ? 'CANCEL' : action}
+                    </span>
+                    <time className="trade-table__date">
+                      {tradeDate ? new Date(tradeDate).toLocaleString('en-IN', {
+                        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                      }) : '—'}
+                    </time>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -209,7 +197,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           </div>
           <div className="quick-actions">
             {quickActions.map((qa) => (
-              <button key={qa.label} className={`quick-action quick-action--${qa.color}`} onClick={() => onNavigate(qa.page)}  >
+              <button key={qa.label} className={`quick-action quick-action--${qa.color}`} onClick={() => onNavigate(qa.page)}>
                 <div className="quick-action__icon">{qa.icon}</div>
                 <div className="quick-action__text">
                   <span className="quick-action__label">{qa.label}</span>
