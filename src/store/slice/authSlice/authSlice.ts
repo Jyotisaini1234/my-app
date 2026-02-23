@@ -1,9 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-// ─── Base URL ─────────────────────────────────────────────────────────────────
-const AUTH_BASE = 'http://localhost:8081/api/auth';
+const AUTH_BASE = 'http://ec2-13-233-121-193.ap-south-1.compute.amazonaws.com:8081/api/auth';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 export interface AuthUser {
   id: string;
   name: string;
@@ -34,12 +32,11 @@ export interface AuthState {
   otpSent: boolean;
   resetToken: string | null;
   forgotEmail: string | null;
-  forgotStep: 1 | 2 | 3;   // ✅ step in Redux — survives validateSession re-renders
-  authView: AuthView;        // ✅ view in Redux — survives validateSession re-renders
+  forgotStep: 1 | 2 | 3;    
+  authView: AuthView;       
   pendingSignup: PendingSignup | null;
 }
 
-// ─── Fetch helpers ────────────────────────────────────────────────────────────
 const fetchWithTimeout = (url: string, options: RequestInit, timeoutMs = 15000): Promise<Response> => {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -80,7 +77,6 @@ const apiGet = async (path: string) => {
   return data;
 };
 
-// ─── Thunks ───────────────────────────────────────────────────────────────────
 export const loginThunk = createAsyncThunk('auth/login',
   async (payload: { identifier: string; password: string }, { rejectWithValue }) => {
     try { return await apiPost('/login', payload); }
@@ -151,7 +147,6 @@ export const refreshTokenThunk = createAsyncThunk('auth/refreshToken',
   }
 );
 
-// ─── Initial State ─────────────────────────────────────────────────────────────
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
@@ -165,7 +160,6 @@ const initialState: AuthState = {
   pendingSignup: null,
 };
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -176,7 +170,7 @@ const authSlice = createSlice({
     clearForgotState: (state) => {
       state.resetToken  = null;
       state.forgotEmail = null;
-      state.forgotStep  = 1;        // reset step too
+      state.forgotStep  = 1;       
     },
     setForgotEmail: (state, action: PayloadAction<string>)      => { state.forgotEmail = action.payload; },
     setForgotStep:  (state, action: PayloadAction<1 | 2 | 3>)  => { state.forgotStep  = action.payload; },
@@ -260,9 +254,7 @@ const authSlice = createSlice({
       .addCase(logoutThunk.rejected,  (state) => { Object.assign(state, { ...initialState }); });
 
     // ── Validate Session ──
-    // ✅ IMPORTANT: validateSession ke pending/fulfilled/rejected mein
-    //    authView aur forgotStep ko kabhi touch mat karo — warna re-render se reset ho jaayega
-    builder
+      builder
       .addCase(validateSessionThunk.pending,    (state) => { state.loading = true; })
       .addCase(validateSessionThunk.fulfilled,  (state, action) => {
         state.loading = false;
@@ -272,14 +264,12 @@ const authSlice = createSlice({
         } else {
           state.isAuthenticated = false;
           state.user = null;
-          // ✅ authView aur forgotStep yahan reset NAHI karte
         }
       })
       .addCase(validateSessionThunk.rejected,   (state) => {
         state.loading = false;
         state.isAuthenticated = false;
         state.user = null;
-        // ✅ authView aur forgotStep yahan reset NAHI karte
       });
 
     // ── Resend OTP ──
