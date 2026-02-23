@@ -196,94 +196,7 @@ export const BulkTradingPage: React.FC = () => {
   return (
     <div className="bulk-trading">
 
-      <div className="bulk-trading__left">
-
-        <div className="card">
-          <div className="card__head">
-            <div>
-              <h3>Client Selection</h3>
-              <p>Select clients to include in bulk trade</p>
-            </div>
-            <Badge color={selectedClients.length > 0 ? 'success' : 'default'}>
-              {selectedClients.length} selected
-            </Badge>
-          </div>
-          <div className="card__body">
-            <div className="client-selection">
-              <div className="client-selection__list">
-                {activeClients.map((client) => {
-                  const isSelected = selectedClients.includes(client.client_code);
-                  return (
-                    <div
-                      key={client.client_code}
-                      className={['client-selection__item', isSelected ? 'client-selection__item--selected' : '', client.is_master ? 'client-selection__item--master' : '', ].filter(Boolean).join(' ')}
-                      onClick={() => dispatch(toggleSelectedClient(client.client_code))} >
-                      <input type="checkbox" checked={isSelected} onChange={() => dispatch(toggleSelectedClient(client.client_code))} onClick={(e) => e.stopPropagation()}/>
-                      <div className="client-selection__item-icon">
-                        {client.client_code.slice(0, 2)}
-                      </div>
-                      <div className="client-selection__item-info">
-                        <strong>{client.client_code}</strong>
-                        <span>{client.user_id}</span>
-                      </div>
-                      <span className="client-selection__item-broker">
-                        {client.is_master ? '★ Master' : 'Motilal'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="client-selection__footer">
-                <span>
-                  <strong>{selectedClients.length}</strong> of{' '}
-                  <strong>{activeClients.length}</strong> selected
-                </span>
-                <Button variant="ghost" size="sm" onClick={handleSelectAll}>
-                  {allSelected ? 'Deselect All' : 'Select All'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {lastResult && (
-          <div className="trade-result">
-            <div className="trade-result__header">
-              <h4>Trade Results — {lastResult.masterClientCode}</h4>
-              <div className="summary-chips">
-                <span className="chip chip--success">✓ {lastResult.successCount} OK</span>
-                {lastResult.failedCount > 0 && (
-                  <span className="chip chip--error">✗ {lastResult.failedCount} Failed</span>
-                )}
-              </div>
-              <button className="trade-result__header-close" onClick={() => dispatch(clearResult())}>
-                <X size={16} />
-              </button>
-            </div>
-            <div className="trade-result__list">
-              {Object.entries(lastResult.results).map(([code, res]) => (
-                <div key={code} className="trade-result__row">
-                  <div className="trade-result__row-left">
-                    <strong>{code}</strong>
-                    <span>{res.message}</span>
-                  </div>
-                  <div className="trade-result__row-right">
-                    {res.status === 'SUCCESS'
-                      ? <CheckCircle size={16} color="#10b981" />
-                      : <XCircle size={16} color="#ef4444" />
-                    }
-                    {res.uniqueOrderId && (
-                      <span className="order-id">{res.uniqueOrderId}</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="bulk-trading__right">
+       <div className="bulk-trading__right">
         <div className="card">
           <div className="card__head">
             <div>
@@ -407,6 +320,59 @@ export const BulkTradingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <div className="bulk-trading__left">
+
+        <div className="card">
+          <div className="card__head">
+            <div>
+              <h3>Client Selection</h3>
+              <p>Select clients to include in bulk trade</p>
+            </div>
+            <Badge color={selectedClients.length > 0 ? 'success' : 'default'}>
+              {selectedClients.length} selected
+            </Badge>
+          </div>
+          <div className="card__body">
+            <div className="client-selection">
+              <div className="client-selection__list">
+                {activeClients.map((client) => {
+                  const isSelected = selectedClients.includes(client.client_code);
+                  return (
+                    <div
+                      key={client.client_code}
+                      className={['client-selection__item', isSelected ? 'client-selection__item--selected' : '', client.is_master ? 'client-selection__item--master' : '', ].filter(Boolean).join(' ')}
+                      onClick={() => dispatch(toggleSelectedClient(client.client_code))} >
+                      <input type="checkbox" checked={isSelected} onChange={() => dispatch(toggleSelectedClient(client.client_code))} onClick={(e) => e.stopPropagation()}/>
+                      <div className="client-selection__item-icon">
+                        {client.client_code.slice(0, 2)}
+                      </div>
+                      <div className="client-selection__item-info">
+                        <strong>{client.client_code}</strong>
+                        <span>{client.user_id}</span>
+                      </div>
+                      <span className="client-selection__item-broker">
+                        {client.is_master ? '★ Master' : 'Motilal'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="client-selection__footer">
+                <span>
+                  <strong>{selectedClients.length}</strong> of{' '}
+                  <strong>{activeClients.length}</strong> selected
+                </span>
+                <Button variant="ghost" size="sm" onClick={handleSelectAll}>
+                  {allSelected ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
 
     </div>
   );

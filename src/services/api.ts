@@ -2,15 +2,19 @@ import { BROKER_BASE, TRADE_BASE, API_ENDPOINTS } from '../utils/ApiConstants';
 
 
 async function request<T = any>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || `HTTP ${res.status}`);
-  }
-  return res.json() as Promise<T>;
+    const res = await fetch(url, {
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            ...options?.headers,
+        },
+        ...options,
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(err.error || err.message || `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<T>;
 }
 
 export const clientService = {
@@ -80,6 +84,7 @@ export const clientService = {
     }),
 };
 
+// ─── Broker Service (BROKER_BASE :8080) ───────────────────────────────────────
 export const brokerService = {
 
   placeOrder: (orderRequest: any) =>
@@ -97,9 +102,7 @@ export const brokerService = {
   searchSymbols: (clientCode: string, exchange: string, query?: string) => {
     const params = new URLSearchParams({ clientCode, exchange });
     if (query) params.append('query', query);
-    return request(
-      `${BROKER_BASE}${API_ENDPOINTS.BROKER.SEARCH_SYMBOLS}?${params}`
-    );
+    return request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.SEARCH_SYMBOLS}?${params}`);
   },
 
   getClientProfile: (clientCode: string) =>
@@ -109,6 +112,7 @@ export const brokerService = {
     request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.HEALTH}`),
 };
 
+// ─── Trade Service (TRADE_BASE :8081) ─────────────────────────────────────────
 export const tradeService = {
 
   placeOrder: (orderRequest: any) => {
@@ -120,9 +124,9 @@ export const tradeService = {
       ordertype:         orderRequest.ordertype,
       producttype:       orderRequest.producttype,
       orderduration:     orderRequest.duration || orderRequest.orderduration || 'DAY',
-      price:             Number(orderRequest.price)         || 0,
-      triggerprice:      Number(orderRequest.triggerprice)  || 0,
-      quantityinlot:     Number(orderRequest.quantity)      || Number(orderRequest.quantityinlot),
+      price:             Number(orderRequest.price)             || 0,
+      triggerprice:      Number(orderRequest.triggerprice)      || 0,
+      quantityinlot:     Number(orderRequest.quantity)          || Number(orderRequest.quantityinlot),
       disclosedquantity: Number(orderRequest.disclosedquantity) || 0,
       amoorder:          orderRequest.amoorder || 'N',
       selectedClients:   orderRequest.selectedClients || [],
@@ -146,6 +150,7 @@ export const tradeService = {
     request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.HEALTH}`),
 };
 
+// ─── Log Service (TRADE_BASE :8081) ───────────────────────────────────────────
 export const logService = {
 
   getTrace: (traceId: string) =>
@@ -160,7 +165,7 @@ export const logService = {
   getByClient: (clientCode: string, hours = 24, params?: { startDate?: string; endDate?: string }) => {
     const q = new URLSearchParams({ hours: String(hours) });
     if (params?.startDate) q.append('startDate', params.startDate);
-    if (params?.endDate)   q.append('endDate', params.endDate);
+    if (params?.endDate)   q.append('endDate',   params.endDate);
     return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.CLIENT(clientCode)}?${q}`);
   },
 
@@ -173,8 +178,8 @@ export const logService = {
   getAllData: (params?: { startDate?: string; endDate?: string; clientCode?: string }) => {
     const q = new URLSearchParams();
     if (params?.startDate)  q.append('startDate',  params.startDate);
-    if (params?.endDate)    q.append('endDate',    params.endDate);
-    if (params?.clientCode) q.append('clientCode', params.clientCode);
+    if (params?.endDate)    q.append('endDate',     params.endDate);
+    if (params?.clientCode) q.append('clientCode',  params.clientCode);
     return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.DATA_ALL}?${q}`);
   },
 
@@ -185,19 +190,24 @@ export const logService = {
   },
 };
 
+// ─── Export Service (TRADE_BASE :8081) ────────────────────────────────────────
 export const exportService = {
 
   listRemote: () =>
     request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.LIST_REMOTE}`),
 
+  // downloadRemote uses raw fetch — add credentials manually
   downloadRemote: (filename: string) =>
-    fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DOWNLOAD_REMOTE(filename)}`),
+    fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DOWNLOAD_REMOTE(filename)}`, {
+      credentials: 'include',
+    }),
 
   uploadArchive: (file: File) => {
     const form = new FormData();
     form.append('file', file);
     return fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.UPLOAD_ARCHIVE}`, {
       method: 'POST',
+      credentials: 'include',     // ← also fixed here
       body: form,
     }).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);

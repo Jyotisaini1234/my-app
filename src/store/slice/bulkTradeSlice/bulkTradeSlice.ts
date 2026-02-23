@@ -1,11 +1,3 @@
-/**
- * bulkTradeSlice.ts
- * ─────────────────────────────────────────────────────────────────────────────
- * Handles ALL order operations (bulk place, bulk cancel).
- * Replaces the old tradeSlice, ordersSlice, and bulkTradeSlice.
- * ─────────────────────────────────────────────────────────────────────────────
- */
-
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { BulkTradeState, BulkTradeResponse, OrderRequest } from '../../../types/type';
 import { tradeService } from '../../../services/api';

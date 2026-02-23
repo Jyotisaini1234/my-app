@@ -1,27 +1,33 @@
 @import '../../styles/variables';
 
-// ─── Dashboard Layout ────────────────────────────────────────────────────────
-
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 
   &__stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
+    gap: 0.875rem;
 
     @media (max-width: 68.75rem) { grid-template-columns: repeat(2, 1fr); }
-    @media (max-width: 40rem)    { grid-template-columns: 1fr; }
+    @media (max-width: 40rem)    { grid-template-columns: repeat(2, 1fr); gap: 0.625rem; }
   }
 
   &__row {
     display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 1.25rem;
+    grid-template-columns: 1fr 380px;
+    gap: 1rem;
+    align-items: start;
 
-    @media (max-width: 68.75rem) { grid-template-columns: 1fr; }
+    @media (max-width: 75rem)   { grid-template-columns: 1fr 320px; }
+    @media (max-width: 63.9375rem) { grid-template-columns: 1fr; }
+  }
+
+  &__right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
@@ -29,45 +35,45 @@
 
 .stat-card {
   background: $bg-card;
-  border: 0.0625rem solid $border;
+  border: 1px solid $border;
   border-radius: $radius-md;
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 1.125rem 1.125rem 0.875rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: 0.5rem;
   transition: $transition;
   cursor: default;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: $radius-md $radius-md 0 0;
+  }
+
+  &--blue::before   { background: $info; }
+  &--green::before  { background: $success; }
+  &--orange::before { background: $accent; }
+  &--purple::before { background: #8b5cf6; }
 
   &:hover {
-    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
-    transform: translateY(-0.125rem);
+    box-shadow: $shadow-elevated;
+    transform: translateY(-2px);
   }
 
-  &__body {
+  @media (max-width: 40rem) {
+    padding: 0.875rem 0.875rem 0.75rem;
+  }
+
+  &__head {
     display: flex;
     align-items: center;
-    gap: 1rem;
-  }
-
-  &__icon {
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: $radius-md;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-
-    &--blue   { background: rgba($info, 0.12);         color: $info; }
-    &--green  { background: $success-bg;               color: $success; }
-    &--orange { background: rgba($accent, 0.12);       color: $accent; }
-    &--purple { background: rgba(139, 92, 246, 0.12);  color: #8b5cf6; }
-  }
-
-  &__info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
+    justify-content: space-between;
   }
 
   &__label {
@@ -76,67 +82,63 @@
     color: $text-muted;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+
+    @media (max-width: 40rem) { font-size: 0.5625rem; }
+  }
+
+  &__icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .stat-card--blue   & { background: rgba($info, 0.1);        color: $info; }
+    .stat-card--green  & { background: $success-bg;              color: $success; }
+    .stat-card--orange & { background: rgba($accent, 0.1);      color: $accent; }
+    .stat-card--purple & { background: rgba(139,92,246,0.1);    color: #8b5cf6; }
+
+    @media (max-width: 40rem) {
+      width: 1.625rem;
+      height: 1.625rem;
+    }
   }
 
   &__value {
-    font-size: 1.875rem;
+    font-size: 2rem;
     font-weight: 800;
     color: $text-primary;
     line-height: 1;
 
-    &--sm { font-size: 1.125rem; margin-top: 0.125rem; }
+    @media (max-width: 40rem) { font-size: 1.625rem; }
   }
 
   &__footer {
-    padding-top: 0.625rem;
-    border-top: 0.0625rem solid $border-light;
-  }
-
-  &__badge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 0.25rem;
+  }
+
+  &__sub {
     font-size: 0.6875rem;
-    font-weight: 600;
-    border-radius: 2rem;
-    padding: 0.1875rem 0.5rem;
+    color: $text-muted;
+    font-weight: 500;
 
-    &--success {
-      background: $success-bg;
-      color: $success;
-    }
-
-    &--danger {
-      background: rgba($error, 0.1);
-      color: $error;
-    }
-
-    &--neutral {
-      background: rgba($text-muted, 0.1);
-      color: $text-muted;
-    }
-  }
-
-  &__dot {
-    width: 0.4375rem;
-    height: 0.4375rem;
-    border-radius: 50%;
-    background: $success;
-    animation: pulse 2s infinite;
-    display: inline-block;
+    @media (max-width: 40rem) { font-size: 0.5625rem; }
   }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+.trend {
+  &--up   { color: $success; }
+  &--down { color: $error; }
 }
 
-// ─── Generic Panel ────────────────────────────────────────────────────────────
+// ─── Panel ───────────────────────────────────────────────────────────────────
 
 .panel {
   background: $bg-card;
-  border: 0.0625rem solid $border;
+  border: 1px solid $border;
   border-radius: $radius-md;
   overflow: hidden;
 
@@ -144,12 +146,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 0.0625rem solid $border;
+    padding: 0.875rem 1.125rem;
+    border-bottom: 1px solid $border;
+
+    @media (max-width: 40rem) { padding: 0.75rem 1rem; }
   }
 
   &__title {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: $text-primary;
   }
@@ -157,12 +161,13 @@
   &__link {
     background: none;
     border: none;
-    font-size: 0.78125rem;
+    font-size: 0.75rem;
     color: $info;
     font-weight: 500;
     cursor: pointer;
     padding: 0;
     transition: $transition;
+    white-space: nowrap;
 
     &:hover { text-decoration: underline; }
   }
@@ -173,86 +178,108 @@
 .trade-table {
   &__header {
     display: grid;
-    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
-    padding: 0.5rem 1.25rem;
+    grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
+    padding: 0.5rem 1.125rem;
     background: $bg-page;
-    border-bottom: 0.0625rem solid $border;
+    border-bottom: 1px solid $border;
+
+    @media (max-width: 40rem) {
+      grid-template-columns: 2fr 1fr 1.5fr;
+      .hide-mobile { display: none; }
+    }
 
     span {
-      font-size: 0.6875rem;
-      font-weight: 600;
+      font-size: 0.5625rem;
+      font-weight: 700;
       color: $text-muted;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
     }
   }
 
   &__row {
-    // display: flex;
-     display: grid;
-    grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
-    // justify-content: space-between;
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
     align-items: center;
-    padding: 0.75rem 1.25rem;
-    border-bottom: 0.0625rem solid $border-light;
+    padding: 0.625rem 1.125rem;
+    border-bottom: 1px solid $border-light;
     transition: $transition;
+
+    @media (max-width: 40rem) {
+      grid-template-columns: 2fr 1fr 1.5fr;
+      padding: 0.5rem 1rem;
+      .hide-mobile { display: none; }
+    }
 
     &:last-child { border-bottom: none; }
     &:hover { background: $bg-page; }
   }
 
-  &__symbol {
+  &__client-cell {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-
-    strong {
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: $text-primary;
-    }
+    gap: 0.5rem;
+    min-width: 0;
   }
 
-  &__symbol-icon {
+  &__avatar {
     width: 1.75rem;
     height: 1.75rem;
     border-radius: 50%;
-    background: rgba($primary, 0.08);
+    background: rgba($primary, 0.1);
     color: $primary;
+    font-size: 0.625rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+
+    @media (max-width: 40rem) {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
   }
 
-  &__client {
+  &__name {
     font-size: 0.75rem;
-    color: $text-muted;
+    font-weight: 600;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  &__date {
+  &__master {
     font-size: 0.6875rem;
     color: $text-muted;
   }
 
   &__badge {
-    display: inline-block;
-    font-size: 0.6875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5625rem;
     font-weight: 700;
-    padding: 0.1875rem 0.5625rem;
+    padding: 0.1875rem 0.5rem;
     border-radius: 2rem;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
+    width: fit-content;
 
-    &--buy  { color: $success; margin-left: -0.7rem; }
-    &--sell { 
-      color: $error; 
-      margin-left: -0.7rem;
-      }
+    &--place  { background: $success-bg;           color: $success; }
+    &--cancel { background: rgba($error, 0.1);     color: $error; }
+  }
+
+  &__date {
+    font-size: 0.625rem;
+    color: $text-muted;
+    white-space: nowrap;
   }
 
   &__empty {
     text-align: center;
-    padding: 2rem;
+    padding: 2.5rem 1.25rem;
     color: $text-muted;
     font-size: 0.8125rem;
     line-height: 1.6;
@@ -262,79 +289,160 @@
 // ─── Quick Actions ───────────────────────────────────────────────────────────
 
 .quick-actions {
-  padding: 1rem;
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+
+  @media (max-width: 63.9375rem) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 40rem) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  background: $bg-page;
+  cursor: pointer;
+  text-align: left;
+  transition: $transition;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: $shadow-elevated;
+
+    .quick-action__arrow { opacity: 1; }
+  }
+
+  &--blue:hover   { background: rgba($info, 0.06);       border-color: rgba($info, 0.3); }
+  &--green:hover  { background: rgba($success, 0.06);    border-color: rgba($success, 0.3); }
+  &--orange:hover { background: rgba($accent, 0.06);     border-color: rgba($accent, 0.3); }
+  &--purple:hover { background: rgba(139,92,246,0.06);   border-color: rgba(139,92,246,0.3); }
+  &--teal:hover   { background: rgba(20,184,166,0.06);   border-color: rgba(20,184,166,0.3); }
+  &--red:hover    { background: rgba($error, 0.06);      border-color: rgba($error, 0.3); }
+
+  &__icon {
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .quick-action--blue   & { background: rgba($info, 0.1);       color: $info; }
+    .quick-action--green  & { background: $success-bg;             color: $success; }
+    .quick-action--orange & { background: rgba($accent, 0.1);     color: $accent; }
+    .quick-action--purple & { background: rgba(139,92,246,0.1);   color: #8b5cf6; }
+    .quick-action--teal   & { background: rgba(20,184,166,0.1);   color: #14b8a6; }
+    .quick-action--red    & { background: rgba($error, 0.1);      color: $error; }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.0625rem;
+    flex: 1;
+  }
+
+  &__label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: $text-primary;
+    white-space: nowrap;
+  }
+
+  &__desc {
+    font-size: 0.5625rem;
+    color: $text-muted;
+    line-height: 1.4;
+
+    @media (max-width: 26rem) { display: none; }
+  }
+
+  &__arrow {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    color: $text-muted;
+    opacity: 0;
+    transition: $transition;
+  }
+}
+
+// ─── Client Summary ──────────────────────────────────────────────────────────
+
+.summary-list {
+  padding: 0.75rem 1.125rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
 }
 
-.quick-action {
+.summary-item {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1rem;
-  border-radius: $radius-sm;
-  border: 0.09375rem solid $border;
-  background: $bg-page;
-  cursor: pointer;
-  text-align: left;
-  transition: $transition;
-  width: 100%;
-
-  &:hover {
-    border-color: $primary;
-    background: rgba($primary, 0.04);
-    transform: translateX(0.125rem);
-
-    .quick-action__arrow { opacity: 1; transform: translateX(0); }
-    .quick-action__icon  { color: white; }
-  }
-
-  &--blue:hover .quick-action__icon   { background: $info; }
-  &--green:hover .quick-action__icon  { background: $success; }
-  &--orange:hover .quick-action__icon { background: $accent; }
-  &--purple:hover .quick-action__icon { background: #8b5cf6; }
-
-  &__icon {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: $transition;
-
-    // default tint colors per variant
-    .quick-action--blue   & { background: rgba($info, 0.1);         color: $info; }
-    .quick-action--green  & { background: $success-bg;               color: $success; }
-    .quick-action--orange & { background: rgba($accent, 0.1);       color: $accent; }
-    .quick-action--purple & { background: rgba(139,92,246,0.1);     color: #8b5cf6; }
-  }
-
-  &__text {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-  }
+  justify-content: space-between;
+  gap: 0.5rem;
 
   &__label {
-    font-size: 0.8125rem;
-    font-weight: 600;
+    font-size: 0.75rem;
+    color: $text-secondary;
+    font-weight: 500;
+  }
+
+  &__value {
+    font-size: 0.875rem;
+    font-weight: 700;
     color: $text-primary;
+
+    &--green { color: $success; }
+    &--red   { color: $error; }
   }
 
-  &__desc {
+  &__pct {
     font-size: 0.6875rem;
-    color: $text-muted;
+    font-weight: 700;
+    color: $primary;
+    min-width: 2.5rem;
+    text-align: right;
   }
 
-  &__arrow {
-    color: $text-muted;
-    opacity: 0;
-    transform: translateX(-0.25rem);
-    transition: $transition;
-    flex-shrink: 0;
+  &--bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.375rem;
+
+    .summary-item__label {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+  }
+}
+
+.summary-bar {
+  height: 0.375rem;
+  background: $border;
+  border-radius: 2rem;
+  overflow: hidden;
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, $primary, $accent);
+    border-radius: 2rem;
+    transition: width 0.6s ease;
+    min-width: 4px;
   }
 }

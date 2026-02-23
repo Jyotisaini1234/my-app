@@ -2,14 +2,36 @@
 
 .layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: $bg-page;
+  position: relative;
+
+  &__overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 40;
+
+    @media (max-width: 63.9375rem) { display: block; }
+  }
+
+  &__right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    transition: margin-left 0.25s ease;
+  }
 
   &__main {
-    margin-left: $sidebar-w;
-    margin-top: $navbar-h;
     flex: 1;
-    padding: 28px;
-    min-height: calc(100vh - #{$navbar-h});
-    animation: fadeIn 0.2s ease;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    scroll-behavior: smooth;
+
+    @media (max-width: 40rem) { padding: 1rem; }
   }
 }

@@ -1,168 +1,186 @@
 @import '../../../styles/variables';
 
+$sidebar-collapsed-w: 60px;
+
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: $sidebar-w;
+  min-width: $sidebar-w;
   height: 100vh;
   background: $primary;
   display: flex;
   flex-direction: column;
-  z-index: 100;
-  overflow: hidden;
+  position: relative;
+  transition: width 0.25s ease, min-width 0.25s ease, transform 0.25s ease;
+  z-index: 50;
+  flex-shrink: 0;
 
-  // ── Logo ────────────────────────────────────────────────────────────────────
+  &--collapsed {
+    width: $sidebar-collapsed-w;
+    min-width: $sidebar-collapsed-w;
+  }
 
+  @media (max-width: 63.9375rem) {
+    position: fixed;
+    top: 0; left: 0;
+    transform: translateX(-100%);
+    height: 100vh;
+    width: $sidebar-w !important;
+    min-width: $sidebar-w !important;
+
+    &--mobile-open { transform: translateX(0); }
+  }
+
+  // ── Logo ─────────────────────────────────────────────────────────────────
   &__logo {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 1.25rem 1.25rem 1rem;
-    border-bottom: 0.0625rem solid rgba(255, 255, 255, 0.08);
-
-    &-icon {
-      width: 2.375rem;
-      height: 2.375rem;
-      background: #f97316; // orange — exact match from screenshot logo
-      border-radius: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-
-      svg { color: #ffffff; }
-    }
-
-    &-text {
-      h1 {
-        font-size: 0.9375rem;
-        font-weight: 700;
-        color: #ffffff;
-        line-height: 1.1;
-        letter-spacing: 0.01em;
-      }
-
-      span {
-        font-size: 0.625rem;
-        color: rgba(255, 255, 255, 0.45);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-weight: 500;
-      }
-    }
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    min-height: $navbar-h;
+    overflow: hidden;
   }
 
-  // ── Nav ─────────────────────────────────────────────────────────────────────
+  &__logo-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    background: $accent;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+  }
 
+  &__logo-text {
+    overflow: hidden;
+    white-space: nowrap;
+
+    h1 { font-size: 0.9375rem; font-weight: 800; color: white; line-height: 1.2; }
+    span { font-size: 0.625rem; color: rgba(255,255,255,0.5); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  }
+
+  // ── Nav ───────────────────────────────────────────────────────────────────
   &__nav {
     flex: 1;
-    padding: 1rem 0;
+    padding: 0.75rem 0.625rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
     overflow-y: auto;
-
-    // hide scrollbar but keep scroll
-    scrollbar-width: none;
-    &::-webkit-scrollbar { display: none; }
+    overflow-x: hidden;
   }
 
   &__section-label {
-    font-size: 0.625rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.35);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 0.5rem 1.25rem 0.25rem;
+    letter-spacing: 0.08em;
+    padding: 0.25rem 0.625rem 0.5rem;
+    white-space: nowrap;
   }
-
-  // ── Nav Item ─────────────────────────────────────────────────────────────────
 
   &__item {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    width: 100%;
-    padding: 0.75rem 1.25rem;
-    cursor: pointer;
-    transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: $radius-sm;
     border: none;
-    border-left: 0.1875rem solid transparent;
-    color: rgba(255, 255, 255, 0.55);
     background: transparent;
-    text-decoration: none;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 500;
     text-align: left;
+    width: 100%;
+    white-space: nowrap;
+    transition: $transition;
 
-    svg {
-      flex-shrink: 0;
-      opacity: 0.65;
-      transition: opacity 0.18s ease;
-    }
+    &:hover { background: rgba(255,255,255,0.08); color: white; }
 
-    span {
-      font-size: 0.875rem;
-      font-weight: 500;
-      line-height: 1;
+    &--active {
+      background: $accent;
+      color: white;
+      font-weight: 600;
+      &:hover { background: $accent-hover; }
     }
+  }
+
+  &__item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 1.125rem;
+  }
+
+  &__item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ── Footer — Logout ───────────────────────────────────────────────────────
+  &__footer {
+    padding: 0.75rem 0.625rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  &__logout {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: $radius-sm;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    width: 100%;
+    white-space: nowrap;
+    transition: $transition;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.85);
-
-      svg { opacity: 0.9; }
+      background: rgba($error, 0.25);
+      border-color: rgba($error, 0.4);
+      color: #fca5a5;
     }
 
-    // Active state — matches screenshot exactly:
-    // lighter bg + orange left border + full white text
-    &--active {
-      background: rgba(255, 255, 255, 0.1);
-      border-left-color: #f97316;
-      color: #ffffff;
+    // Collapsed state — center the icon
+    .sidebar--collapsed & {
+      justify-content: center;
+      padding: 0.625rem;
 
-      svg { opacity: 1; }
-
-      span { font-weight: 600; }
+      span { display: none; }
     }
   }
 
-  // ── Footer / Broker Badge ────────────────────────────────────────────────────
+  // ── Collapse button (desktop only) ────────────────────────────────────────
+  &__collapse-btn {
+    position: absolute;
+    top: 50%;
+    right: -0.75rem;
+    transform: translateY(-50%);
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid $border;
+    color: $text-secondary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: $shadow-card;
+    transition: $transition;
+    z-index: 10;
 
-  &__footer {
-    padding: 1rem 1rem 1.25rem;
-    border-top: 0.0625rem solid rgba(255, 255, 255, 0.08);
+    &:hover { background: $bg-page; color: $primary; }
 
-    .broker-badge {
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 0.5rem;
-      padding: 0.625rem 0.875rem;
-      display: flex;
-      align-items: center;
-      gap: 0.625rem;
-
-      &__dot {
-        width: 0.5rem;
-        height: 0.5rem;
-        border-radius: 50%;
-        background: #22c55e; // green — matches screenshot
-        animation: sidebar-pulse 2s infinite;
-        flex-shrink: 0;
-      }
-
-      &__text {
-        font-size: 0.6875rem;
-        color: rgba(255, 255, 255, 0.5);
-        line-height: 1.4;
-
-        strong {
-          display: block;
-          color: #ffffff;
-          font-size: 0.8125rem;
-          font-weight: 600;
-        }
-      }
-    }
+    @media (max-width: 63.9375rem) { display: none; }
   }
-}
-
-@keyframes sidebar-pulse {
-  0%, 100% { opacity: 1;   transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.85); }
 }
