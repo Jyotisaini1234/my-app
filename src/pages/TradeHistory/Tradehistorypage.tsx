@@ -1,62 +1,79 @@
 import React, { useEffect, useState } from 'react';
-import { RefreshCw, Download, XCircle, AlertTriangle } from 'lucide-react';
-
+import {Alert, Box, Button, Chip, CircularProgress, IconButton, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead,TableRow, TextField, Tooltip, Typography,} from '@mui/material';
+import { Download, RefreshCw, XCircle, AlertCircle } from 'lucide-react';
 import './TradeHistoryPage.scss';
-import { Spinner } from '../../components/common/Spinner/Spinner';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchTradeHistory, setFilters } from '../../store/slice/tradeHistorySlice/tradeHistorySlice';
-import { Button } from '../../components/common/Button/Button';
+import { fetchTradeHistory, setFilters, clearError } from '../../store/slice/tradeHistorySlice/tradeHistorySlice';
 import { tradeService } from '../../services/api';
 import { TradeLogEntry } from '../../types/type';
 import { CancelModal } from '../../components/Modal/CancelModal/CancelModal';
 
-const STATUS_MAP: Record<string, string> = {
-  estimated: 'estimated',
-  executed:  'executed',
-  executing: 'executing',
-  failed:    'failed',
-};
 
-function statusClass(s?: string): string {
-  if (!s) return '';
-  return `status-badge status-badge--${STATUS_MAP[s.toLowerCase()] || 'estimated'}`;
+function toBackendDate(htmlDate: string): string {
+  if (!htmlDate) return '';
+  const [yyyy, mm, dd] = htmlDate.split('-');
+  if (!yyyy || !mm || !dd) return '';
+  return `${dd}-${mm}-${yyyy}`;
 }
+
+function toInputDate(backendDate: string): string {
+  if (!backendDate) return '';
+  const [dd, mm, yyyy] = backendDate.split('-');
+  if (!dd || !mm || !yyyy) return '';
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+const statusColor = (
+  s?: string
+): 'default' | 'warning' | 'info' | 'success' | 'error' => {
+  switch (s?.toLowerCase()) {
+    case 'executed':  return 'success';
+    case 'executing': return 'info';
+    case 'estimated': return 'warning';
+    case 'failed':    return 'error';
+    default:          return 'default';
+  }
+};
 
 function isCancellable(row: TradeLogEntry): boolean {
   const status = row.status?.toLowerCase();
-  const action = row.action;
   return (
-    action === 'PLACE_ORDER' &&
+    row.action === 'PLACE_ORDER' &&
     (status === 'estimated' || status === 'executing') &&
     !!row.uniqueOrderId
   );
 }
 
 
-
 export const TradeHistoryPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { data, loading, filters } = useAppSelector((s) => s.tradeHistory);
+  const { data, loading, error, filters } = useAppSelector((s) => s.tradeHistory);
+  const user     = useAppSelector((s) => s.auth.user);
+  const isMaster = user?.role === 'MASTER';
+  const [typeFilter,  setTypeFilter]  = useState<string>(filters.type || 'All');
+  const [clientInput, setClientInput] = useState<string>(filters.clientCode || '');
+  const [startInput,  setStartInput]  = useState<string>(toInputDate(filters.startDate));
+  const [endInput,    setEndInput]    = useState<string>(toInputDate(filters.endDate));
   const [cancelTarget, setCancelTarget] = useState<TradeLogEntry | null>(null);
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [cancelling,   setCancelling]   = useState(false);
+  const [cancelError,  setCancelError]  = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchTradeHistory({}));
   }, [dispatch]);
 
-  const handleRefresh = () => {
-    dispatch(
-      fetchTradeHistory({
-        startDate:  filters.startDate  || undefined,
-        endDate:    filters.endDate    || undefined,
-        clientCode: filters.clientCode || undefined,
-      })
-    );
-  };
+  const applyAndFetch = () => {
+    const sd = toBackendDate(startInput);
+    const ed = toBackendDate(endInput);
+    const cc = isMaster ? clientInput.trim().toUpperCase() : '';
 
-  const handleFilter = (key: keyof typeof filters, val: string) => {
-    dispatch(setFilters({ [key]: val }));
+    dispatch(clearError());
+    dispatch(setFilters({ type: typeFilter, startDate: sd, endDate: ed, clientCode: cc }));
+    dispatch(fetchTradeHistory({
+      startDate:  sd || undefined,
+      endDate:    ed || undefined,
+      clientCode: cc || undefined,
+    }));
   };
 
   const handleCancelConfirm = async () => {
@@ -66,7 +83,7 @@ export const TradeHistoryPage: React.FC = () => {
     try {
       await tradeService.cancelOrder(cancelTarget.uniqueOrderId);
       setCancelTarget(null);
-      handleRefresh();
+      applyAndFetch();
     } catch (err: any) {
       setCancelError(err.message || 'Cancel failed');
     } finally {
@@ -75,133 +92,145 @@ export const TradeHistoryPage: React.FC = () => {
   };
 
   const filteredData = data.filter((row) => {
-    if (filters.type === 'All') return true;
-    if (filters.type === 'BUY')  return row.action === 'PLACE_ORDER';
-    if (filters.type === 'SELL') return row.action === 'CANCEL_ORDER';
+    if (typeFilter === 'BUY')  return row.action === 'PLACE_ORDER';
+    if (typeFilter === 'SELL') return row.action === 'CANCEL_ORDER';
     return true;
   });
 
+  const handleClear = () => {
+    setTypeFilter('All');
+    setClientInput('');
+    setStartInput('');
+    setEndInput('');
+    dispatch(clearError());
+    dispatch(setFilters({ type: 'All', clientCode: '', startDate: '', endDate: '' }));
+    dispatch(fetchTradeHistory({}));
+  };
+
   return (
-    <div className="trade-history">
+    <Box sx={{ p: { xs: 1.5, md: 3 } }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5} flexWrap="wrap" gap={1}>
+        <Typography variant="h5" fontWeight={700}>Trade History</Typography>
+      </Stack>
 
-      {/* Header */}
-      <div className="trade-history__header">
-        <h2>Trade History</h2>
-        <div className="trade-history__header-actions">
-          <Button variant="ghost" size="sm" icon={<Download size={14} />}>
-            Export
-          </Button>
-          <Button variant="primary" size="sm" icon={<RefreshCw size={14} className={loading ? 'spin' : ''} />} onClick={handleRefresh} loading={loading}>
-            Refresh
-          </Button>
-        </div>
-      </div>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderRadius: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end' }}>
 
-      {/* Filters */}
-      <div className="trade-history__filters">
-        <label>Type</label>
-        <select value={filters.type} onChange={(e) => handleFilter('type', e.target.value)}>
-          <option value="All">All Trade Types</option>
-          <option value="BUY">Buy (Place)</option>
-          <option value="SELL">Sell (Cancel)</option>
-        </select>
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Type</Typography>
+          <Select size="small" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} sx={{ minWidth: 160 }}>
+            <MenuItem value="All">All Trade Types</MenuItem>
+            <MenuItem value="BUY">Buy (Place)</MenuItem>
+            <MenuItem value="SELL">Sell (Cancel)</MenuItem>
+          </Select>
+        </Box>
 
-        <div className="filter-sep" />
+        {isMaster && (
+          <Box>
+            <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Client Code</Typography>
+            <TextField size="small" placeholder="e.g. SOAR1439" value={clientInput} onChange={(e) => { setClientInput(e.target.value.toUpperCase()); if (error) dispatch(clearError()); }} onKeyDown={(e) => e.key === 'Enter' && applyAndFetch()}  error={!!error && !!clientInput}  sx={{ width: 160 }} />
+          </Box>
+        )}
 
-        <label>Client</label>
-        <input placeholder="Client Code" value={filters.clientCode} onChange={(e) => handleFilter('clientCode', e.target.value.toUpperCase())}/>
-        <div className="filter-sep" />
-        <label>From</label>
-        <input type="date" value={filters.startDate} onChange={(e) => handleFilter('startDate', e.target.value)}/>
-        <label>To</label>
-        <input type="date" value={filters.endDate} onChange={(e) => handleFilter('endDate', e.target.value)} />
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>From</Typography>
+          <TextField type="date" size="small" value={startInput} onChange={(e) => setStartInput(e.target.value)} sx={{ width: 170 }}  inputProps={{ max: endInput || undefined }} />
+        </Box>
 
-        <Button variant="accent" size="sm" onClick={handleRefresh}>
+        <Box>
+          <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>To</Typography>
+          <TextField type="date" size="small" value={endInput} onChange={(e) => setEndInput(e.target.value)} sx={{ width: 170 }} inputProps={{ min: startInput || undefined }} />
+        </Box>
+
+        <Button variant='contained' size="small" onClick={applyAndFetch} sx={{ textTransform: 'none', height: 40,bgcolor:'#1a2b5c',color:'white' }}>
           Apply
         </Button>
-      </div>
+        <Button variant='outlined' size="small" onClick={handleClear} sx={{ textTransform: 'none', height: 40 ,color:'#1a2b5c',border:'1px solid #1a2b5c'}}>
+          Clear
+        </Button>
+      </Paper>
 
-      {/* Cancel error toast */}
+      {error && (
+        <Alert severity="error" icon={<AlertCircle size={18} />} onClose={() => dispatch(clearError())}   sx={{ mb: 2, borderRadius: 2 }}>  {error}</Alert>
+      )}
+
       {cancelError && (
-        <div className="status-badge status-badge--failed" style={{ marginBottom: '0.75rem', padding: '0.5rem 1rem', borderRadius: '0.375rem' }}>
-          Cancel failed: {cancelError}
-        </div>
+        <Chip color="error" label={`Cancel failed: ${cancelError}`} onDelete={() => setCancelError(null)} sx={{ mb: 2 }} />
       )}
 
-      {/* Table */}
-      <div className="trade-history__table-wrap">
+      <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
         {loading ? (
-          <Spinner text="Loading trade history…" />
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Box sx={{ textAlign: 'center', py: 6 }}>
+            <Typography color="error" fontWeight={600} mb={1}>Invalid Client Code</Typography>
+            <Typography color="text.secondary" fontSize={14}>Please enter a valid client code and try again.</Typography>
+          </Box>
         ) : filteredData.length === 0 ? (
-          <div className="trade-history__empty">
-            <p>No trade records found. Adjust your filters or refresh.</p>
-          </div>
+          <Box sx={{ textAlign: 'center', py: 6 }}>
+            <Typography color="text.secondary">No trade records found.</Typography>
+          </Box>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Client Name</th>
-                <th>Action</th>
-                <th>Order ID</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Qty</th>
-                <th>Cancel</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table size="small" stickyHeader>
+            <TableHead>
+              <TableRow>
+                {['Client', 'Client Name', 'Action', 'Order ID', 'Date', 'Status', 'Qty', 'Cancel'].map((col) => (
+                  <TableCell key={col} sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{col}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {filteredData.map((row, i) => (
-                <tr key={row.id || i}>
-                  <td>
-                    <span className="trade-id">{row.clientCode || '—'}</span>
-                  </td>
-                  <td>{row.clientName || '—'}</td>
-                  <td>
-                    <span className={
-                      row.action === 'PLACE_ORDER'  ? 'order-type-buy'  :
-                      row.action === 'CANCEL_ORDER' ? 'order-type-sell' : ''
-                    }>
-                      {row.action || '—'}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="order-id-cell">{row.uniqueOrderId || '—'}</span>
-                  </td>
-                  <td>
-                    {row.createdAt
-                      ? new Date(row.createdAt).toLocaleString('en-IN')
-                      : '—'}
-                  </td>
-                  <td>
-                    <span className={statusClass(row.status)}>
-                      {row.status || 'Unknown'}
-                    </span>
-                  </td>
-                  <td>{row.quantity || '—'}</td>
-                  <td>
-                    {isCancellable(row) ? (
-                      <button className="action-btn" title="Cancel this order" onClick={() => { setCancelError(null); setCancelTarget(row); }} >
-                        <XCircle size={14} />
-                      </button>
-                    ) : (
-                      <button className="action-btn" disabled title="Cannot cancel">
-                        <XCircle size={14} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                <TableRow key={row.id || i} hover sx={{ '&:last-child td': { border: 0 } }}>
+
+                  <TableCell>
+                    <Typography variant="body2" fontFamily="monospace">{row.clientCode || '—'}</Typography>
+                  </TableCell>
+
+                  <TableCell>{row.clientName || '—'}</TableCell>
+
+                  <TableCell>
+                    <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small" color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined" />
+                  </TableCell>
+
+                  <TableCell>
+                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.uniqueOrderId || '—'}</Typography>
+                  </TableCell>
+
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {row.createdAt ? new Date(row.createdAt).toLocaleString('en-IN', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit',
+                    }) : '—'}
+                  </TableCell>
+
+                  <TableCell>
+                    <Chip label={row.status || 'Unknown'} size="small" color={statusColor(row.status)} />
+                  </TableCell>
+
+                  <TableCell>{row.quantity || '—'}</TableCell>
+
+                  <TableCell>
+                    <Tooltip title={isCancellable(row) ? 'Cancel this order' : 'Cannot cancel'}>
+                      <span>
+                        <IconButton size="small" color="error" disabled={!isCancellable(row)}  onClick={() => { setCancelError(null); setCancelTarget(row); }} >
+                          <XCircle size={16} />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </TableCell>
+
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </TableContainer>
 
-      {/* Cancel Confirm Modal */}
       {cancelTarget && (
-        <CancelModal row={cancelTarget} onConfirm={handleCancelConfirm} onClose={() => { if (!cancelling) setCancelTarget(null); }} loading={cancelling}/>
+        <CancelModal row={cancelTarget} onConfirm={handleCancelConfirm}onClose={() => { if (!cancelling) setCancelTarget(null); }} loading={cancelling}/>
       )}
-
-    </div>
+    </Box>
   );
 };

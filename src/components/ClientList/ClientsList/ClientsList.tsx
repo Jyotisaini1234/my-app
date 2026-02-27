@@ -81,7 +81,7 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
                 <tr key={client.client_code} onClick={() => toggleSelect(client.client_code)} className={selected.has(client.client_code) ? 'cm__row--selected' : ''} >
                   <td>
                     <span className="cm__group">
-                      {client.client_name || client.user_id || 'Alpha Group'}
+                      {client.client_name || 'Motilal Oswal'}
                     </span>
                   </td>
                   <td>

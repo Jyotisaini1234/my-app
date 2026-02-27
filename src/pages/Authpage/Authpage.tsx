@@ -10,11 +10,7 @@ import { NexiomLogo } from '../../components/Icons/Authicons';
 
 export const AuthPage: React.FC = () => {
   const dispatch = useAppDispatch();
-
-  // ✅ authView lives in Redux — validateSession, loading changes, kuch bhi
-  //    re-render kare, view kabhi reset nahi hoga
   const { isAuthenticated, authView: view } = useAppSelector(s => s.auth);
-
   const switchTab = (tab: typeof view) => {
     if (tab === view) return;
     dispatch(setAuthView(tab));
@@ -22,7 +18,7 @@ export const AuthPage: React.FC = () => {
 
   const goToForgot = () => dispatch(setAuthView('forgot'));
   const goToLogin  = () => {
-    dispatch(clearForgotState()); // forgotStep bhi 1 pe reset
+    dispatch(clearForgotState()); 
     dispatch(setAuthView('login'));
   };
 
@@ -58,13 +54,13 @@ export const AuthPage: React.FC = () => {
               >
                 Login
               </button>
-              <button
+              {/* <button
                 className={`auth-card__tab${view === 'signup' ? ' auth-card__tab--active' : ''}`}
                 onClick={() => switchTab('signup')}
                 type="button"
               >
                 Sign Up
-              </button>
+              </button> */}
             </div>
           )}
 

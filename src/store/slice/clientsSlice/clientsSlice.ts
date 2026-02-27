@@ -1,13 +1,26 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Client, ClientsState } from '../../../types/type';
 import { clientService } from '../../../services/api';
+import { RootState } from '../../store';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
 export const fetchClients = createAsyncThunk(
   'clients/fetchAll',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState;
+      const user = state.auth.user;
+
+      if (user && user.role !== 'MASTER') {
+        const clientCode = user.id || user.name;
+        if (!clientCode) return rejectWithValue('No client code linked to your account.');
+        const res = await clientService.details(clientCode);
+
+        const clientData = res?.data ?? res;
+        return { [clientCode]: clientData } as Record<string, Client>;
+      }
+
       const res = await clientService.list();
       return res.clients as Record<string, Client>;
     } catch (err: any) {
@@ -18,8 +31,20 @@ export const fetchClients = createAsyncThunk(
 
 export const fetchActiveClients = createAsyncThunk(
   'clients/fetchActive',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
+      const state = getState() as RootState;
+      const user = state.auth.user;
+
+      if (user && user.role !== 'MASTER') {
+        const clientCode = user.id || user.name;
+        if (!clientCode) return rejectWithValue('No client code linked to your account.');
+        const res = await clientService.details(clientCode);
+
+        const clientData = res?.data ?? res;
+        return { [clientCode]: clientData } as Record<string, Client>;
+      }
+
       const res = await clientService.listActive();
       return res.clients as Record<string, Client>;
     } catch (err: any) {
@@ -95,7 +120,7 @@ const initialState: ClientsState = {
   loading: false,
   error: null,
   authenticatingAll: false,
-  isFetched: false, 
+  isFetched: false,
 };
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
@@ -116,12 +141,12 @@ const clientsSlice = createSlice({
       })
       .addCase(fetchClients.fulfilled, (state, action: PayloadAction<Record<string, Client>>) => {
         state.loading = false;
-        state.isFetched = true; 
+        state.isFetched = true;
         state.data = action.payload;
       })
       .addCase(fetchClients.rejected, (state, action) => {
-          state.loading = false;
-          state.isFetched = true;
+        state.loading = false;
+        state.isFetched = true;
         state.error = action.payload as string;
       });
 
