@@ -5,12 +5,13 @@ import { useAppSelector } from '../../../store/hooks';
 import './Navbar.scss';
 
 const pageTitles: Record<NavPage, string> = {
-  dashboard:       'Dashboard',
-  clients:         'Client Management',
-  'bulk-trading':  'Bulk Trading',
+  dashboard: 'Dashboard',
+  clients: 'Client Management',
+  'bulk-trading': 'Bulk Trading',
   'trade-history': 'Trade History',
-  settings:        'Settings',
-  'order-logs':    'Order Logs',
+  settings: 'Settings',
+  'order-logs': 'Order Logs',
+  'log-export': 'Log Export',
 };
 
 interface NavbarProps {
@@ -21,8 +22,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ activePage, onMenuToggle }) => {
   const user = useAppSelector((s) => s.auth.user);
 
-  // ✅ name  = real broker name (e.g. "DARSHAN")
-  // ✅ clientCode = broker code (e.g. "SOAR1439")
   const name       = user?.name       || '—';
   const clientCode = (user as any)?.clientCode || user?.id || '—';
   const email      = user?.email      || '—';

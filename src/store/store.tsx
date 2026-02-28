@@ -5,6 +5,7 @@ import uiReducer from './slice/uiSlice/uiSlice';
 import bulkTradeReducer from './slice/bulkTradeSlice/bulkTradeSlice';
 import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 import authReducer from './slice/authSlice/authSlice';
+import { groupApi } from './slice/groupsSlice/groupsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +14,9 @@ export const store = configureStore({
     bulkTrade: bulkTradeReducer,
     tradeHistory: tradeHistoryReducer,
     auth: authReducer,
-  }
+    groupApi: groupApi.reducer,
+  },
+  middleware: (get) => get().concat(groupApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

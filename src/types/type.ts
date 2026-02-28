@@ -295,7 +295,7 @@ export interface TradeHistoryState {
 }
 
 
-export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history'  | 'order-logs' | 'settings';
+export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history' | 'order-logs' | 'log-export' | 'settings';
 
 export interface NavItem {
   id: NavPage;

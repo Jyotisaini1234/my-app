@@ -1,6 +1,5 @@
-export const BROKER_BASE = 'http://ec2-13-202-238-201.ap-south-1.compute.amazonaws.com:8080/broker';
-export const TRADE_BASE  = 'http://ec2-13-233-121-193.ap-south-1.compute.amazonaws.com:8081';
-
+export const BROKER_BASE = 'https://partners.2xrealty.com/trade/broker';
+export const TRADE_BASE  = 'https://partners.2xrealty.com/trade';
 
 export const API_ENDPOINTS = {
 

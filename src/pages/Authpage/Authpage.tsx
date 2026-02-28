@@ -1,11 +1,9 @@
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setAuthView, clearForgotState } from '../../store/slice/authSlice/authSlice';
-
 import './AuthPage.scss';
 import { ForgotPasswordPage } from '../Forgotpasswordpage/Forgotpasswordpage';
 import { LoginPage } from '../Loginpage/Loginpage';
-import { SignupPage } from '../Signuppage/Signuppage';
 import { NexiomLogo } from '../../components/Icons/Authicons';
 
 export const AuthPage: React.FC = () => {
@@ -77,7 +75,7 @@ export const AuthPage: React.FC = () => {
         {/* ── Body ── */}
         <div className="auth-card__body">
           {view === 'login'  && <LoginPage onForgotPassword={goToForgot} />}
-          {view === 'signup' && <SignupPage />}
+          {/* {view === 'signup' && <SignupPage />} */}
           {view === 'forgot' && (
             <ForgotPasswordPage
               onBack={goToLogin}

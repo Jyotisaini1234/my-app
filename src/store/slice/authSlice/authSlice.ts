@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { BROKER_BASE, API_ENDPOINTS } from '../../../utils/ApiConstants';
 
-const AUTH_BASE = 'http://ec2-13-233-121-193.ap-south-1.compute.amazonaws.com:8081/api/auth';
+const AUTH_BASE = 'https://partners.2xrealty.com/trade/api/auth';
 
 export interface AuthUser {
   id: string;
   clientCode: string;
-  name: string;      
+  name: string;
   email: string;
   phone: string;
   city: string;
@@ -24,7 +24,7 @@ export interface PendingSignup {
   password: string;
 }
 
-export type AuthView = 'login' | 'signup' | 'forgot';
+export type AuthView = 'login' | 'forgot';
 
 export interface AuthState {
   user: AuthUser | null;
@@ -38,8 +38,6 @@ export interface AuthState {
   authView: AuthView;
   pendingSignup: PendingSignup | null;
 }
-
-// ─── API helpers ──────────────────────────────────────────────────────────────
 
 const fetchWithTimeout = (url: string, options: RequestInit, timeoutMs = 15000): Promise<Response> => {
   const controller = new AbortController();
@@ -81,29 +79,29 @@ const apiGet = async (path: string) => {
   return data;
 };
 
-const fetchProfileName = async (clientCode: string): Promise<string> => {
+const fetchProfileNameAsync = async (clientCode: string): Promise<string> => {
   try {
     const url = `${BROKER_BASE}${API_ENDPOINTS.BROKER.PROFILE(clientCode)}`;
     const res = await fetch(url, { credentials: 'include' });
-    if (!res.ok) return clientCode; // fallback to clientCode
+    if (!res.ok) return clientCode;
     const json = await res.json();
     return json?.name || json?.clientName || clientCode;
   } catch {
-    return clientCode; // fallback
+    return clientCode;
   }
 };
 
 // ─── Thunks ───────────────────────────────────────────────────────────────────
 
 export const loginThunk = createAsyncThunk('auth/login',
-  async (payload: { identifier: string; password: string }, { rejectWithValue }) => {
+  async (payload: { identifier: string; password: string }, { rejectWithValue, dispatch }) => {
     try {
       const loginData  = await apiPost('/login', payload);
       const clientCode = loginData.clientCode ?? '';
-
-      const realName = clientCode ? await fetchProfileName(clientCode) : clientCode;
-
-      return { ...loginData, realName };
+      if (clientCode) {
+        fetchProfileNameAsync(clientCode).then(realName => dispatch(updateUserName(realName)));
+      }
+      return { ...loginData, realName: clientCode };
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -111,16 +109,16 @@ export const loginThunk = createAsyncThunk('auth/login',
 );
 
 export const validateSessionThunk = createAsyncThunk('auth/validateSession',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const sessionData = await apiGet('/validate-session');
-
       if (sessionData.authenticated && sessionData.user) {
         const clientCode = sessionData.user.clientCode ?? sessionData.user.id ?? '';
-        const realName   = clientCode ? await fetchProfileName(clientCode) : clientCode;
-        return { ...sessionData, realName };
+        if (clientCode) {
+          fetchProfileNameAsync(clientCode).then(realName => dispatch(updateUserName(realName)));
+        }
+        return { ...sessionData, realName: clientCode };
       }
-
       return sessionData;
     } catch (e: any) {
       return rejectWithValue(e.message);
@@ -208,18 +206,14 @@ const authSlice = createSlice({
     clearError:       (state) => { state.error = null; },
     resetLoading:     (state) => { state.loading = false; },
     clearOtpState:    (state) => { state.otpSent = false; state.pendingSignup = null; },
-    clearForgotState: (state) => {
-      state.resetToken  = null;
-      state.forgotEmail = null;
-      state.forgotStep  = 1;
-    },
-    setForgotEmail: (state, action: PayloadAction<string>)     => { state.forgotEmail = action.payload; },
-    setForgotStep:  (state, action: PayloadAction<1 | 2 | 3>) => { state.forgotStep  = action.payload; },
-    setAuthView:    (state, action: PayloadAction<AuthView>)   => { state.authView    = action.payload; },
+    clearForgotState: (state) => { state.resetToken = null; state.forgotEmail = null; state.forgotStep = 1; },
+    setForgotEmail:   (state, action: PayloadAction<string>)     => { state.forgotEmail = action.payload; },
+    setForgotStep:    (state, action: PayloadAction<1 | 2 | 3>) => { state.forgotStep  = action.payload; },
+    setAuthView:      (state, action: PayloadAction<AuthView>)   => { state.authView    = action.payload; },
+    updateUserName:   (state, action: PayloadAction<string>)     => { if (state.user) state.user.name = action.payload; },
   },
   extraReducers: (builder) => {
 
-    // ── Login ──
     builder
       .addCase(loginThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(loginThunk.fulfilled, (state, action) => {
@@ -227,106 +221,69 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         const clientCode      = action.payload.clientCode ?? '';
         state.user = {
-          id:          clientCode,
-          clientCode:  clientCode,
-          name:        action.payload.realName || clientCode,  
-          email:       action.payload.email      ?? '',
-          phone:       action.payload.phone      ?? '',
-          city:        '',
-          address:     '',
-          role:        action.payload.isMaster ? 'MASTER' : 'USER',
-          status:      action.payload.isActive  ? 'ACTIVE' : 'INACTIVE',
+          id: clientCode, clientCode,
+          name:        action.payload.realName || clientCode,
+          email:       action.payload.email    ?? '',
+          phone:       action.payload.phone    ?? '',
+          city: '', address: '',
+          role:   action.payload.isMaster ? 'MASTER' : 'USER',
+          status: action.payload.isActive ? 'ACTIVE' : 'INACTIVE',
           lastLoginAt: action.payload.lastLoginAt,
         };
       })
-      .addCase(loginThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error   = action.payload as string;
-      });
+      .addCase(loginThunk.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Send Signup OTP ──
     builder
       .addCase(sendSignupOtpThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(sendSignupOtpThunk.fulfilled, (state, action) => {
-        state.loading       = false;
-        state.otpSent       = true;
-        state.pendingSignup = {
-          name: action.payload.name, email: action.payload.email,
-          phone: action.payload.phone, city: action.payload.city,
-          password: action.payload.password,
-        };
+        state.loading = false; state.otpSent = true;
+        state.pendingSignup = { name: action.payload.name, email: action.payload.email, phone: action.payload.phone, city: action.payload.city, password: action.payload.password };
       })
       .addCase(sendSignupOtpThunk.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Verify Signup OTP ──
     builder
       .addCase(verifySignupOtpThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(verifySignupOtpThunk.fulfilled, (state, action) => {
-        state.loading         = false;
-        state.isAuthenticated = true;
-        state.otpSent         = false;
-        state.pendingSignup   = null;
-        state.user = {
-          id:         action.payload.id,
-          clientCode: action.payload.id,
-          name:       action.payload.name,
-          email:      action.payload.email,
-          phone:      action.payload.phone,
-          city:       action.payload.city    || '',
-          address:    action.payload.address || '',
-          role:       action.payload.role,
-          status:     action.payload.status,
-        };
+        state.loading = false; state.isAuthenticated = true; state.otpSent = false; state.pendingSignup = null;
+        state.user = { id: action.payload.id, clientCode: action.payload.id, name: action.payload.name, email: action.payload.email, phone: action.payload.phone, city: action.payload.city || '', address: action.payload.address || '', role: action.payload.role, status: action.payload.status };
       })
       .addCase(verifySignupOtpThunk.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Send Forgot OTP ──
     builder
       .addCase(sendForgotOtpThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(sendForgotOtpThunk.fulfilled, (state) => { state.loading = false; })
       .addCase(sendForgotOtpThunk.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Verify Forgot OTP ──
     builder
       .addCase(verifyForgotOtpThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(verifyForgotOtpThunk.fulfilled, (state, action) => { state.loading = false; state.resetToken = action.payload.resetToken; })
       .addCase(verifyForgotOtpThunk.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Reset Password ──
     builder
       .addCase(resetPasswordThunk.pending,   (state) => { state.loading = true; state.error = null; })
-      .addCase(resetPasswordThunk.fulfilled, (state) => {
-        state.loading     = false;
-        state.resetToken  = null;
-        state.forgotEmail = null;
-        state.forgotStep  = 1;
-      })
-      .addCase(resetPasswordThunk.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; });
+      .addCase(resetPasswordThunk.fulfilled, (state) => { state.loading = false; state.resetToken = null; state.forgotEmail = null; state.forgotStep = 1; })
+      .addCase(resetPasswordThunk.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string; });
 
-    // ── Logout ──
     builder
       .addCase(logoutThunk.fulfilled, (state) => { Object.assign(state, { ...initialState }); })
       .addCase(logoutThunk.rejected,  (state) => { Object.assign(state, { ...initialState }); });
 
-    // ── Validate Session ──
     builder
       .addCase(validateSessionThunk.pending, (state) => { state.loading = true; })
       .addCase(validateSessionThunk.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload.authenticated && action.payload.user) {
-          const u          = action.payload.user;
+          const u = action.payload.user;
           const clientCode = u.clientCode ?? u.id ?? '';
           state.isAuthenticated = true;
           state.user = {
-            id:          clientCode,
-            clientCode:  clientCode,
-            name:        action.payload.realName || clientCode,  
-            email:       u.email       ?? '',
-            phone:       u.phone       ?? '',
-            city:        '',
-            address:     '',
-            role:        u.isMaster ? 'MASTER' : 'USER',
-            status:      u.isActive ? 'ACTIVE' : 'INACTIVE',
+            id: clientCode, clientCode,
+            name:        action.payload.realName || clientCode,
+            email:       u.email ?? '',
+            phone:       u.phone ?? '',
+            city: '', address: '',
+            role:   u.isMaster ? 'MASTER' : 'USER',
+            status: u.isActive ? 'ACTIVE' : 'INACTIVE',
             lastLoginAt: u.lastLoginAt,
           };
         } else {
@@ -334,13 +291,8 @@ const authSlice = createSlice({
           state.user            = null;
         }
       })
-      .addCase(validateSessionThunk.rejected, (state) => {
-        state.loading         = false;
-        state.isAuthenticated = false;
-        state.user            = null;
-      });
+      .addCase(validateSessionThunk.rejected, (state) => { state.loading = false; state.isAuthenticated = false; state.user = null; });
 
-    // ── Resend OTP ──
     builder
       .addCase(resendOtpThunk.pending,   (state) => { state.loading = true; state.error = null; })
       .addCase(resendOtpThunk.fulfilled, (state) => { state.loading = false; })
@@ -348,9 +300,5 @@ const authSlice = createSlice({
   },
 });
 
-export const {
-  clearError, clearOtpState, clearForgotState,
-  setForgotEmail, setForgotStep, setAuthView, resetLoading,
-} = authSlice.actions;
-
+export const { clearError, clearOtpState, clearForgotState, setForgotEmail, setForgotStep, setAuthView, resetLoading, updateUserName } = authSlice.actions;
 export default authSlice.reducer;

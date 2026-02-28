@@ -1,0 +1,130 @@
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { BROKER_BASE } from '../../../utils/ApiConstants'; 
+
+
+export interface ClientDetails {
+  client_code: string;
+  user_id: string;
+  is_active: boolean;
+  is_master: boolean;
+  email?: string;
+  phone?: number;
+  is_authenticated: boolean;
+  last_login?: string;
+  token_expiry?: string;
+}
+
+export interface GroupEntry {
+  group_id: string;
+  group_name: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  client_codes?: string[];
+  client_count?: number;
+  clients: Record<string, ClientDetails>;
+}
+
+export interface GroupsListResponse {
+  status: string;
+  total: number;
+  groups: Record<string, GroupEntry>;
+}
+
+export interface GroupResponse {
+  status: string;
+  message?: string;
+  data: GroupEntry;
+}
+
+export interface CreateGroupPayload {
+  group_name: string;
+  created_by: string;
+  client_codes?: string[];
+}
+
+export interface AddRemoveClientsPayload {
+  groupName: string;
+  client_codes: string[];
+}
+
+export interface RenameGroupPayload {
+  groupName: string;
+  new_name: string;
+}
+
+export const groupApi = createApi({
+  reducerPath: 'groupApi',
+  baseQuery: fetchBaseQuery({ baseUrl: BROKER_BASE }),
+  tagTypes: ['Group'],
+
+  endpoints: (builder) => ({
+    fetchGroups: builder.query<Record<string, GroupEntry>, void>({
+      query: () => '/api/group/list',
+      transformResponse: (res: GroupsListResponse) => res.groups,
+      providesTags: ['Group'],
+    }),
+
+    getGroup: builder.query<GroupEntry, string>({
+      query: (groupName) => `/api/group/${groupName}`,
+      transformResponse: (res: GroupResponse) => res.data,
+      providesTags: (_result, _err, groupName) => [{ type: 'Group', id: groupName }],
+    }),
+
+    createGroup: builder.mutation<GroupResponse, CreateGroupPayload>({
+      query: (body) => ({
+        url: '/api/group/create',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Group'],
+    }),
+
+    addClientsToGroup: builder.mutation<GroupResponse, AddRemoveClientsPayload>({
+      query: ({ groupName, client_codes }) => ({
+        url: `/api/group/${groupName}/add-clients`,
+        method: 'PATCH',
+        body: { client_codes },
+      }),
+      invalidatesTags: ['Group'],
+    }),
+
+    removeClientsFromGroup: builder.mutation<GroupResponse, AddRemoveClientsPayload>({
+      query: ({ groupName, client_codes }) => ({
+        url: `/api/group/${groupName}/remove-clients`,
+        method: 'PATCH',
+        body: { client_codes },
+      }),
+      invalidatesTags: ['Group'],
+    }),
+
+    renameGroup: builder.mutation<GroupResponse, RenameGroupPayload>({
+      query: ({ groupName, new_name }) => ({
+        url: `/api/group/${groupName}/rename`,
+        method: 'PATCH',
+        body: { new_name },
+      }),
+      invalidatesTags: ['Group'],
+    }),
+
+    deleteGroup: builder.mutation<{ status: string; message: string }, string>({
+      query: (groupName) => ({
+        url: `/api/group/${groupName}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Group'],
+    }),
+
+  }),
+});
+
+
+export const {
+  useFetchGroupsQuery,
+  useGetGroupQuery,
+  useCreateGroupMutation,
+  useAddClientsToGroupMutation,
+  useRemoveClientsFromGroupMutation,
+  useRenameGroupMutation,
+  useDeleteGroupMutation,
+} = groupApi;

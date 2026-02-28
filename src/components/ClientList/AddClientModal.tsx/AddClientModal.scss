@@ -1,22 +1,227 @@
 @import '../../../styles/variables';
 
-.add-client-form {
+@import '../../../styles/variables';
+
+// ─── Modal wrapper (reuses .modal-overlay from ClientsList.scss) ──────────────
+
+.acm {
+  background: #fff;
+  border-radius: 14px;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 
-  &__error {
-    background: $error-bg;
-    color: $error;
-    border: 1px solid rgba($error, 0.25);
-    border-radius: $radius-sm;
-    padding: 10px 12px;
-    font-size: 13px;
+  // ── Header ──────────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #e4e7ec;
+    flex-shrink: 0;
   }
 
-  &__flags {
+  &__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #101828;
+    margin: 0;
+  }
+
+  &__close {
     display: flex;
-    gap: 24px;
-    padding-top: 4px;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: #f2f4f7;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #667085;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+      background: #ffe4e4;
+      color: #f04438;
+    }
+  }
+
+  // ── Body (scrollable) ────────────────────────────────────────────────────
+  &__body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+
+  // ── Field ────────────────────────────────────────────────────────────────
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #344054;
+    letter-spacing: 0.2px;
+  }
+
+  &__required {
+    color: #f04438;
+    margin-left: 2px;
+  }
+
+  &__hint {
+    font-size: 11px;
+    color: #98a2b3;
+    margin: 0;
+  }
+
+  &__input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 36px 9px 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #101828;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+
+    &[type="password"] {
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+    }
+
+    &:focus {
+      border-color: #4361ee;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.12);
+    }
+
+    &::placeholder {
+      color: #c0c7d4;
+      font-family: inherit;
+      letter-spacing: normal;
+    }
+  }
+
+  // Eye toggle for sensitive fields
+  &__eye {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #98a2b3;
+    padding: 2px;
+    transition: color 0.15s;
+
+    &:hover { color: #4361ee; }
+  }
+
+  // ── Toggle switches ───────────────────────────────────────────────────────
+  &__toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 4px;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  &__toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: #f8f9fc;
+    cursor: default;
+    gap: 12px;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid #e4e7ec;
+    }
+  }
+
+  &__toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  // iOS-style switch
+  &__switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border-radius: 99px;
+    border: none;
+    cursor: pointer;
+    background: #d0d5dd;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+
+    &--on {
+      background: #4361ee;
+    }
+
+    &-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+
+      .acm__switch--on & {
+        transform: translateX(18px);
+      }
+    }
+  }
+
+  // ── Error ────────────────────────────────────────────────────────────────
+  &__error {
+    color: #f04438;
+    font-size: 12px;
+    margin: 0;
+    padding: 8px 12px;
+    background: #fff1f0;
+    border: 1px solid #fecdca;
+    border-radius: 8px;
+  }
+
+  // ── Footer ───────────────────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px;
+    border-top: 1px solid #e4e7ec;
+    background: #f8f9fc;
+    flex-shrink: 0;
   }
 }
