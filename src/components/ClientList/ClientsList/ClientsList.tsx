@@ -1,30 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Power, ChevronDown, ChevronRight, Trash2, UserPlus, Plus } from 'lucide-react';
+import RefreshIcon            from '@mui/icons-material/Refresh';
+import PowerSettingsNewIcon   from '@mui/icons-material/PowerSettingsNew';
+import ExpandMoreIcon         from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon       from '@mui/icons-material/ChevronRight';
+import DeleteOutlineIcon      from '@mui/icons-material/DeleteOutline';
+import PersonAddAltIcon       from '@mui/icons-material/PersonAddAlt';
+import AddIcon                from '@mui/icons-material/Add';
+import VerifiedUserIcon       from '@mui/icons-material/VerifiedUser';
+import ErrorOutlineIcon       from '@mui/icons-material/ErrorOutline';
+import ShowChartIcon          from '@mui/icons-material/ShowChart';
+import HistoryIcon            from '@mui/icons-material/History';
+import AlternateEmailIcon     from '@mui/icons-material/AlternateEmail';
+import PhoneAndroidIcon       from '@mui/icons-material/PhoneAndroid';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import TagIcon                from '@mui/icons-material/Tag';
+import FiberManualRecordIcon  from '@mui/icons-material/FiberManualRecord';
+
 import './ClientsList.scss';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { fetchClients, authenticateAllClients } from '../../../store/slice/clientsSlice/clientsSlice';
 import { setSelectedClients } from '../../../store/slice/bulkTradeSlice/bulkTradeSlice';
 import { Spinner } from '../../common/Spinner/Spinner';
 import { NavPage } from '../../../types/type';
-import { useCreateGroupMutation, useFetchGroupsQuery, useDeleteGroupMutation, GroupEntry } from '../../../store/slice/groupsSlice/groupsSlice';
-import { UserProfileView } from '../UserProfileView/UserProfileView';
-import { AddClientModal } from '../AddClientModal.tsx/AddClientModal';
-import { AddToGroupModal } from '../AddToGroupModal/AddToGroupModal';
+import { useFetchGroupsQuery, useDeleteGroupMutation, GroupEntry } from '../../../store/slice/groupsSlice/groupsSlice';
+import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
+import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
 import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
-import { useToast } from '../../../context/Toastcontext';
+import { useToast }         from '../../../context/Toastcontext';
 
-interface ClientsListProps {
-  onNavigate: (page: NavPage) => void;
-}
+interface ClientsListProps { onNavigate: (page: NavPage) => void; }
 
 export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
   const dispatch      = useAppDispatch();
   const { showToast } = useToast();
-
   const { data: clients, loading, authenticatingAll, isFetched } = useAppSelector(s => s.clients);
-  const { user }  = useAppSelector(s => s.auth);
-  const isMaster  = user?.role === 'MASTER';
-
+  const { user } = useAppSelector(s => s.auth);
+  const isMaster = user?.role === 'MASTER';
   const { data: groups = {}, isLoading: groupsLoading, refetch: refetchGroups } = useFetchGroupsQuery();
   const [deleteGroup] = useDeleteGroupMutation();
 
@@ -33,50 +44,28 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
   const [addToGroup,           setAddToGroup]           = useState<string | null>(null);
   const [expandedGroups,       setExpandedGroups]       = useState<Set<string>>(new Set());
   const [selectedGroups,       setSelectedGroups]       = useState<Set<string>>(new Set());
+  const [confirmDeleteGroup,   setConfirmDeleteGroup]   = useState<string | null>(null);
 
-  // ✅ Confirm-delete modal state (replaces window.confirm)
-  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState<string | null>(null);
-
-  // ✅ Sirf tab fetch karo jab data nahi hai
-  useEffect(() => {
-    if (!isFetched) dispatch(fetchClients());
-  }, [isFetched, dispatch]);
+  useEffect(() => { if (!isFetched) dispatch(fetchClients()); }, [isFetched, dispatch]);
 
   const clientsList    = Object.values(clients);
   const allClientCodes = clientsList.map(c => c.client_code);
 
-  const toggleExpand = (name: string) =>
-    setExpandedGroups(prev => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
-
-  const toggleSelectGroup = (name: string) =>
-    setSelectedGroups(prev => {
-      const next = new Set(prev);
-      next.has(name) ? next.delete(name) : next.add(name);
-      return next;
-    });
+  const toggle = (set: Set<string>, val: string) => {
+    const n = new Set(set); n.has(val) ? n.delete(val) : n.add(val); return n;
+  };
 
   const getSelectedClientCodes = (): string[] => {
     const codes = new Set<string>();
-    selectedGroups.forEach(groupName => {
-      Object.keys(groups[groupName]?.clients ?? {}).forEach(code => codes.add(code));
-    });
+    selectedGroups.forEach(g => Object.keys(groups[g]?.clients ?? {}).forEach(c => codes.add(c)));
     return Array.from(codes);
   };
 
   const handleProceed = () => {
     const codes = getSelectedClientCodes();
-    if (codes.length === 0) return;
+    if (!codes.length) return;
     dispatch(setSelectedClients(codes));
     onNavigate('bulk-trading');
-  };
-
-  // ✅ Delete with toast — no window.confirm
-  const handleDeleteGroup = async (groupName: string) => {
-    setConfirmDeleteGroup(groupName);
   };
 
   const confirmDelete = async () => {
@@ -84,201 +73,197 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
     try {
       await deleteGroup(confirmDeleteGroup).unwrap();
       setSelectedGroups(prev => { const n = new Set(prev); n.delete(confirmDeleteGroup); return n; });
-      showToast(`Group "${confirmDeleteGroup}" deleted successfully`, 'success');
+      showToast(`Group "${confirmDeleteGroup}" deleted`, 'success');
     } catch (err: any) {
       showToast(err?.message || 'Failed to delete group', 'error');
-    } finally {
-      setConfirmDeleteGroup(null);
-    }
+    } finally { setConfirmDeleteGroup(null); }
   };
 
-  // ✅ Auth all with toast
   const handleAuthAll = async () => {
-    const result = await dispatch(authenticateAllClients());
-    if (authenticateAllClients.fulfilled.match(result)) {
-      showToast('All clients authenticated successfully', 'success');
-    } else {
-      showToast((result.payload as string) || 'Authentication failed', 'error');
-    }
+    const r = await dispatch(authenticateAllClients());
+    authenticateAllClients.fulfilled.match(r)
+      ? showToast('All clients authenticated', 'success')
+      : showToast((r.payload as string) || 'Authentication failed', 'error');
   };
 
-  const handleRefresh = () => {
-    dispatch(fetchClients());
-    refetchGroups();
-  };
+  const handleRefresh = () => { dispatch(fetchClients()); refetchGroups(); };
 
-  // ── Non-master view ───────────────────────────────────────────────────────
+  // ── USER VIEW ──────────────────────────────────────────────────────────────
   if (!isMaster) {
+    const myClient    = clientsList.find(c => c.client_code === user?.clientCode) ?? clientsList[0];
+    const isActive    = myClient?.is_active;
+    const isAuth      = myClient?.is_authenticated;
+    const displayName = user?.name || user?.clientCode || 'User';
+    if (loading && !myClient) return <Spinner text="Loading…" />;
+
+    const infoRows = [
+      { icon: <TagIcon />,               label: 'Client Code', value: user?.clientCode || '—', mono: true, accent: true },
+      { icon: <AlternateEmailIcon />,     label: 'Email',       value: user?.email,             mono: true },
+      { icon: <PhoneAndroidIcon />,       label: 'Phone',       value: user?.phone },
+      { icon: <LocationOnOutlinedIcon />, label: 'City',        value: user?.city },
+    ].filter(r => r.value);
+
     return (
-      <div className="cm">
-        <div className="cm__header">
-          <h2 className="cm__title">My Account</h2>
+      <div className="up">
+        <div className="up__hero">
+          <div className="up__hero-top">
+            <span className="up__badge"><FiberManualRecordIcon className="up__badge-dot" />Client Portal</span>
+            <span className={`up__chip up__chip--${isActive ? 'on' : 'off'}`}>
+              {isActive ? <VerifiedUserIcon /> : <ErrorOutlineIcon />}
+              {isActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div className="up__identity">
+            <div className="up__avatar">{displayName[0]?.toUpperCase() ?? 'U'}</div>
+            <div>
+              <h2 className="up__name">{displayName}</h2>
+              <span className="up__code">{user?.clientCode || '—'}</span>
+            </div>
+          </div>
         </div>
-        <div className="cm__actions">
-          <button className="cm__btn cm__btn--outline" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw size={14} className={loading ? 'spin' : ''} />
-            Refresh
+
+        <div className="up__stats">
+          {[
+            { icon: <ShowChartIcon />,    label: 'Orders',  val: '—',                      color: 'blue'   },
+            { icon: <VerifiedUserIcon />, label: 'Auth',    val: isAuth ? 'Yes' : 'No',    color: isAuth ? 'green' : 'red' },
+            { icon: <HistoryIcon />,      label: 'History', val: '—',                      color: 'orange' },
+          ].map(s => (
+            <div key={s.label} className="up__stat">
+              <span className={`up__stat-icon up__stat-icon--${s.color}`}>{s.icon}</span>
+              <strong className="up__stat-val">{s.val}</strong>
+              <span className="up__stat-lbl">{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="up__body">
+          <div className={`up__banner up__banner--${isAuth ? 'ok' : 'warn'}`}>
+            {isAuth ? <VerifiedUserIcon /> : <ErrorOutlineIcon />}
+            <span>{isAuth ? 'Session active — ready to trade' : 'Not authenticated — re-authenticate to trade'}</span>
+          </div>
+          <p className="up__section-lbl">Account Details</p>
+          {infoRows.map(r => (
+            <div key={r.label} className={`up__row${r.accent ? ' up__row--accent' : ''}`}>
+              <span className="up__row-icon">{r.icon}</span>
+              <div className="up__row-meta">
+                <span className="up__row-lbl">{r.label}</span>
+                <span className={`up__row-val${r.mono ? ' up__row-val--mono' : ''}`}>{r.value}</span>
+              </div>
+              {r.label === 'Client Code' && (
+                <span className={`up__tag up__tag--${isActive ? 'ok' : 'err'}`}>{isActive ? 'Live' : 'Off'}</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="up__actions">
+          <button className="up__btn up__btn--primary" onClick={() => onNavigate('bulk-trading')}>
+            <ShowChartIcon />Trade Now
+          </button>
+          <button className="up__btn up__btn--ghost" onClick={() => onNavigate('trade-history')}>
+            <HistoryIcon />History
+          </button>
+          <button className="up__btn up__btn--ghost up__btn--full" onClick={handleRefresh} disabled={loading}>
+            <RefreshIcon className={loading ? 'spin' : ''} />{loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
-        {loading ? <Spinner text="Loading…" /> : <UserProfileView />}
       </div>
     );
   }
 
+  // ── MASTER VIEW ────────────────────────────────────────────────────────────
   const selectedCodes = getSelectedClientCodes();
 
   return (
     <div className="cm">
-      <div className="cm__header">
-        <h2 className="cm__title">Client Groups</h2>
-      </div>
+      <div className="cm__header"><h2 className="cm__title">Client Groups</h2></div>
 
-      <div className="cm__actions">
-        <button className="cm__btn cm__btn--outline" onClick={handleAuthAll} disabled={authenticatingAll}>
-          <Power size={14} />
-          {authenticatingAll ? 'Authenticating…' : 'Auth All'}
+      <div className="cm__bar">
+        <button className="cm__btn cm__btn--ghost" onClick={handleAuthAll} disabled={authenticatingAll}>
+          <PowerSettingsNewIcon />{authenticatingAll ? 'Authenticating…' : 'Auth All'}
         </button>
-        <button className="cm__btn cm__btn--outline" onClick={handleRefresh} disabled={loading || groupsLoading}>
-          <RefreshCw size={14} className={(loading || groupsLoading) ? 'spin' : ''} />
-          Refresh
+        <button className="cm__btn cm__btn--ghost" onClick={handleRefresh} disabled={loading || groupsLoading}>
+          <RefreshIcon className={(loading || groupsLoading) ? 'spin' : ''} />Refresh
         </button>
-        <button className="cm__btn cm__btn--secondary" onClick={() => setShowAddModal(true)}>
-          <Plus size={15} />
-          Add Client
+        <button className="cm__btn cm__btn--soft" onClick={() => setShowAddModal(true)}>
+          <AddIcon />Add Client
         </button>
         <button className="cm__btn cm__btn--primary" onClick={() => setShowCreateGroupModal(true)}>
-          <Plus size={15} />
-          New Group
+          <AddIcon />New Group
         </button>
       </div>
 
       <div className="cm__groups">
-        {groupsLoading ? (
-          <Spinner text="Loading groups…" />
-        ) : Object.keys(groups).length === 0 ? (
-          <div className="cm__empty">
-            <p>No groups yet. Create your first group.</p>
-          </div>
-        ) : (
-          Object.entries(groups).map(([groupName, groupEntry]: [string, GroupEntry]) => {
-            const isExpanded   = expandedGroups.has(groupName);
-            const isChecked    = selectedGroups.has(groupName);
-            const groupClients = Object.entries(groupEntry.clients ?? {});
-
-            return (
-              <div key={groupName} className={`cm__group-card${isChecked ? ' cm__group-card--selected' : ''}`}>
-                <div className="cm__group-header">
-                  <input type="checkbox" className="cm__group-checkbox" checked={isChecked} onChange={() => toggleSelectGroup(groupName)} />
-                  <span className="cm__group-chevron" onClick={() => toggleExpand(groupName)}>
-                    {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                  </span>
-                  <span className="cm__group-name" onClick={() => toggleExpand(groupName)}>
-                    {groupName}
-                  </span>
-                  <span className="cm__group-count">{groupClients.length} clients</span>
-                  <div className="cm__group-actions">
-                    <button className="cm__icon-btn" title="Add clients to group" onClick={() => setAddToGroup(groupName)}>
-                      <UserPlus size={14} />
-                    </button>
-                    <button className="cm__icon-btn cm__icon-btn--danger" title="Delete group" onClick={() => handleDeleteGroup(groupName)}>
-                      <Trash2 size={14} />
-                    </button>
+        {groupsLoading
+          ? <Spinner text="Loading groups…" />
+          : !Object.keys(groups).length
+            ? <div className="cm__empty"><p>No groups yet. Create your first group.</p></div>
+            : Object.entries(groups).map(([name, entry]: [string, GroupEntry]) => {
+                const expanded = expandedGroups.has(name);
+                const checked  = selectedGroups.has(name);
+                const grpClients = Object.entries(entry.clients ?? {});
+                return (
+                  <div key={name} className={`cm__card${checked ? ' cm__card--on' : ''}`}>
+                    <div className="cm__card-head">
+                      <input type="checkbox" checked={checked} onChange={() => setSelectedGroups(prev => toggle(prev, name))} />
+                      <span className="cm__chevron" onClick={() => setExpandedGroups(prev => toggle(prev, name))}>
+                        {expanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
+                      </span>
+                      <span className="cm__gname" onClick={() => setExpandedGroups(prev => toggle(prev, name))}>{name}</span>
+                      <span className="cm__count">{grpClients.length}</span>
+                      <div className="cm__card-actions">
+                        <button className="cm__icon-btn" onClick={() => setAddToGroup(name)}><PersonAddAltIcon /></button>
+                        <button className="cm__icon-btn cm__icon-btn--del" onClick={() => setConfirmDeleteGroup(name)}><DeleteOutlineIcon /></button>
+                      </div>
+                    </div>
+                    {expanded && (
+                      <table className="cm__table">
+                        <thead><tr><th>Code</th><th>Email</th><th>Status</th><th>Auth</th></tr></thead>
+                        <tbody>
+                          {!grpClients.length
+                            ? <tr><td colSpan={4} className="cm__empty-row">No clients</td></tr>
+                            : grpClients.map(([code, d]) => (
+                                <tr key={code}>
+                                  <td><span className="cm__mono">{code}</span></td>
+                                  <td>{d.email ?? '—'}</td>
+                                  <td><span className={`cm__dot cm__dot--${d.is_active ? 'on':'off'}`}>{d.is_active ? 'Active':'Inactive'}</span></td>
+                                  <td><span className={`cm__dot cm__dot--${d.is_authenticated ? 'on':'off'}`}>{d.is_authenticated ? 'Auth':'Pending'}</span></td>
+                                </tr>
+                              ))
+                          }
+                        </tbody>
+                      </table>
+                    )}
                   </div>
-                </div>
-
-                {isExpanded && (
-                  <table className="cm__table cm__table--nested">
-                    <thead>
-                      <tr>
-                        <th>Client Code</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Auth</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {groupClients.length === 0 ? (
-                        <tr><td colSpan={4} className="cm__empty-row">No clients in this group</td></tr>
-                      ) : (
-                        groupClients.map(([code, details]) => (
-                          <tr key={code}>
-                            <td><span className="cm__broker">{code}</span></td>
-                            <td>{details.email ?? '—'}</td>
-                            <td>
-                              <span className={`cm__status ${details.is_active ? 'cm__status--active' : 'cm__status--inactive'}`}>
-                                {details.is_active ? 'Active' : 'Inactive'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`cm__status ${details.is_authenticated ? 'cm__status--active' : 'cm__status--inactive'}`}>
-                                {details.is_authenticated ? 'Authenticated' : 'Pending'}
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            );
-          })
-        )}
+                );
+              })
+        }
       </div>
 
-      {Object.keys(groups).length > 0 && (
+      {!!Object.keys(groups).length && (
         <div className="cm__footer">
-          <span className="cm__footer-hint">
-            {selectedGroups.size > 0
-              ? `${selectedGroups.size} group${selectedGroups.size > 1 ? 's' : ''} · ${selectedCodes.length} clients`
-              : 'Select groups to proceed'}
+          <span className="cm__hint">
+            {selectedGroups.size ? `${selectedGroups.size} group · ${selectedCodes.length} clients` : 'Select groups to proceed'}
           </span>
-          <button className="cm__btn cm__btn--proceed" disabled={selectedGroups.size === 0} onClick={handleProceed}>
+          <button className="cm__btn cm__btn--proceed" disabled={!selectedGroups.size} onClick={handleProceed}>
             Proceed ({selectedCodes.length})
           </button>
         </div>
       )}
 
-      {/* ── Modals ── */}
-      {showAddModal && (
-        <AddClientModal onClose={() => setShowAddModal(false)} />
-      )}
-      {showCreateGroupModal && (
-        <CreateGroupModal
-          allClientCodes={allClientCodes}
-          masterCode={user?.id ?? user?.name ?? ''}
-          onClose={() => setShowCreateGroupModal(false)}
-        />
-      )}
-      {addToGroup && (
-        <AddToGroupModal
-          groupName={addToGroup}
-          existingCodes={Object.keys(groups[addToGroup]?.clients ?? {})}
-          allClientCodes={allClientCodes}
-          onClose={() => setAddToGroup(null)}
-        />
-      )}
+      {showAddModal && <AddClientModal onClose={() => setShowAddModal(false)} />}
+      {showCreateGroupModal && <CreateGroupModal allClientCodes={allClientCodes} masterCode={user?.id ?? ''} onClose={() => setShowCreateGroupModal(false)} />}
+      {addToGroup && <AddToGroupModal groupName={addToGroup} existingCodes={Object.keys(groups[addToGroup]?.clients ?? {})} allClientCodes={allClientCodes} onClose={() => setAddToGroup(null)} />}
 
-      {/* ── Confirm Delete Modal (replaces window.confirm) ── */}
       {confirmDeleteGroup && (
-        <div className="cm-modal-overlay" onClick={() => setConfirmDeleteGroup(null)}>
-          <div className="cm-modal" onClick={e => e.stopPropagation()}>
-            <div className="cm-modal__icon cm-modal__icon--danger">
-              <Trash2 size={20} />
-            </div>
-            <h3>Delete Group?</h3>
-            <p>
-              Are you sure you want to delete <strong>"{confirmDeleteGroup}"</strong>?
-              <br />
-              <span className="cm-modal__note">Clients will NOT be deleted.</span>
-            </p>
-            <div className="cm-modal__actions">
-              <button className="cm__btn cm__btn--outline" onClick={() => setConfirmDeleteGroup(null)}>
-                Cancel
-              </button>
-              <button className="cm__btn cm__btn--danger" onClick={confirmDelete}>
-                Delete Group
-              </button>
+        <div className="overlay" onClick={() => setConfirmDeleteGroup(null)}>
+          <div className="dlg" onClick={e => e.stopPropagation()}>
+            <span className="dlg__icon"><DeleteOutlineIcon /></span>
+            <h3>Delete "{confirmDeleteGroup}"?</h3>
+            <p>This removes the group. Clients will <strong>not</strong> be deleted.</p>
+            <div className="dlg__actions">
+              <button className="cm__btn cm__btn--ghost" onClick={() => setConfirmDeleteGroup(null)}>Cancel</button>
+              <button className="cm__btn cm__btn--danger" onClick={confirmDelete}>Delete</button>
             </div>
           </div>
         </div>

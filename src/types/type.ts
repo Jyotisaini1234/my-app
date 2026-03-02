@@ -271,15 +271,19 @@ export interface TradeLogEntry {
   id?: string;
   clientCode?: string;
   clientName?: string;
-  action?: string;           
-  status?: string;          
-  createdAt?: string;
-  traceId?: string;
-  requestId?: string;
-  spanId?: string;
-  uniqueOrderId?: string;
   masterClientCode?: string;
+  masterClientName?: string;
+  action?: string;        
+  buyOrSell?: string;      
+  symbol?: string;         
+  exchange?: string;       
+  status?: string;
+  uniqueOrderId?: string;
   quantity?: number;
+  price?: number;          
+  traceId?: string;
+  spanId?: string;
+  createdAt?: string;
 }
 export interface TradeHistoryState {
   data: TradeLogEntry[];

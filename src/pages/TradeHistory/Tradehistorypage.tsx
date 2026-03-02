@@ -92,10 +92,10 @@ export const TradeHistoryPage: React.FC = () => {
   };
 
   const filteredData = data.filter((row) => {
-    if (typeFilter === 'BUY')  return row.action === 'PLACE_ORDER';
-    if (typeFilter === 'SELL') return row.action === 'CANCEL_ORDER';
-    return true;
-  });
+  if (typeFilter === 'BUY')  return row.buyOrSell === 'BUY';
+  if (typeFilter === 'SELL') return row.buyOrSell === 'SELL';
+  return true;
+});
 
   const handleClear = () => {
     setTypeFilter('All');
@@ -175,7 +175,7 @@ export const TradeHistoryPage: React.FC = () => {
           <Table size="small" stickyHeader>
             <TableHead>
               <TableRow>
-                {['Client', 'Client Name', 'Action', 'Order ID', 'Date', 'Status', 'Qty', 'Cancel'].map((col) => (
+                {['Client', 'Client Name', 'Action', 'Buy/Sell', 'Symbol', 'Order ID', 'Date', 'Status', 'Qty', 'Cancel'].map((col) => (
                   <TableCell key={col} sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{col}</TableCell>
                 ))}
               </TableRow>
@@ -193,11 +193,18 @@ export const TradeHistoryPage: React.FC = () => {
                   <TableCell>
                     <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small" color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined" />
                   </TableCell>
-
+                  <TableCell> {row.buyOrSell ? ( 
+                    <Chip label={row.buyOrSell} size="small" color={row.buyOrSell === 'BUY' ? 'success' : 'error'} variant="outlined"/>) : '—'}
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>
+                      {row.symbol || '—'}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.uniqueOrderId || '—'}</Typography>
                   </TableCell>
-
+                
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>
                     {row.createdAt ? new Date(row.createdAt).toLocaleString('en-IN', {
                       day: '2-digit', month: 'short', year: 'numeric',

@@ -144,23 +144,20 @@ export const BulkTradingPage: React.FC = () => {
     quantity:      '',
   });
 
-  // ✅ Sirf tab fetch karo jab data nahi hai
   useEffect(() => {
     if (!clientsFetched) dispatch(fetchActiveClients());
   }, [clientsFetched, dispatch]);
 
-  // ✅ Order result toast — success / partial / fail
-  useEffect(() => {
-    if (!lastResult) return;
+useEffect(() => {
+  if (!lastResult) return;
 
-    const results   = (lastResult as any).results ?? [];
-    const total     = results.length;
-    const succeeded = results.filter((r: any) => r.status === 'success').length;
-    const failed    = total - succeeded;
+  const res = lastResult as any;
+  if (typeof res.successCount === 'number' || typeof res.failedCount === 'number') {
+    const succeeded = res.successCount ?? 0;
+    const failed    = res.failedCount   ?? 0;
+    const total     = succeeded + failed;
 
-    if (total === 0) {
-      showToast('Order submitted', 'success');
-    } else if (failed === 0) {
+    if (failed === 0 && succeeded > 0) {
       showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
     } else if (succeeded === 0) {
       showToast(`✗ Order failed for all ${total} client${total > 1 ? 's' : ''}`, 'error');
@@ -168,9 +165,27 @@ export const BulkTradingPage: React.FC = () => {
       showToast(`Order placed for ${succeeded}/${total} clients. ${failed} failed.`, 'info');
     }
 
-    // Clear result after showing toast so it doesn't re-show on re-render
-    dispatch(clearResult());
-  }, [lastResult]);
+  // ── Case 2: results ek Object hai { clientCode: { status, message } } ──
+  } else if (res.results && typeof res.results === 'object') {
+    const entries   = Object.values(res.results) as any[];
+    const total     = entries.length;
+    const succeeded = entries.filter(r => r.status?.toUpperCase() === 'SUCCESS').length;
+    const failed    = total - succeeded;
+
+    if (failed === 0 && succeeded > 0) {
+      showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
+    } else if (succeeded === 0) {
+      showToast(`✗ Order failed for all ${total} client${total > 1 ? 's' : ''}`, 'error');
+    } else {
+      showToast(`Order placed for ${succeeded}/${total} clients. ${failed} failed.`, 'info');
+    }
+
+  } else {
+    showToast('Order submitted', 'info');
+  }
+
+  dispatch(clearResult());
+}, [lastResult]);
 
   const activeClients = Object.values(clients).filter(c => c.is_active);
   const masterClient  = activeClients.find(c => c.is_master);
@@ -186,7 +201,6 @@ export const BulkTradingPage: React.FC = () => {
 
   const setF = (key: string, val: string) => setForm(p => ({ ...p, [key]: val }));
 
-  // ✅ Validation with toast — no alert()
   const handlePlaceOrder = async () => {
     if (!masterClient) {
       showToast('No master client found. Please mark one client as master.', 'error');
@@ -222,7 +236,6 @@ export const BulkTradingPage: React.FC = () => {
       squareoff:       '0',
       stoploss:        '0',
     } as any));
-    // toast is handled by the useEffect above via lastResult
   };
 
   return (

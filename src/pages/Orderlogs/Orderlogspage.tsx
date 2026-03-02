@@ -15,6 +15,10 @@ interface TradeLog {
   createdAt?: string;
   traceId?: string;
   spanId?: string;
+  buyOrSell?: string;
+  symbol?: string;
+  exchange?: string;
+  price?: number;
 }
 
 
@@ -191,6 +195,8 @@ export const OrderLogsPage: React.FC = () => {
                 <th>Client Code</th>
                 <th>Client Name</th>
                 <th>Action</th>
+                <th>Buy/Sell</th>
+                <th>Symbol</th>
                 <th>Status</th>
                 <th>Trace ID</th>
                 <th>Span ID</th>
@@ -217,7 +223,14 @@ export const OrderLogsPage: React.FC = () => {
                       </span>
                     ) : '—'}
                   </td>
-
+                    <td>
+                    {log.buyOrSell ? (
+                      <span className={`order-logs__action order-logs__action--${log.buyOrSell.toLowerCase()}`}>
+                        {log.buyOrSell}
+                      </span>
+                    ) : '—'}
+                  </td>
+                  <td>{log.symbol || '—'}</td>
                   <td>
                     {log.status ? (
                       <span className={`order-logs__status order-logs__status--${log.status.toLowerCase()}`}>

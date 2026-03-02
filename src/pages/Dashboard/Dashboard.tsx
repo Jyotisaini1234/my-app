@@ -26,7 +26,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const activeClients= useMemo(() => clientList.filter(c => c.is_active).length, [clientList]);
   const placedTrades = useMemo(() => trades.filter(t => t.action === 'PLACE_ORDER').length, [trades]);
   const cancelTrades = useMemo(() => trades.filter(t => t.action === 'CANCEL_ORDER').length, [trades]);
-
+  const { user } = useAppSelector(s => s.auth);
+  const isMaster = user?.role === 'MASTER';
   const stats = [
     {
       label: 'Total Clients',
@@ -62,15 +63,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     },
   ];
 
-  const quickActions = [
-    { icon: <PlusCircle size={16} />, label: 'Add Client',    desc: 'Register broker account', page: 'clients' as NavPage,       color: 'blue' },
-    { icon: <TrendingUp size={16} />, label: 'Bulk Trade',    desc: 'Execute across all clients',page: 'bulk-trading' as NavPage, color: 'green' },
-    { icon: <Power size={16} />,      label: 'Auth All',      desc: 'Authenticate sessions',    page: 'clients' as NavPage,       color: 'orange' },
-    { icon: <History size={16} />,    label: 'View History',  desc: 'Past trade executions',    page: 'trade-history' as NavPage, color: 'purple' },
-    { icon: <CircleDollarSign size={16}/>, label: 'Order Logs', desc: 'Live order tracking',   page: 'order-logs' as NavPage,    color: 'teal' },
-    { icon: <RefreshCw size={16} />,  label: 'Re-authenticate', desc: 'Refresh all sessions',  page: 'clients' as NavPage,       color: 'red' },
-  ];
-
+ const quickActions = isMaster
+  ? [
+      { icon: <PlusCircle size={16} />,           label: 'Add Client',      desc: 'Register broker account',     page: 'clients' as NavPage,       color: 'blue'   },
+      { icon: <TrendingUp size={16} />,           label: 'Bulk Trade',      desc: 'Execute across all clients',  page: 'bulk-trading' as NavPage,  color: 'green'  },
+      { icon: <Power size={16} />,                label: 'Auth All',        desc: 'Authenticate sessions',       page: 'clients' as NavPage,       color: 'orange' },
+      { icon: <History size={16} />,              label: 'View History',    desc: 'Past trade executions',       page: 'trade-history' as NavPage, color: 'purple' },
+      { icon: <CircleDollarSign size={16} />,     label: 'Order Logs',      desc: 'Live order tracking',         page: 'order-logs' as NavPage,    color: 'teal'   },
+      { icon: <RefreshCw size={16} />,            label: 'Re-authenticate', desc: 'Refresh all sessions',        page: 'clients' as NavPage,       color: 'red'    },
+    ]
+  : [
+      { icon: <TrendingUp size={16} />,           label: 'Trade',           desc: 'Place your orders',           page: 'bulk-trading' as NavPage,  color: 'green'  },
+      { icon: <History size={16} />,              label: 'View History',    desc: 'Past trade executions',       page: 'trade-history' as NavPage, color: 'purple' },
+      { icon: <CircleDollarSign size={16} />,     label: 'Order Logs',      desc: 'Live order tracking',         page: 'order-logs' as NavPage,    color: 'teal'   },
+    ];
   return (
     <div className="dashboard">
 
@@ -176,46 +182,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               ))}
             </div>
           </div>
-
-          {/* Client summary */}
-          <div className="panel panel--summary">
-            <div className="panel__head">
-              <h3 className="panel__title">Client Status</h3>
-            </div>
-            <div className="summary-list">
-              <div className="summary-item">
-                <span className="summary-item__label">Total Registered</span>
-                <span className="summary-item__value">{totalClients}</span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-item__label">Active</span>
-                <span className="summary-item__value summary-item__value--green">{activeClients}</span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-item__label">Authenticated</span>
-                <span className="summary-item__value summary-item__value--green">{authClients}</span>
-              </div>
-              <div className="summary-item">
-                <span className="summary-item__label">Inactive</span>
-                <span className="summary-item__value summary-item__value--red">
-                  {totalClients - activeClients}
-                </span>
-              </div>
-              <div className="summary-item summary-item--bar">
-                <span className="summary-item__label">Auth Rate</span>
-                <div className="summary-bar">
-                  <div
-                    className="summary-bar__fill"
-                    style={{ width: `${totalClients > 0 ? (authClients / totalClients) * 100 : 0}%` }}
-                  />
-                </div>
-                <span className="summary-item__pct">
-                  {totalClients > 0 ? Math.round((authClients / totalClients) * 100) : 0}%
-                </span>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
