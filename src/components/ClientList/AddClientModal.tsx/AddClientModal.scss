@@ -225,3 +225,30 @@
     flex-shrink: 0;
   }
 }
+
+
+
+.acm__input--error {
+  border-color: #e11d48 !important;
+  background:   #fff1f2 !important;
+  
+  &:focus {
+    outline:    none;
+    box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+  }
+}
+
+.acm__field-error {
+  margin:      0.25rem 0 0;
+  font-size:   0.75rem;
+  font-weight: 500;
+  color:       #be123c;
+  display:     flex;
+  align-items: center;
+  gap:         0.25rem;
+
+  &::before {
+    content:     '⚠';
+    font-size:   0.7rem;
+  }
+}

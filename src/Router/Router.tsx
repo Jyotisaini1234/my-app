@@ -7,7 +7,6 @@ import { fetchTradeHistory } from '../store/slice/tradeHistorySlice/tradeHistory
 import { Layout } from '../components/Layout/Layout/Layout';
 import AuthPage from '../pages/Authpage/Authpage';
 import { AppLoader } from './AppLoader';
-
 import { DashboardPage }        from '../pages/Dashboard/Dashboard';
 import { ClientManagementPage } from '../pages/ClientManagement/ClientManagementPage';
 import { BulkTradingPage }      from '../pages/BulkTrading/Bulktradingpage';
@@ -39,19 +38,25 @@ export const Router: React.FC = () => {
     dispatch(validateSessionThunk())
       .then((result) => {
         if (validateSessionThunk.fulfilled.match(result) && result.payload?.authenticated) {
-          dispatch(fetchClients());
           dispatch(fetchTradeHistory({}));
+          
         }
       })
-      .finally(() => setSessionChecked(true)); 
+      .finally(() => setSessionChecked(true));
   }, [dispatch]);
 
-  if (!sessionChecked) return <AppLoader />;
-  if (!isAuthenticated) return <AuthPage />;
-
   return (
-    <Layout activePage={activePage} onNavigate={setActivePage}>
-      <PageRenderer activePage={activePage} onNavigate={setActivePage} />
-    </Layout>
+    <>
+      {!sessionChecked
+        ? <AppLoader />
+        : !isAuthenticated
+          ? <AuthPage />
+          : (
+            <Layout activePage={activePage} onNavigate={setActivePage}>
+              <PageRenderer activePage={activePage} onNavigate={setActivePage} />
+            </Layout>
+          )
+      }
+    </>
   );
 };

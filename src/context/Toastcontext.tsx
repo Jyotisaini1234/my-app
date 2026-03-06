@@ -1,53 +1,63 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { CheckCircle, XCircle, Info, X } from 'lucide-react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import Toast, { ToastType } from '../components/common/Toast/Toast';
+import './ToastContext.scss';
 
-export type ToastType = 'success' | 'error' | 'info';
-
-export interface Toast {
-  id: number;
-  msg: string;
+interface ToastData {
+  id: string;
+  message: string;
   type: ToastType;
 }
 
-interface ToastContextValue {
-  showToast: (msg: string, type?: ToastType) => void;
+interface ToastContextType {
+  showToast: (message: string, type: ToastType) => void;
+  removeToast: (id: string) => void;
 }
 
-const ToastContext = createContext<ToastContextValue>({ showToast: () => {} });
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-let _id = 0;
+export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [toasts, setToasts] = useState<ToastData[]>([]);
 
-export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const showToast = useCallback((msg: string, type: ToastType = 'info') => {
-    const id = ++_id;
-    setToasts(p => [...p, { id, msg, type }]);
-    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4500);
+  const showToast = useCallback((message: string, type: ToastType = 'info') => {
+    const id = Date.now().toString() + Math.random().toString(36).substring(2, 9);
+    const newToast: ToastData = { id, message, type };
+    
+    setToasts((prev) => {
+      const updated = [...prev, newToast];
+      return updated;
+    });
   }, []);
 
-  const dismiss = (id: number) => setToasts(p => p.filter(t => t.id !== id));
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, removeToast }}>
       {children}
-      <div className="global-toast-stack">
-        {toasts.map(t => (
-          <div key={t.id} className={`global-toast global-toast--${t.type}`}>
-            <div className="global-toast__icon">
-              {t.type === 'success' && <CheckCircle size={15} />}
-              {t.type === 'error'   && <XCircle     size={15} />}
-              {t.type === 'info'    && <Info         size={15} />}
-            </div>
-            <span className="global-toast__msg">{t.msg}</span>
-            <button className="global-toast__close" onClick={() => dismiss(t.id)}>
-              <X size={13} />
-            </button>
-          </div>
-        ))}
+      
+      {/* Global Toast Container */}
+      <div className="global-toast-container">
+        {toasts.map((toast) => {
+          return (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              type={toast.type}
+              onClose={() => removeToast(toast.id)}
+            />
+          );
+        })}
       </div>
     </ToastContext.Provider>
   );
 };
 
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
+  return context;
+};

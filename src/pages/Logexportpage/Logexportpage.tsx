@@ -40,7 +40,7 @@ export const LogExportPage: React.FC = () => {
   const [confirmRestore,setConfirmRestore] = useState<string | null>(null);
   const [toasts,setToasts] = useState<Toast[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+ const [fetched, setFetched] = useState(false);
   const toast = (msg: string, type: ToastType = 'info') => {
     const id = ++toastId;
     setToasts(p => [...p, { id, msg, type }]);
@@ -65,7 +65,12 @@ export const LogExportPage: React.FC = () => {
     finally { setLoadingStatus(false); }
   };
 
-  useEffect(() => { fetchList(); fetchStatus(); }, []);
+ useEffect(() => { 
+  if (fetched) return;     
+  fetchList(); 
+  fetchStatus();
+  setFetched(true);       
+}, [fetched]);
 
   const handleDownload = async (filename: string) => {
     setActionTarget(filename); setActionType('download');

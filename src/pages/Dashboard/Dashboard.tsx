@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Users, TrendingUp, Activity, ShieldCheck,ArrowUpRight, ArrowDownRight, PlusCircle,Power, History, RefreshCw, CircleDollarSign,} from 'lucide-react';
+import { Users, TrendingUp, Activity, ShieldCheck,ArrowUpRight, ArrowDownRight, PlusCircle,Power, History, RefreshCw, CircleDollarSign, Loader,} from 'lucide-react';
 import './DashboardPage.scss';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClients } from '../../store/slice/clientsSlice/clientsSlice';
@@ -12,14 +12,8 @@ interface DashboardPageProps {
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const dispatch = useAppDispatch();
-  const { data: clients, isFetched: clientsFetched } = useAppSelector(s => s.clients);
+  const { data: clients, isFetched: clientsFetched, loading: clientsLoading } = useAppSelector(s => s.clients);
   const { data: trades, isFetched: tradesFetched }   = useAppSelector(s => s.tradeHistory);
-
-  useEffect(() => {
-    if (!clientsFetched) dispatch(fetchClients());
-    if (!tradesFetched)  dispatch(fetchTradeHistory({}));
-  }, []);
-
   const clientList   = useMemo(() => Object.values(clients), [clients]);
   const totalClients = clientList.length;
   const authClients  = useMemo(() => clientList.filter(c => c.is_authenticated).length, [clientList]);
@@ -28,6 +22,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const cancelTrades = useMemo(() => trades.filter(t => t.action === 'CANCEL_ORDER').length, [trades]);
   const { user } = useAppSelector(s => s.auth);
   const isMaster = user?.role === 'MASTER';
+  useEffect(() => {
+    if (!clientsFetched) dispatch(fetchClients());
+    if (!tradesFetched)  dispatch(fetchTradeHistory({}));
+  }, []);
   const stats = [
     {
       label: 'Total Clients',
@@ -88,7 +86,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               <span className="stat-card__label">{s.label}</span>
               <div className="stat-card__icon">{s.icon}</div>
             </div>
-            <div className="stat-card__value">{s.value}</div>
+            <div className="stat-card__value">
+              {clientsLoading ? <Loader size={16} className="spin" /> : s.value}
+            </div>
             <div className="stat-card__footer">
               {s.trend === 'up'   && <ArrowUpRight   size={12} className="trend trend--up" />}
               {s.trend === 'down' && <ArrowDownRight  size={12} className="trend trend--down" />}

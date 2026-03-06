@@ -87,7 +87,7 @@ export const OrderLogsPage: React.FC = () => {
   const [clientCode, setClientCode] = useState('');
   const [startDate,  setStartDate]  = useState('');
   const [endDate,    setEndDate]    = useState('');
-
+  const [fetched, setFetched] = useState(false);
   const [modal, setModal] = useState<{ type: 'trace' | 'span'; id: string } | null>(null);
 
   const fmtDate = (d: string) => {
@@ -113,7 +113,11 @@ export const OrderLogsPage: React.FC = () => {
     }
   }, [clientCode, startDate, endDate]);
 
-  useEffect(() => { fetchLogs(); }, []);
+  useEffect(() => { 
+    if (fetched) return;        
+    fetchLogs();
+    setFetched(true);           
+  }, []);
 
   const hasFilters = clientCode || startDate || endDate;
 

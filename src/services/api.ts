@@ -32,15 +32,20 @@ export const clientService = {
   details: (clientCode: string) =>
     request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.DETAILS(clientCode)}`),
 
+  // ✅ FIX: email, phone, authorization, totpToken added to type + body
   add: (data: {
-    clientCode: string;
-    userId: string;
-    password: string;
-    apiKey: string;
-    totpSecret?: string;
-    twoFa?: string;
-    active?: boolean;
-    master?: boolean;
+    clientCode:     string;
+    userId:         string;
+    password:       string;
+    apiKey:         string;
+    totpSecret?:    string;
+    totpToken?:     string;
+    twoFa?:         string;
+    active?:        boolean;
+    master?:        boolean;
+    email?:         string;
+    phone?:         number;
+    authorization?: string;
   }) =>
     request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.ADD}`, {
       method: 'POST',
@@ -49,10 +54,15 @@ export const clientService = {
         userId:      data.userId,
         password:    data.password,
         apiKey:      data.apiKey,
-        totpSecret:  data.totpSecret  ?? '',
-        twoFa:       data.twoFa       ?? 'Y',
-        active:      data.active      ?? true,
-        master:      data.master      ?? false,
+        totpSecret:  data.totpSecret    ?? '',
+        totpToken:   data.totpToken     ?? '',
+        twoFa:       data.twoFa         ?? '',
+        active:      data.active        ?? true,
+        master:      data.master        ?? false,
+        // ✅ yeh fields pehle body mein the hi nahi — isliye save nahi ho rahe the
+        ...(data.email         ? { email:         data.email }         : {}),
+        ...(data.phone         ? { phone:         data.phone }         : {}),
+        ...(data.authorization ? { authorization: data.authorization } : {}),
       }),
     }),
 
@@ -84,7 +94,6 @@ export const clientService = {
     }),
 };
 
-// ─── Broker Service (BROKER_BASE :8080) ───────────────────────────────────────
 export const brokerService = {
 
   placeOrder: (orderRequest: any) =>
@@ -112,7 +121,6 @@ export const brokerService = {
     request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.HEALTH}`),
 };
 
-// ─── Trade Service (TRADE_BASE :8081) ─────────────────────────────────────────
 export const tradeService = {
 
   placeOrder: (orderRequest: any) => {
@@ -150,7 +158,6 @@ export const tradeService = {
     request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.HEALTH}`),
 };
 
-// ─── Log Service (TRADE_BASE :8081) ───────────────────────────────────────────
 export const logService = {
 
   getTrace: (traceId: string) =>
@@ -190,13 +197,11 @@ export const logService = {
   },
 };
 
-// ─── Export Service (TRADE_BASE :8081) ────────────────────────────────────────
 export const exportService = {
 
   listRemote: () =>
     request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.LIST_REMOTE}`),
 
-  // downloadRemote uses raw fetch — add credentials manually
   downloadRemote: (filename: string) =>
     fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DOWNLOAD_REMOTE(filename)}`, {
       credentials: 'include',
@@ -207,7 +212,7 @@ export const exportService = {
     form.append('file', file);
     return fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.UPLOAD_ARCHIVE}`, {
       method: 'POST',
-      credentials: 'include',     // ← also fixed here
+      credentials: 'include',
       body: form,
     }).then((r) => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
