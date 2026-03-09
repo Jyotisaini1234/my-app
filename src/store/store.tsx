@@ -6,6 +6,7 @@ import bulkTradeReducer from './slice/bulkTradeSlice/bulkTradeSlice';
 import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 import authReducer from './slice/authSlice/authSlice';
 import { groupApi } from './slice/groupsSlice/groupsSlice';
+import logExportReducer from './slice/logExportSlice/logExportSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +16,7 @@ export const store = configureStore({
     tradeHistory: tradeHistoryReducer,
     auth: authReducer,
     groupApi: groupApi.reducer,
+    logExport: logExportReducer,
   },
   middleware: (get) => get().concat(groupApi.middleware),
 });

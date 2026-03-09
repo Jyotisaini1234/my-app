@@ -152,41 +152,44 @@ useEffect(() => {
   if (!lastResult) return;
 
   const res = lastResult as any;
-  if (typeof res.successCount === 'number' || typeof res.failedCount === 'number') {
-    const succeeded = res.successCount ?? 0;
-    const failed    = res.failedCount   ?? 0;
-    const total     = succeeded + failed;
+  const succeeded = res.successCount ?? 0;
+  const failed    = res.failedCount  ?? 0;
+  const total     = succeeded + failed;
 
-    if (failed === 0 && succeeded > 0) {
-      showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
-    } else if (succeeded === 0) {
-      showToast(`✗ Order failed for all ${total} client${total > 1 ? 's' : ''}`, 'error');
-    } else {
-      showToast(`Order placed for ${succeeded}/${total} clients. ${failed} failed.`, 'info');
-    }
+  // Individual client results se messages nikalo
+  const results: Record<string, any> = res.results ?? {};
+  const entries = Object.values(results);
 
-  // ── Case 2: results ek Object hai { clientCode: { status, message } } ──
-  } else if (res.results && typeof res.results === 'object') {
-    const entries   = Object.values(res.results) as any[];
-    const total     = entries.length;
-    const succeeded = entries.filter(r => r.status?.toUpperCase() === 'SUCCESS').length;
-    const failed    = total - succeeded;
+  const failedEntries  = entries.filter(r => !r.success || r.status === 'ERROR');
+  const successEntries = entries.filter(r => r.success  && r.status !== 'ERROR');
 
-    if (failed === 0 && succeeded > 0) {
-      showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
-    } else if (succeeded === 0) {
-      showToast(`✗ Order failed for all ${total} client${total > 1 ? 's' : ''}`, 'error');
-    } else {
-      showToast(`Order placed for ${succeeded}/${total} clients. ${failed} failed.`, 'info');
-    }
+  if (failed === 0 && succeeded > 0) {
+    // Sab successful
+    showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
+
+  } else if (succeeded === 0 && failed > 0) {
+    // Sab fail — pehle failed client ka message dikhao
+    const firstFailMsg = failedEntries[0]?.message || 'Order failed';
+    const clientName   = failedEntries[0]?.clientName || failedEntries[0]?.clientcode || '';
+    showToast(
+      `✗ ${clientName ? clientName + ': ' : ''}${firstFailMsg}`,
+      'error'
+    );
+
+  } else if (succeeded > 0 && failed > 0) {
+    // Mixed result
+    const firstFailMsg = failedEntries[0]?.message || 'Some orders failed';
+    showToast(
+      `${succeeded}/${total} orders placed. Failed: ${firstFailMsg}`,
+      'info'
+    );
 
   } else {
-    showToast('Order submitted', 'info');
+    showToast(res.message || 'Order submitted', 'info');
   }
 
   dispatch(clearResult());
 }, [lastResult]);
-
   const activeClients = Object.values(clients).filter(c => c.is_active);
   const masterClient  = activeClients.find(c => c.is_master);
   const allSelected   = activeClients.length > 0 && selectedClients.length === activeClients.length;
@@ -280,17 +283,23 @@ useEffect(() => {
               </div>
 
               <FormGroup label="Search Symbol *">
-                {masterClient ? (
-                  <SymbolSearch
-                    exchange={form.exchange}
-                    masterClientCode={masterClient.client_code}
-                    onSelect={handleSymbolSelect}
-                    initialSymbol={form.tradingsymbol}
-                  />
-                ) : (
-                  <input disabled placeholder="No master client — cannot search" />
-                )}
-              </FormGroup>
+  {(() => {
+    const searchClientCode = masterClient?.client_code 
+      ?? activeClients[0]?.client_code 
+      ?? '';
+
+    return searchClientCode ? (
+      <SymbolSearch
+        exchange={form.exchange}
+        masterClientCode={searchClientCode}
+        onSelect={handleSymbolSelect}
+        initialSymbol={form.tradingsymbol}
+      />
+    ) : (
+      <input disabled placeholder="No client found — cannot search" />
+    );
+  })()}
+</FormGroup>
 
               {form.symboltoken && (
                 <div className="symbol-info">

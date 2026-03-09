@@ -188,7 +188,7 @@ export const TradeHistoryPage: React.FC = () => {
                     <Typography variant="body2" fontFamily="monospace">{row.clientCode || '—'}</Typography>
                   </TableCell>
 
-                  <TableCell>{row.clientName || '—'}</TableCell>
+                  <TableCell>{row.clientName || 'Not Found'}</TableCell>
 
                   <TableCell>
                     <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small" color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined" />
@@ -202,7 +202,7 @@ export const TradeHistoryPage: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.uniqueOrderId || '—'}</Typography>
+                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.uniqueOrderId || 'Invalid Order'}</Typography>
                   </TableCell>
                 
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>
