@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { TrendingUp, TrendingDown, CheckCircle, XCircle, X, Search, Loader2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, X, Search, Loader2 } from 'lucide-react';
 import './BulkTradingPage.scss';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { setSelectedClients, placeOrderForAll, toggleSelectedClient, clearResult } from '../../store/slice/bulkTradeSlice/bulkTradeSlice';
@@ -85,13 +85,7 @@ const SymbolSearch: React.FC<SymbolSearchProps> = ({ exchange, masterClientCode,
         <span className="symbol-search__icon">
           {loading ? <Loader2 size={14} className="spin" /> : <Search size={14} />}
         </span>
-        <input
-          value={query}
-          onChange={handleChange}
-          onFocus={() => suggestions.length > 0 && setOpen(true)}
-          placeholder="Search symbol e.g. NIFTY, RELIANCE"
-          className={query ? 'has-clear' : ''}
-        />
+        <input value={query} onChange={handleChange} onFocus={() => suggestions.length > 0 && setOpen(true)} placeholder="Search symbol e.g. NIFTY, RELIANCE" className={query ? 'has-clear' : ''}/>
         {query && (
           <button className="symbol-search__clear" onClick={handleClear}>
             <X size={12} />
@@ -123,14 +117,13 @@ const SymbolSearch: React.FC<SymbolSearchProps> = ({ exchange, masterClientCode,
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const BulkTradingPage: React.FC = () => {
   const dispatch      = useAppDispatch();
   const { showToast } = useToast();
-
   const { data: clients, isFetched: clientsFetched } = useAppSelector(s => s.clients);
   const { loading, lastResult, selectedClients }      = useAppSelector(s => s.bulkTrade);
+  const authUser = useAppSelector(s => s.auth.user); 
 
   const [direction, setDirection] = useState<'BUY' | 'SELL'>('BUY');
   const [form, setForm] = useState({
@@ -148,52 +141,40 @@ export const BulkTradingPage: React.FC = () => {
     if (!clientsFetched) dispatch(fetchActiveClients());
   }, [clientsFetched, dispatch]);
 
-useEffect(() => {
-  if (!lastResult) return;
+  useEffect(() => {
+    if (!lastResult) return;
 
-  const res = lastResult as any;
-  const succeeded = res.successCount ?? 0;
-  const failed    = res.failedCount  ?? 0;
-  const total     = succeeded + failed;
+    const res = lastResult as any;
+    const succeeded = res.successCount ?? 0;
+    const failed    = res.failedCount  ?? 0;
+    const total     = succeeded + failed;
+    const results: Record<string, any> = res.results ?? {};
+    const entries = Object.values(results);
+    const failedEntries = entries.filter(r => !r.success || r.status === 'ERROR');
 
-  // Individual client results se messages nikalo
-  const results: Record<string, any> = res.results ?? {};
-  const entries = Object.values(results);
+    if (failed === 0 && succeeded > 0) {
+      showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
+    } else if (succeeded === 0 && failed > 0) {
+      const firstFailMsg = failedEntries[0]?.message || 'Order failed';
+      const clientName   = failedEntries[0]?.clientName || failedEntries[0]?.clientcode || '';
+      showToast(`✗ ${clientName ? clientName + ': ' : ''}${firstFailMsg}`, 'error');
+    } else if (succeeded > 0 && failed > 0) {
+      const firstFailMsg = failedEntries[0]?.message || 'Some orders failed';
+      showToast(`${succeeded}/${total} orders placed. Failed: ${firstFailMsg}`, 'info');
+    } else {
+      showToast(res.message || 'Order submitted', 'info');
+    }
 
-  const failedEntries  = entries.filter(r => !r.success || r.status === 'ERROR');
-  const successEntries = entries.filter(r => r.success  && r.status !== 'ERROR');
+    dispatch(clearResult());
+  }, [lastResult]);
 
-  if (failed === 0 && succeeded > 0) {
-    // Sab successful
-    showToast(`✓ Order placed for all ${succeeded} client${succeeded > 1 ? 's' : ''}`, 'success');
-
-  } else if (succeeded === 0 && failed > 0) {
-    // Sab fail — pehle failed client ka message dikhao
-    const firstFailMsg = failedEntries[0]?.message || 'Order failed';
-    const clientName   = failedEntries[0]?.clientName || failedEntries[0]?.clientcode || '';
-    showToast(
-      `✗ ${clientName ? clientName + ': ' : ''}${firstFailMsg}`,
-      'error'
-    );
-
-  } else if (succeeded > 0 && failed > 0) {
-    // Mixed result
-    const firstFailMsg = failedEntries[0]?.message || 'Some orders failed';
-    showToast(
-      `${succeeded}/${total} orders placed. Failed: ${firstFailMsg}`,
-      'info'
-    );
-
-  } else {
-    showToast(res.message || 'Order submitted', 'info');
-  }
-
-  dispatch(clearResult());
-}, [lastResult]);
+  // ── Derived State ────────────────────────────────────────────────────────────
   const activeClients = Object.values(clients).filter(c => c.is_active);
-  const masterClient  = activeClients.find(c => c.is_master);
-  const allSelected   = activeClients.length > 0 && selectedClients.length === activeClients.length;
+  const loggedInClientCode = authUser?.id || authUser?.clientCode;
+  const masterClient = activeClients.find(c => c.is_master) ?? activeClients.find(c => c.client_code === loggedInClientCode)?? activeClients[0] ?? null;
+  const allSelected = activeClients.length > 0 && selectedClients.length === activeClients.length;
 
+  // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleSelectAll = () => {
     dispatch(setSelectedClients(allSelected ? [] : activeClients.map(c => c.client_code)));
   };
@@ -206,7 +187,7 @@ useEffect(() => {
 
   const handlePlaceOrder = async () => {
     if (!masterClient) {
-      showToast('No master client found. Please mark one client as master.', 'error');
+      showToast('No active client found. Please add or activate a client.', 'error');
       return;
     }
     if (!form.symboltoken) {
@@ -241,6 +222,7 @@ useEffect(() => {
     } as any));
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div className="bulk-trading">
 
@@ -256,21 +238,17 @@ useEffect(() => {
           <div className="card__body">
             <div className="order-form">
 
+              {/* Direction Buttons */}
               <div className="order-form__direction">
-                <button
-                  className={`btn-direction btn-direction--buy ${direction === 'BUY' ? 'btn-direction--buy--active' : ''}`}
-                  onClick={() => setDirection('BUY')}
-                >
+                <button className={`btn-direction btn-direction--buy ${direction === 'BUY' ? 'btn-direction--buy--active' : ''}`} onClick={() => setDirection('BUY')} >
                   <TrendingUp size={16} /> BUY
                 </button>
-                <button
-                  className={`btn-direction btn-direction--sell ${direction === 'SELL' ? 'btn-direction--sell-active' : ''}`}
-                  onClick={() => setDirection('SELL')}
-                >
+                <button className={`btn-direction btn-direction--sell ${direction === 'SELL' ? 'btn-direction--sell-active' : ''}`} onClick={() => setDirection('SELL')} >
                   <TrendingDown size={16} /> SELL
                 </button>
               </div>
 
+              {/* Exchange */}
               <div className="form-row">
                 <FormGroup label="Exchange">
                   <select value={form.exchange} onChange={e => setF('exchange', e.target.value)}>
@@ -282,25 +260,22 @@ useEffect(() => {
                 </FormGroup>
               </div>
 
+              {/* Symbol Search */}
               <FormGroup label="Search Symbol *">
-  {(() => {
-    const searchClientCode = masterClient?.client_code 
-      ?? activeClients[0]?.client_code 
-      ?? '';
+                {(() => {
+                  const searchClientCode = masterClient?.client_code
+                    ?? activeClients[0]?.client_code
+                    ?? '';
 
-    return searchClientCode ? (
-      <SymbolSearch
-        exchange={form.exchange}
-        masterClientCode={searchClientCode}
-        onSelect={handleSymbolSelect}
-        initialSymbol={form.tradingsymbol}
-      />
-    ) : (
-      <input disabled placeholder="No client found — cannot search" />
-    );
-  })()}
-</FormGroup>
+                  return searchClientCode ? (
+                    <SymbolSearch exchange={form.exchange}  masterClientCode={searchClientCode} onSelect={handleSymbolSelect} initialSymbol={form.tradingsymbol} />
+                  ) : (
+                    <input disabled placeholder="No client found — cannot search" />
+                  );
+                })()}
+              </FormGroup>
 
+              {/* Selected Symbol Info */}
               {form.symboltoken && (
                 <div className="symbol-info">
                   <span className="symbol-info__label">Selected:</span>
@@ -310,6 +285,7 @@ useEffect(() => {
                 </div>
               )}
 
+              {/* Order Type & Product */}
               <div className="form-row">
                 <FormGroup label="Order Type">
                   <select value={form.ordertype} onChange={e => setF('ordertype', e.target.value)}>
@@ -328,6 +304,7 @@ useEffect(() => {
                 </FormGroup>
               </div>
 
+              {/* Quantity & Price */}
               <div className="form-row">
                 <FormGroup label="Quantity *">
                   <input type="number" value={form.quantity} onChange={e => setF('quantity', e.target.value)} placeholder="Qty" min="1" />
@@ -337,6 +314,7 @@ useEffect(() => {
                 </FormGroup>
               </div>
 
+              {/* Order Summary */}
               <div className="order-form__summary">
                 <div className="order-form__summary-row"><span>Symbol</span><span>{form.tradingsymbol || '—'}</span></div>
                 <div className="order-form__summary-row"><span>Token</span><span>{form.symboltoken || '—'}</span></div>
@@ -348,21 +326,15 @@ useEffect(() => {
                 <div className="order-form__summary-row"><span>Clients</span><span>{selectedClients.length}</span></div>
               </div>
 
+              {/* Action Button */}
               <div className="order-form__actions">
-                <Button
-                  variant="accent"
-                  fullWidth
-                  loading={loading}
-                  disabled={selectedClients.length === 0 || !masterClient || !form.symboltoken}
-                  onClick={handlePlaceOrder}
-                  icon={direction === 'BUY' ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                >
+                <Button variant="accent" fullWidth loading={loading}  disabled={selectedClients.length === 0 || !masterClient || !form.symboltoken} onClick={handlePlaceOrder} icon={direction === 'BUY' ? <TrendingUp size={16} /> : <TrendingDown size={16} />} >
                   Execute {direction} for {selectedClients.length} Clients
                 </Button>
 
-                {!masterClient && (
+                {activeClients.length === 0 && (
                   <p className="order-form__hint order-form__hint--error">
-                    No master client found. Please mark one client as master.
+                    No active clients found. Please add or activate a client.
                   </p>
                 )}
                 {masterClient && !form.symboltoken && (
@@ -395,17 +367,8 @@ useEffect(() => {
                 {activeClients.map(client => {
                   const isSelected = selectedClients.includes(client.client_code);
                   return (
-                    <div
-                      key={client.client_code}
-                      className={['client-selection__item', isSelected ? 'client-selection__item--selected' : '', client.is_master ? 'client-selection__item--master' : ''].filter(Boolean).join(' ')}
-                      onClick={() => dispatch(toggleSelectedClient(client.client_code))}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => dispatch(toggleSelectedClient(client.client_code))}
-                        onClick={e => e.stopPropagation()}
-                      />
+                    <div  key={client.client_code} className={[ 'client-selection__item', isSelected ? 'client-selection__item--selected' : '', client.is_master ? 'client-selection__item--master' : '',].filter(Boolean).join(' ')} onClick={() => dispatch(toggleSelectedClient(client.client_code))} >
+                      <input type="checkbox" checked={isSelected}onChange={() => dispatch(toggleSelectedClient(client.client_code))} onClick={e => e.stopPropagation()}/>
                       <div className="client-selection__item-icon">
                         {client.client_code.slice(0, 2)}
                       </div>

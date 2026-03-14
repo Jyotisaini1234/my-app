@@ -330,3 +330,18 @@ export interface RootState {
   bulkTrade: BulkTradeState;
   tradeHistory: TradeHistoryState;
 }
+
+export interface ClientForm {
+  client_code: string;
+  user_id: string;
+  password: string;
+  api_key: string;
+  authorization: string;
+  totp_secret: string;
+  totp_token: string;
+  two_fa: string;
+  email: string;
+  phone: string;
+  is_active: boolean;
+  is_master: boolean;
+}
