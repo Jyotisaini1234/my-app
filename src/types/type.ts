@@ -12,27 +12,67 @@ export interface TimelineResponse {
 
 
 export interface Client {
-  client_name: any;
-  broker: string;
-  invested_amount: any;
-  account_status: any;
-  current_value: any;
-  profit_loss: null;
-  client_code: string;
-  user_id: string;
-  password: string;
-  api_key: string;
-  totp_secret: string;
-  two_fa: string;
-  is_active: boolean;
-  is_master: boolean;
+  client_code:      string;
+  user_id?:         string;
+  password?:        string;
+  api_key?:         string;
+  totp_secret?:     string;
+  two_fa?:          string;
+  is_active:        boolean;
+  is_master:        boolean;
   is_authenticated: boolean;
-  totp_info?: any;
-  last_login?: { $date: string };
+  email?:           string | null;
+  phone?:           number | null;
+  client_name?:     string;
+  broker?:          string;
+  account_status?:  string;
+  totp_info?: {
+    current_totp:       string;
+    expires_in_seconds: number;
+  };
+  last_login?:   { $date: string };
   token_expiry?: { $date: string };
-  created_at?: { $date: string };
-  updated_at?: { $date: string };
+  created_at?:   { $date: string };
+  updated_at?:   { $date: string };
+
+  // portfolio (holdings P&L)
+  invested_amount?:  number;
+  current_value?:    number;
+  profit_loss?:      number;
+  profit_loss_pct?:  number;
+  total_holdings?:   number;
+  ltp_warning?:      string;
+
+  // trading balance (getreportmargindetail srno map)
+  available_cash?:     number | null;
+  available_for_cash?: number | null;
+  available_for_fo?:   number | null;
+  cash_balance?:       number | null;
+  ledger_balance?:     number | null;
+  collateral_value?:   number | null;
+  used_margin?:        number | null;
+  total_pnl?:          number | null;
+  total_available?:    number | null;
+  balance_error?:      string;
 }
+
+export interface ClientsState {
+  data:              Record<string, Client>;
+  loading:           boolean;
+  error:             string | null;
+  authenticatingAll: boolean;
+  isFetched:         boolean;
+}
+
+export type NavPage =
+  | 'dashboard'
+  | 'clients'
+  | 'portfolio'
+  | 'bulk-trading'
+  | 'trade-history'
+  | 'settings'
+  | 'order-logs'
+  | 'log-export';
 
 export interface NewClientData {
   clientCode: string;
@@ -187,22 +227,6 @@ export interface TotpInfo {
   expires_in_seconds: number;
 }
 
-export interface Client {
-  client_code: string;
-  user_id: string;
-  password: string;
-  api_key: string;
-  totp_secret: string;
-  two_fa: string;
-  is_active: boolean;
-  is_master: boolean;
-  is_authenticated: boolean;
-  totp_info?: any;
-  last_login?: { $date: string };
-  token_expiry?: { $date: string };
-  created_at?: { $date: string };
-  updated_at?: { $date: string };
-}
 
 export interface ClientsState {
   data: Record<string, Client>;
@@ -297,9 +321,6 @@ export interface TradeHistoryState {
     endDate: string;
   };
 }
-
-
-export type NavPage = 'dashboard' | 'clients' | 'bulk-trading' | 'trade-history' | 'order-logs' | 'log-export' | 'settings';
 
 export interface NavItem {
   id: NavPage;

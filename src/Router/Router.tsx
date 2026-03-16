@@ -14,11 +14,13 @@ import { TradeHistoryPage }     from '../pages/TradeHistory/Tradehistorypage';
 import { OrderLogsPage }        from '../pages/Orderlogs/Orderlogspage';
 import { SettingsPage }         from '../pages/Settings/Settingspage';
 import { LogExportPage }        from '../pages/Logexportpage/Logexportpage';
+import { PortfolioPage } from '../pages/PortfolioPage/PortfolioPage';
 
 const PageRenderer: React.FC<{ activePage: NavPage; onNavigate: (p: NavPage) => void }> = ({ activePage, onNavigate }) => {
   switch (activePage) {
     case 'dashboard':     return <DashboardPage onNavigate={onNavigate} />;
     case 'clients':       return <ClientManagementPage onNavigate={onNavigate} />;
+    case 'portfolio':     return <PortfolioPage/>;
     case 'bulk-trading':  return <BulkTradingPage />;
     case 'trade-history': return <TradeHistoryPage />;
     case 'order-logs':    return <OrderLogsPage />;

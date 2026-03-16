@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BROKER_BASE } from '../../../utils/ApiConstants'; 
+import { RootState } from '../../store';
 
 
 export interface ClientDetails {
@@ -55,7 +56,14 @@ export interface RenameGroupPayload {
 
 export const groupApi = createApi({
   reducerPath: 'groupApi',
-  baseQuery: fetchBaseQuery({ baseUrl: BROKER_BASE }),
+  baseQuery: fetchBaseQuery({
+  baseUrl: BROKER_BASE,
+  prepareHeaders: (headers, { getState }) => {
+    const clientCode = (getState() as RootState).auth.user?.clientCode;
+    if (clientCode) headers.set('X-Client-Code', clientCode.toUpperCase());
+    return headers;
+  },
+}),
   tagTypes: ['Group'],
 
   endpoints: (builder) => ({

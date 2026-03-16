@@ -15,6 +15,11 @@ import PhoneAndroidIcon       from '@mui/icons-material/PhoneAndroid';
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import TagIcon                from '@mui/icons-material/Tag';
 import FiberManualRecordIcon  from '@mui/icons-material/FiberManualRecord';
+import TrendingUpIcon         from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon       from '@mui/icons-material/TrendingDown';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import AccountBalanceIcon     from '@mui/icons-material/AccountBalance';
+import WarningAmberIcon       from '@mui/icons-material/WarningAmber';
 
 import './ClientsList.scss';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -29,6 +34,18 @@ import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
 import { useToast }         from '../../../context/Toastcontext';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }
+
+const inr = (v: number | null | undefined, fallback = '—') => {
+  if (v == null) return fallback;
+  const abs = Math.abs(v);
+  const str = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  }).format(abs);
+  return `${v < 0 ? '−' : ''}₹${str}`;
+};
+
+const pct = (v: number | null | undefined) =>
+  v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 
 export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
   const dispatch      = useAppDispatch();
@@ -88,13 +105,40 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
 
   const handleRefresh = () => { dispatch(fetchClients()); refetchGroups(); };
 
-  // ── USER VIEW ──────────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+  // USER VIEW
+  // ════════════════════════════════════════════════════════════════════════════
   if (!isMaster) {
-    const myClient    = clientsList.find(c => c.client_code === user?.clientCode) ?? clientsList[0];
-    const isActive    = myClient?.is_active;
-    const isAuth      = myClient?.is_authenticated;
-    const displayName = user?.name || user?.clientCode || 'User';
-    if (loading && !myClient) return <Spinner text="Loading…" />;
+    const myClient   = clientsList.find(c => c.client_code === user?.clientCode) ?? clientsList[0];
+    const isActive   = myClient?.is_active;
+    const displayName = myClient?.client_name && myClient.client_name !== '—'
+      ? myClient.client_name
+      : user?.name || user?.clientCode || 'User';
+
+    // Portfolio values — will be null until enriched endpoint responds
+    const invested  = myClient?.invested_amount  ?? null;
+    const current   = myClient?.current_value    ?? null;
+    const pnl       = myClient?.profit_loss      ?? null;
+    const pnlPct    = myClient?.profit_loss_pct  ?? null;
+    const holdings  = myClient?.total_holdings   ?? 0;
+    const isProfit  = (pnl ?? 0) >= 0;
+
+    // Balance values
+    const avail    = myClient?.available_cash   ?? null;
+    const used     = myClient?.used_margin      ?? null;
+    const ledger   = myClient?.ledger_balance   ?? null;
+    const collat   = myClient?.collateral_value ?? null;
+    const isNegBal = avail != null && avail < 0;
+
+    // Still loading first time
+    if (loading && !myClient) return <Spinner text="Loading your account…" />;
+
+    // Data is being fetched (client exists but enriched data not yet received)
+    const isEnrichedLoading = loading || (
+      myClient != null &&
+      invested == null &&
+      avail    == null
+    );
 
     const infoRows = [
       { icon: <TagIcon />,               label: 'Client Code', value: user?.clientCode || '—', mono: true, accent: true },
@@ -105,9 +149,13 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
 
     return (
       <div className="up">
+
+        {/* ── Hero ── */}
         <div className="up__hero">
           <div className="up__hero-top">
-            <span className="up__badge"><FiberManualRecordIcon className="up__badge-dot" />Client Portal</span>
+            <span className="up__badge">
+              <FiberManualRecordIcon className="up__badge-dot" />Client Portal
+            </span>
             <span className={`up__chip up__chip--${isActive ? 'on' : 'off'}`}>
               {isActive ? <VerifiedUserIcon /> : <ErrorOutlineIcon />}
               {isActive ? 'Active' : 'Inactive'}
@@ -122,25 +170,84 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="up__stats">
-          {[
-            { icon: <ShowChartIcon />,    label: 'Orders',  val: '—',                      color: 'blue'   },
-            { icon: <VerifiedUserIcon />, label: 'Auth',    val: isAuth ? 'Yes' : 'No',    color: isAuth ? 'green' : 'red' },
-            { icon: <HistoryIcon />,      label: 'History', val: '—',                      color: 'orange' },
-          ].map(s => (
-            <div key={s.label} className="up__stat">
-              <span className={`up__stat-icon up__stat-icon--${s.color}`}>{s.icon}</span>
-              <strong className="up__stat-val">{s.val}</strong>
-              <span className="up__stat-lbl">{s.label}</span>
+        {/* ── Portfolio cards ── */}
+        <div className="up__pf">
+
+          {/* Loading shimmer while enriched data fetches */}
+          {isEnrichedLoading && (
+            <div className="up__pf-loading">
+              <RefreshIcon className="spin" />
+              <span>Loading portfolio &amp; balance…</span>
             </div>
-          ))}
+          )}
+
+          {/* Row 1: Invested + Current */}
+          <div className="up__pf-row">
+            <div className="up__pf-box">
+              <ShowChartIcon className="up__pf-ico up__pf-ico--blue" />
+              <span className="up__pf-lbl">Total Invested</span>
+              <strong className="up__pf-val">{inr(invested)}</strong>
+            </div>
+            <div className="up__pf-box">
+              <AccountBalanceIcon className="up__pf-ico up__pf-ico--purple" />
+              <span className="up__pf-lbl">Current Value</span>
+              <strong className="up__pf-val">{inr(current)}</strong>
+            </div>
+          </div>
+
+          {/* Row 2: P&L — only show when data exists */}
+          {pnl != null && (
+            <div className={`up__pf-pnl up__pf-pnl--${isProfit ? 'profit' : 'loss'}`}>
+              <div className="up__pf-pnl-left">
+                {isProfit ? <TrendingUpIcon /> : <TrendingDownIcon />}
+                <div>
+                  <span className="up__pf-lbl">{isProfit ? 'Total Profit' : 'Total Loss'}</span>
+                  <strong className="up__pf-amt">{inr(pnl)}</strong>
+                </div>
+              </div>
+              <div className="up__pf-pnl-right">
+                <span className="up__pf-pct">{pct(pnlPct)}</span>
+                <span className="up__pf-holdings">{holdings} holdings</span>
+              </div>
+            </div>
+          )}
+
+          {/* Row 3: Balance boxes */}
+          <div className="up__pf-row up__pf-row--3">
+            <div className={`up__pf-box${isNegBal ? ' up__pf-box--warn' : ''}`}>
+              {isNegBal
+                ? <WarningAmberIcon className="up__pf-ico up__pf-ico--warn" />
+                : <AccountBalanceWalletIcon className="up__pf-ico up__pf-ico--green" />}
+              <span className="up__pf-lbl">Available Cash</span>
+              <strong className={`up__pf-val${isNegBal ? ' up__pf-val--neg' : ''}`}>
+                {inr(avail)}
+              </strong>
+              {isNegBal && <span className="up__pf-warn-tag">Deficit</span>}
+            </div>
+            <div className="up__pf-box">
+              <AccountBalanceWalletIcon className="up__pf-ico up__pf-ico--orange" />
+              <span className="up__pf-lbl">Used Margin</span>
+              <strong className="up__pf-val">{inr(used)}</strong>
+            </div>
+            <div className="up__pf-box">
+              <AccountBalanceIcon className="up__pf-ico up__pf-ico--blue" />
+              <span className="up__pf-lbl">Ledger Balance</span>
+              <strong className={`up__pf-val${(ledger ?? 0) < 0 ? ' up__pf-val--neg' : ''}`}>
+                {inr(ledger)}
+              </strong>
+            </div>
+          </div>
+
+          {/* Row 4: Collateral — only if non-zero */}
+          {collat != null && collat !== 0 && (
+            <div className="up__pf-collateral">
+              <span className="up__pf-lbl">Collateral (Pledged stocks)</span>
+              <strong className="up__pf-val">{inr(collat)}</strong>
+            </div>
+          )}
         </div>
 
-        <div className="up__body">
-          <div className={`up__banner up__banner--${isAuth ? 'ok' : 'warn'}`}>
-            {isAuth ? <VerifiedUserIcon /> : <ErrorOutlineIcon />}
-            <span>{isAuth ? 'Session active — ready to trade' : 'Not authenticated — re-authenticate to trade'}</span>
-          </div>
+      <div className="up__body">
           <p className="up__section-lbl">Account Details</p>
           {infoRows.map(r => (
             <div key={r.label} className={`up__row${r.accent ? ' up__row--accent' : ''}`}>
@@ -150,12 +257,15 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
                 <span className={`up__row-val${r.mono ? ' up__row-val--mono' : ''}`}>{r.value}</span>
               </div>
               {r.label === 'Client Code' && (
-                <span className={`up__tag up__tag--${isActive ? 'ok' : 'err'}`}>{isActive ? 'Live' : 'Off'}</span>
+                <span className={`up__tag up__tag--${isActive ? 'ok' : 'err'}`}>
+                  {isActive ? 'Live' : 'Off'}
+                </span>
               )}
             </div>
           ))}
         </div>
 
+        {/* ── Actions ── */}
         <div className="up__actions">
           <button className="up__btn up__btn--primary" onClick={() => onNavigate('bulk-trading')}>
             <ShowChartIcon />Trade Now
@@ -163,16 +273,17 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
           <button className="up__btn up__btn--ghost" onClick={() => onNavigate('trade-history')}>
             <HistoryIcon />History
           </button>
-          <button className="up__btn up__btn--ghost up__btn--full" onClick={handleRefresh} disabled={loading}>
-            <RefreshIcon className={loading ? 'spin' : ''} />{loading ? 'Refreshing…' : 'Refresh'}
+          <button className="up__btn up__btn--ghost up__btn--full"
+            onClick={handleRefresh} disabled={loading}>
+            <RefreshIcon className={loading ? 'spin' : ''} />
+            {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
       </div>
     );
   }
 
-  // ── MASTER VIEW ────────────────────────────────────────────────────────────
-  const selectedCodes = getSelectedClientCodes();
+const selectedCodes = getSelectedClientCodes();
 
   return (
     <div className="cm">
@@ -199,26 +310,38 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
           : !Object.keys(groups).length
             ? <div className="cm__empty"><p>No groups yet. Create your first group.</p></div>
             : Object.entries(groups).map(([name, entry]: [string, GroupEntry]) => {
-                const expanded = expandedGroups.has(name);
-                const checked  = selectedGroups.has(name);
+                const expanded   = expandedGroups.has(name);
+                const checked    = selectedGroups.has(name);
                 const grpClients = Object.entries(entry.clients ?? {});
                 return (
                   <div key={name} className={`cm__card${checked ? ' cm__card--on' : ''}`}>
                     <div className="cm__card-head">
-                      <input type="checkbox" checked={checked} onChange={() => setSelectedGroups(prev => toggle(prev, name))} />
-                      <span className="cm__chevron" onClick={() => setExpandedGroups(prev => toggle(prev, name))}>
+                      <input type="checkbox" checked={checked}
+                        onChange={() => setSelectedGroups(prev => toggle(prev, name))} />
+                      <span className="cm__chevron"
+                        onClick={() => setExpandedGroups(prev => toggle(prev, name))}>
                         {expanded ? <ExpandMoreIcon /> : <ChevronRightIcon />}
                       </span>
-                      <span className="cm__gname" onClick={() => setExpandedGroups(prev => toggle(prev, name))}>{name}</span>
+                      <span className="cm__gname"
+                        onClick={() => setExpandedGroups(prev => toggle(prev, name))}>
+                        {name}
+                      </span>
                       <span className="cm__count">{grpClients.length}</span>
                       <div className="cm__card-actions">
-                        <button className="cm__icon-btn" onClick={() => setAddToGroup(name)}><PersonAddAltIcon /></button>
-                        <button className="cm__icon-btn cm__icon-btn--del" onClick={() => setConfirmDeleteGroup(name)}><DeleteOutlineIcon /></button>
+                        <button className="cm__icon-btn" onClick={() => setAddToGroup(name)}>
+                          <PersonAddAltIcon />
+                        </button>
+                        <button className="cm__icon-btn cm__icon-btn--del"
+                          onClick={() => setConfirmDeleteGroup(name)}>
+                          <DeleteOutlineIcon />
+                        </button>
                       </div>
                     </div>
                     {expanded && (
                       <table className="cm__table">
-                        <thead><tr><th>Code</th><th>Email</th><th>Status</th><th>Auth</th></tr></thead>
+                        <thead>
+                          <tr><th>Code</th><th>Email</th><th>Status</th><th>Auth</th></tr>
+                        </thead>
                         <tbody>
                           {!grpClients.length
                             ? <tr><td colSpan={4} className="cm__empty-row">No clients</td></tr>
@@ -226,8 +349,16 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
                                 <tr key={code}>
                                   <td><span className="cm__mono">{code}</span></td>
                                   <td>{d.email ?? '—'}</td>
-                                  <td><span className={`cm__dot cm__dot--${d.is_active ? 'on':'off'}`}>{d.is_active ? 'Active':'Inactive'}</span></td>
-                                  <td><span className={`cm__dot cm__dot--${d.is_authenticated ? 'on':'off'}`}>{d.is_authenticated ? 'Auth':'Pending'}</span></td>
+                                  <td>
+                                    <span className={`cm__dot cm__dot--${d.is_active ? 'on' : 'off'}`}>
+                                      {d.is_active ? 'Active' : 'Inactive'}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span className={`cm__dot cm__dot--${d.is_authenticated ? 'on' : 'off'}`}>
+                                      {d.is_authenticated ? 'Auth' : 'Pending'}
+                                    </span>
+                                  </td>
                                 </tr>
                               ))
                           }
@@ -243,17 +374,26 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
       {!!Object.keys(groups).length && (
         <div className="cm__footer">
           <span className="cm__hint">
-            {selectedGroups.size ? `${selectedGroups.size} group · ${selectedCodes.length} clients` : 'Select groups to proceed'}
+            {selectedGroups.size
+              ? `${selectedGroups.size} group · ${selectedCodes.length} clients`
+              : 'Select groups to proceed'}
           </span>
-          <button className="cm__btn cm__btn--proceed" disabled={!selectedGroups.size} onClick={handleProceed}>
+          <button className="cm__btn cm__btn--proceed"
+            disabled={!selectedGroups.size} onClick={handleProceed}>
             Proceed ({selectedCodes.length})
           </button>
         </div>
       )}
 
-      {showAddModal && <AddClientModal onClose={() => setShowAddModal(false)} />}
-      {showCreateGroupModal && <CreateGroupModal allClientCodes={allClientCodes} masterCode={user?.id ?? ''} onClose={() => setShowCreateGroupModal(false)} />}
-      {addToGroup && <AddToGroupModal groupName={addToGroup} existingCodes={Object.keys(groups[addToGroup]?.clients ?? {})} allClientCodes={allClientCodes} onClose={() => setAddToGroup(null)} />}
+      {showAddModal &&
+        <AddClientModal onClose={() => setShowAddModal(false)} />}
+      {showCreateGroupModal &&
+        <CreateGroupModal allClientCodes={allClientCodes} masterCode={user?.id ?? ''}
+          onClose={() => setShowCreateGroupModal(false)} />}
+      {addToGroup &&
+        <AddToGroupModal groupName={addToGroup}
+          existingCodes={Object.keys(groups[addToGroup]?.clients ?? {})}
+          allClientCodes={allClientCodes} onClose={() => setAddToGroup(null)} />}
 
       {confirmDeleteGroup && (
         <div className="overlay" onClick={() => setConfirmDeleteGroup(null)}>
@@ -262,8 +402,10 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
             <h3>Delete "{confirmDeleteGroup}"?</h3>
             <p>This removes the group. Clients will <strong>not</strong> be deleted.</p>
             <div className="dlg__actions">
-              <button className="cm__btn cm__btn--ghost" onClick={() => setConfirmDeleteGroup(null)}>Cancel</button>
-              <button className="cm__btn cm__btn--danger" onClick={confirmDelete}>Delete</button>
+              <button className="cm__btn cm__btn--ghost"
+                onClick={() => setConfirmDeleteGroup(null)}>Cancel</button>
+              <button className="cm__btn cm__btn--danger"
+                onClick={confirmDelete}>Delete</button>
             </div>
           </div>
         </div>

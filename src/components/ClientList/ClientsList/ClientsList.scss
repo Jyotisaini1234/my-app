@@ -1,37 +1,16 @@
 @import '../../../styles/variables';
 
-.spin {
-  animation: spin .8s linear infinite;
-}
+.spin { animation: spin .8s linear infinite; }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+@keyframes spin   { to { transform: rotate(360deg); } }
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(.5rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
+  from { opacity: 0; transform: translateY(.5rem); }
+  to   { opacity: 1; transform: none; }
 }
-
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: .4;
-  }
+@keyframes pulse  { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-.25rem); }
+  to   { opacity: 1; transform: none; }
 }
 
 %btn {
@@ -46,16 +25,13 @@
   border: none;
   transition: $transition;
   white-space: nowrap;
-
-  &:disabled {
-    opacity: .45;
-    cursor: not-allowed;
-  }
-
-  svg {
-    font-size: 1rem !important;
-  }
+  &:disabled { opacity: .45; cursor: not-allowed; }
+  svg { font-size: 1rem !important; }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER PORTAL  (.up)
+// ═══════════════════════════════════════════════════════════════════════════════
 
 .up {
   max-width: 28rem;
@@ -67,8 +43,9 @@
   box-shadow: $shadow-elevated;
   animation: fadeUp .35s ease both;
 
+  // ── Hero ────────────────────────────────────────────────────────────────────
   &__hero {
-    padding: 1.5rem 1.5rem 3rem;
+    padding: 1.5rem 1.5rem 2rem;
     background: linear-gradient(140deg, $primary-dark 0%, $primary 55%, $primary-light 100%);
     position: relative;
     overflow: hidden;
@@ -78,8 +55,9 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: radial-gradient(ellipse at 85% 15%, rgba($accent, .22) 0%, transparent 50%),
-        repeating-linear-gradient(45deg, rgba(#fff, .025) 0, rgba(#fff, .025) 1px, transparent 0, transparent 50%);
+      background:
+        radial-gradient(ellipse at 85% 15%, rgba($accent, .22) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(#fff,.025) 0, rgba(#fff,.025) 1px, transparent 0, transparent 50%);
       background-size: auto, 1.5rem 1.5rem;
     }
   }
@@ -106,12 +84,7 @@
     color: rgba(#fff, .88);
     letter-spacing: .07em;
     text-transform: uppercase;
-
-    svg {
-      font-size: .55rem !important;
-      color: $accent;
-      animation: pulse 2s ease infinite;
-    }
+    svg { font-size: .55rem !important; color: $accent; animation: pulse 2s ease infinite; }
   }
 
   &__chip {
@@ -124,22 +97,9 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .05em;
-
-    svg {
-      font-size: .85rem !important;
-    }
-
-    &--on {
-      background: rgba($success, .22);
-      color: #86efac;
-      border: 1px solid rgba($success, .3);
-    }
-
-    &--off {
-      background: rgba($error, .22);
-      color: #fca5a5;
-      border: 1px solid rgba($error, .3);
-    }
+    svg { font-size: .85rem !important; }
+    &--on  { background: rgba($success,.22); color: #86efac; border: 1px solid rgba($success,.3); }
+    &--off { background: rgba($error,.22);   color: #fca5a5; border: 1px solid rgba($error,.3);   }
   }
 
   &__identity {
@@ -162,7 +122,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 .375rem 1.25rem rgba($accent, .45), 0 0 0 .1875rem rgba(#fff, .15);
+    box-shadow: 0 .375rem 1.25rem rgba($accent,.45), 0 0 0 .1875rem rgba(#fff,.15);
   }
 
   &__name {
@@ -182,84 +142,172 @@
     margin-top: .125rem;
   }
 
-  &__stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: .5rem;
-    margin: -1.375rem 1.125rem 0;
-    position: relative;
-    z-index: 2;
-  }
-
-  &__stat {
-    background: $bg-card;
-    border: 1px solid $border;
-    border-radius: $radius-md;
-    padding: .625rem .5rem;
+  // ── Portfolio section ────────────────────────────────────────────────────────
+  &__pf {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: .1875rem;
-    box-shadow: $shadow-card;
-    transition: $transition;
-
-    &:hover {
-      transform: translateY(-.125rem);
-      box-shadow: $shadow-elevated;
-    }
+    gap: 0;
+    border-bottom: 1px solid $border;
+    animation: slideIn .25s ease both;
   }
 
-  &__stat-icon {
+  &__pf-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid $border;
+
+    &--3 { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  &__pf-box {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: .375rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .25rem;
+    padding: .875rem 1rem;
+    position: relative;
 
-    svg {
-      font-size: 1rem !important;
-    }
+    // divider between sibling boxes
+    & + & { border-left: 1px solid $border; }
 
-    &--blue {
-      background: rgba($info, .1);
-      color: $info;
-    }
-
-    &--green {
-      background: $success-bg;
-      color: $success;
-    }
-
-    &--red {
-      background: $error-bg;
-      color: $error;
-    }
-
-    &--orange {
-      background: rgba($accent, .1);
-      color: $accent;
+    &--warn {
+      background: rgba($error, .03);
     }
   }
 
-  &__stat-val {
+  &__pf-ico {
+    font-size: 1.125rem !important;
+    &--blue   { color: $info; }
+    &--purple { color: $primary; }
+    &--green  { color: $success; }
+    &--orange { color: $accent; }
+    &--warn   { color: $error; }
+  }
+
+  &__pf-lbl {
+    font-size: .5625rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    white-space: nowrap;
+  }
+
+  &__pf-val {
     font-size: .9375rem;
     font-weight: 800;
     color: $text-primary;
     font-family: $font-mono;
-    line-height: 1;
+    line-height: 1.1;
+
+    &--neg { color: $error; }
   }
 
-  &__stat-lbl {
+  &__pf-warn-tag {
     font-size: .5rem;
-    font-weight: 700;
-    color: $text-muted;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
+    background: $error-bg;
+    color: $error;
+    border: 1px solid rgba($error,.2);
+    border-radius: 2rem;
+    padding: .1rem .4rem;
   }
 
+  // P&L banner
+  &__pf-pnl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    gap: .75rem;
+    border-bottom: 1px solid $border;
+
+    svg { font-size: 1.375rem !important; flex-shrink: 0; }
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: .625rem;
+      flex: 1;
+    }
+
+    &-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .125rem;
+    }
+
+    &--profit {
+      background: $success-bg;
+      .up__pf-lbl { color: darken($success, 10%); }
+      svg          { color: $success; }
+    }
+
+    &--loss {
+      background: $error-bg;
+      .up__pf-lbl { color: darken($error, 10%); }
+      svg          { color: $error; }
+    }
+  }
+
+  &__pf-amt {
+    display: block;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    color: $text-primary;
+
+    .up__pf-pnl--profit & { color: darken($success, 8%); }
+    .up__pf-pnl--loss   & { color: darken($error,   8%); }
+  }
+
+  &__pf-pct {
+    font-size: .9375rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    .up__pf-pnl--profit & { color: $success; }
+    .up__pf-pnl--loss   & { color: $error; }
+  }
+
+  &__pf-holdings {
+    font-size: .625rem;
+    font-weight: 600;
+    color: $text-muted;
+  }
+
+  // Loading indicator inside portfolio section
+  &__pf-loading {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    font-size: .8125rem;
+    color: $text-muted;
+    border-bottom: 1px solid $border;
+    background: $bg-page;
+
+    svg { font-size: 1rem !important; color: $primary; }
+  }
+
+  // Collateral row
+  &__pf-collateral {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .625rem 1rem;
+    background: rgba($info, .03);
+    border-bottom: 1px solid $border;
+
+    .up__pf-lbl { font-size: .625rem; }
+    .up__pf-val { font-size: .875rem; }
+  }
+
+  // ── Body ────────────────────────────────────────────────────────────────────
   &__body {
-    padding: 1.5rem 1.125rem .75rem;
+    padding: 1rem 1.125rem .75rem;
     display: flex;
     flex-direction: column;
     gap: .4375rem;
@@ -283,28 +331,10 @@
     font-size: .8125rem;
     font-weight: 600;
     margin-bottom: .25rem;
-
-    svg {
-      font-size: 1.125rem !important;
-      flex-shrink: 0;
-    }
-
-    span {
-      flex: 1;
-      line-height: 1.4;
-    }
-
-    &--ok {
-      background: $success-bg;
-      border: 1px solid rgba($success, .2);
-      color: darken($success, 8%);
-    }
-
-    &--warn {
-      background: $warning-bg;
-      border: 1px solid rgba($warning, .25);
-      color: darken($warning, 16%);
-    }
+    svg  { font-size: 1.125rem !important; flex-shrink: 0; }
+    span { flex: 1; line-height: 1.4; }
+    &--ok   { background: $success-bg; border: 1px solid rgba($success,.2); color: darken($success,8%); }
+    &--warn { background: $warning-bg; border: 1px solid rgba($warning,.25); color: darken($warning,16%); }
   }
 
   &__row {
@@ -316,26 +346,11 @@
     border: 1px solid $border;
     border-radius: $radius-sm;
     transition: $transition;
-
-    &:hover {
-      background: $bg-card-hover;
-      box-shadow: $shadow-card;
-    }
-
-    &--accent {
-      background: linear-gradient(135deg, rgba($primary, .04), rgba($accent, .035));
-      border-color: rgba($primary, .18);
-    }
+    &:hover { background: $bg-card-hover; box-shadow: $shadow-card; }
+    &--accent { background: linear-gradient(135deg, rgba($primary,.04), rgba($accent,.035)); border-color: rgba($primary,.18); }
   }
 
-  &__row-icon {
-    display: flex;
-    color: $text-muted;
-
-    svg {
-      font-size: 1.125rem !important;
-    }
-  }
+  &__row-icon { display: flex; color: $text-muted; svg { font-size: 1.125rem !important; } }
 
   &__row-meta {
     flex: 1;
@@ -360,11 +375,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
-    &--mono {
-      font-family: $font-mono;
-      font-size: .8125rem;
-    }
+    &--mono { font-family: $font-mono; font-size: .8125rem; }
   }
 
   &__tag {
@@ -375,19 +386,11 @@
     text-transform: uppercase;
     letter-spacing: .04em;
     flex-shrink: 0;
-
-    &--ok {
-      background: $success-bg;
-      color: $success;
-    }
-
-    &--err {
-      background: $error-bg;
-      color: $error;
-    }
+    &--ok  { background: $success-bg; color: $success; }
+    &--err { background: $error-bg;   color: $error; }
   }
 
-  // Actions
+  // ── Actions ──────────────────────────────────────────────────────────────────
   &__actions {
     padding: .75rem 1.125rem 1.125rem;
     display: grid;
@@ -405,35 +408,25 @@
     &--primary {
       background: $accent;
       color: #fff;
-      box-shadow: 0 .25rem .75rem rgba($accent, .3);
-
-      &:hover:not(:disabled) {
-        background: $accent-hover;
-        transform: translateY(-.0625rem);
-      }
+      box-shadow: 0 .25rem .75rem rgba($accent,.3);
+      &:hover:not(:disabled) { background: $accent-hover; transform: translateY(-.0625rem); }
     }
 
     &--ghost {
       background: $bg-page;
       color: $text-secondary;
       border: 1px solid $border;
-
-      &:hover:not(:disabled) {
-        background: $bg-card-hover;
-        border-color: $primary;
-        color: $primary;
-      }
+      &:hover:not(:disabled) { background: $bg-card-hover; border-color: $primary; color: $primary; }
     }
 
-    &--full {
-      grid-column: 1/-1;
-    }
+    &--full { grid-column: 1/-1; }
   }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MASTER PANEL  (.cm)
+// MASTER PANEL  (.cm)  — unchanged
 // ═══════════════════════════════════════════════════════════════════════════════
+
 .cm {
   max-width: 36rem;
   margin: 0 auto;
@@ -469,62 +462,26 @@
 
   &__btn {
     @extend %btn;
-
     &--ghost {
-      background: $bg-card;
-      color: $text-secondary;
-      border: 1px solid $border;
-
-      &:hover:not(:disabled) {
-        border-color: $primary;
-        color: $primary;
-        background: rgba($primary, .04);
-      }
+      background: $bg-card; color: $text-secondary; border: 1px solid $border;
+      &:hover:not(:disabled) { border-color: $primary; color: $primary; background: rgba($primary,.04); }
     }
-
     &--soft {
-      background: rgba($info, .08);
-      color: $info;
-      border: 1px solid rgba($info, .2);
-
-      &:hover:not(:disabled) {
-        background: rgba($info, .14);
-      }
+      background: rgba($info,.08); color: $info; border: 1px solid rgba($info,.2);
+      &:hover:not(:disabled) { background: rgba($info,.14); }
     }
-
     &--primary {
-      background: $primary;
-      color: #fff;
-
-      &:hover:not(:disabled) {
-        background: $primary-dark;
-      }
+      background: $primary; color: #fff;
+      &:hover:not(:disabled) { background: $primary-dark; }
     }
-
     &--proceed {
-      background: $accent;
-      color: #fff;
-      padding: .5rem 1.25rem;
-      border-radius: 2rem;
-
-      &:hover:not(:disabled) {
-        background: $accent-hover;
-      }
-
-      &:disabled {
-        background: $border;
-        color: $text-muted;
-        opacity: 1;
-      }
+      background: $accent; color: #fff; padding: .5rem 1.25rem; border-radius: 2rem;
+      &:hover:not(:disabled) { background: $accent-hover; }
+      &:disabled { background: $border; color: $text-muted; opacity: 1; }
     }
-
     &--danger {
-      background: $error;
-      color: #fff;
-
-      &:hover:not(:disabled) {
-        filter: brightness(.9);
-      }
+      background: $error; color: #fff;
+      &:hover:not(:disabled) { filter: brightness(.9); }
     }
   }
 
@@ -548,11 +505,7 @@
     overflow: hidden;
     background: $bg-card;
     transition: border-color .15s, box-shadow .15s;
-
-    &--on {
-      border-color: $primary;
-      box-shadow: 0 0 0 .1875rem rgba($primary, .1);
-    }
+    &--on { border-color: $primary; box-shadow: 0 0 0 .1875rem rgba($primary,.1); }
   }
 
   &__card-head {
@@ -563,372 +516,136 @@
     background: $bg-page;
     user-select: none;
     transition: background .15s;
-
-    &:hover {
-      background: rgba($primary, .04);
-    }
-
-    input[type=checkbox] {
-      accent-color: $primary;
-      width: 1rem;
-      height: 1rem;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
+    &:hover { background: rgba($primary,.04); }
+    input[type=checkbox] { accent-color: $primary; width: 1rem; height: 1rem; flex-shrink: 0; cursor: pointer; }
   }
 
-  &__chevron {
-    color: $text-muted;
-    display: flex;
-    cursor: pointer;
-
-    svg {
-      font-size: 1.25rem !important;
-    }
+  &__chevron { color: $text-muted; display: flex; cursor: pointer; svg { font-size: 1.25rem !important; } }
+  &__gname   { font-weight: 600; font-size: .875rem; color: $text-primary; flex: 1; cursor: pointer; }
+  &__count   {
+    font-size: .6875rem; font-weight: 700; color: $text-muted;
+    background: $border-light; padding: .1875rem .5625rem; border-radius: 2rem; flex-shrink: 0;
   }
 
-  &__gname {
-    font-weight: 600;
-    font-size: .875rem;
-    color: $text-primary;
-    flex: 1;
-    cursor: pointer;
-  }
-
-  &__count {
-    font-size: .6875rem;
-    font-weight: 700;
-    color: $text-muted;
-    background: $border-light;
-    padding: .1875rem .5625rem;
-    border-radius: 2rem;
-    flex-shrink: 0;
-  }
-
-  &__card-actions {
-    display: flex;
-    gap: .3125rem;
-    margin-left: .25rem;
-  }
+  &__card-actions { display: flex; gap: .3125rem; margin-left: .25rem; }
 
   &__icon-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid $border;
-    border-radius: .375rem;
-    background: $bg-card;
-    cursor: pointer;
-    color: $text-muted;
-    transition: $transition;
-
-    svg {
-      font-size: 1rem !important;
-    }
-
-    &:hover {
-      background: rgba($primary, .06);
-      border-color: $primary;
-      color: $primary;
-    }
-
-    &--del:hover {
-      background: $error-bg;
-      border-color: $error;
-      color: $error;
-    }
+    display: flex; align-items: center; justify-content: center;
+    width: 1.75rem; height: 1.75rem;
+    border: 1px solid $border; border-radius: .375rem;
+    background: $bg-card; cursor: pointer; color: $text-muted; transition: $transition;
+    svg { font-size: 1rem !important; }
+    &:hover     { background: rgba($primary,.06); border-color: $primary; color: $primary; }
+    &--del:hover { background: $error-bg; border-color: $error; color: $error; }
   }
 
   &__table {
     width: 100%;
     border-collapse: collapse;
     border-top: 1px solid $border;
-
-    th,
-    td {
-      padding: .5rem .875rem;
-      font-size: .8125rem;
-      text-align: left;
-    }
-
+    th, td { padding: .5rem .875rem; font-size: .8125rem; text-align: left; }
     th {
-      background: $surface;
-      font-weight: 700;
-      color: $text-secondary;
-      font-size: .6875rem;
-      text-transform: uppercase;
-      letter-spacing: .05em;
+      background: $surface; font-weight: 700; color: $text-secondary;
+      font-size: .6875rem; text-transform: uppercase; letter-spacing: .05em;
     }
-
     tr {
-      border-bottom: 1px solid $border-light;
-      transition: background .12s;
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &:hover {
-        background: $bg-page;
-      }
+      border-bottom: 1px solid $border-light; transition: background .12s;
+      &:last-child { border-bottom: none; }
+      &:hover { background: $bg-page; }
     }
   }
 
-  &__mono {
-    font-family: $font-mono;
-    font-size: .8125rem;
-    color: $text-primary;
-    font-weight: 600;
-  }
-
-  &__dot {
-    font-size: .75rem;
-    font-weight: 600;
-
-    &--on {
-      color: $success;
-    }
-
-    &--off {
-      color: $error;
-    }
-  }
-
-  &__empty-row {
-    text-align: center;
-    color: $text-muted;
-    font-style: italic;
-  }
+  &__mono   { font-family: $font-mono; font-size: .8125rem; color: $text-primary; font-weight: 600; }
+  &__dot    { font-size: .75rem; font-weight: 600; &--on { color: $success; } &--off { color: $error; } }
+  &__empty-row { text-align: center; color: $text-muted; font-style: italic; }
 
   &__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .875rem 1rem;
-    border-top: 1px solid $border;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .875rem 1rem; border-top: 1px solid $border;
   }
-
-  &__hint {
-    font-size: .8125rem;
-    color: $text-muted;
-  }
+  &__hint { font-size: .8125rem; color: $text-muted; }
 }
 
 // ── Delete dialog ─────────────────────────────────────────────────────────────
 .overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, .5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(.125rem);
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(.125rem);
 }
 
 .dlg {
-  background: $bg-card;
-  border-radius: $radius-lg;
-  padding: 1.75rem 1.5rem;
-  width: 22rem;
-  max-width: 90vw;
-  text-align: center;
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, .2);
-
-  h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: $text-primary;
-    margin: .5rem 0 .375rem;
-  }
-
-  p {
-    font-size: .875rem;
-    color: $text-secondary;
-    line-height: 1.5;
-    margin: 0;
-  }
-
+  background: $bg-card; border-radius: $radius-lg;
+  padding: 1.75rem 1.5rem; width: 22rem; max-width: 90vw;
+  text-align: center; box-shadow: 0 1.5rem 4rem rgba(0,0,0,.2);
+  h3 { font-size: 1rem; font-weight: 700; color: $text-primary; margin: .5rem 0 .375rem; }
+  p  { font-size: .875rem; color: $text-secondary; line-height: 1.5; margin: 0; }
   &__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    border-radius: 50%;
-    background: $error-bg;
-    color: $error;
-
-    svg {
-      font-size: 1.375rem !important;
-    }
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 3rem; height: 3rem; border-radius: 50%;
+    background: $error-bg; color: $error;
+    svg { font-size: 1.375rem !important; }
   }
-
-  &__actions {
-    display: flex;
-    gap: .625rem;
-    justify-content: center;
-    margin-top: 1.25rem;
-  }
+  &__actions { display: flex; gap: .625rem; justify-content: center; margin-top: 1.25rem; }
 }
 
-// ── Shared modal shell (AddClientModal etc use this) ──────────────────────────
+// ── Shared modal ──────────────────────────────────────────────────────────────
 .modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, .5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(.125rem);
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; backdrop-filter: blur(.125rem);
 }
 
 .modal {
-  background: $bg-card;
-  border-radius: $radius-lg;
-  padding: 1.75rem 1.5rem;
-  width: 27rem;
-  max-height: 80vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, .2);
-
-  &--group {
-    width: 28.5rem;
-  }
+  background: $bg-card; border-radius: $radius-lg;
+  padding: 1.75rem 1.5rem; width: 27rem;
+  max-height: 80vh; overflow-y: auto;
+  display: flex; flex-direction: column;
+  box-shadow: 0 1.5rem 4rem rgba(0,0,0,.2);
+  &--group { width: 28.5rem; }
 }
 
-.modal__title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: $text-primary;
-  margin: 0 0 1rem;
-}
-
-.modal__label {
-  font-size: .8125rem;
-  font-weight: 600;
-  color: $text-secondary;
-  margin-bottom: .375rem;
-  display: block;
-}
-
-.modal__hint {
-  font-weight: 400;
-  color: $text-muted;
-  font-size: .75rem;
-}
-
-.modal__error {
-  color: $error;
-  font-size: .8125rem;
-  margin: 0 0 .75rem;
-}
-
-.modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: .5rem;
-  margin-top: .75rem;
-}
+.modal__title   { font-size: 1rem; font-weight: 700; color: $text-primary; margin: 0 0 1rem; }
+.modal__label   { font-size: .8125rem; font-weight: 600; color: $text-secondary; margin-bottom: .375rem; display: block; }
+.modal__hint    { font-weight: 400; color: $text-muted; font-size: .75rem; }
+.modal__error   { color: $error; font-size: .8125rem; margin: 0 0 .75rem; }
+.modal__actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
 
 .modal__input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: .5625rem .75rem;
-  border: 1px solid $border;
-  border-radius: $radius-sm;
-  font-size: .875rem;
-  outline: none;
-  color: $text-primary;
-  background: $bg-card;
-  transition: border .15s;
-
-  &:focus {
-    border-color: $primary;
-    box-shadow: 0 0 0 .1875rem rgba($primary, .1);
-  }
-
-  &--sm {
-    flex: 1;
-    min-width: 0;
-  }
+  width: 100%; box-sizing: border-box;
+  padding: .5625rem .75rem; border: 1px solid $border; border-radius: $radius-sm;
+  font-size: .875rem; outline: none; color: $text-primary; background: $bg-card; transition: border .15s;
+  &:focus { border-color: $primary; box-shadow: 0 0 0 .1875rem rgba($primary,.1); }
+  &--sm   { flex: 1; min-width: 0; }
 }
 
 .modal__client-list {
-  overflow-y: auto;
-  max-height: 12rem;
-  border: 1px solid $border;
-  border-radius: $radius-sm;
-  padding: .375rem;
-  display: flex;
-  flex-direction: column;
-  gap: .25rem;
-  margin-bottom: .75rem;
+  overflow-y: auto; max-height: 12rem;
+  border: 1px solid $border; border-radius: $radius-sm;
+  padding: .375rem; display: flex; flex-direction: column; gap: .25rem; margin-bottom: .75rem;
 }
 
 .modal__client-row {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .375rem .5rem;
-  border-radius: .3rem;
-  cursor: pointer;
-  font-size: .8125rem;
-  color: $text-secondary;
-
-  &:hover {
-    background: rgba($primary, .05);
-  }
-
-  input {
-    cursor: pointer;
-    accent-color: $primary;
-  }
+  display: flex; align-items: center; gap: .5rem;
+  padding: .375rem .5rem; border-radius: .3rem;
+  cursor: pointer; font-size: .8125rem; color: $text-secondary;
+  &:hover { background: rgba($primary,.05); }
+  input { cursor: pointer; accent-color: $primary; }
 }
 
-.modal__new-client-row {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-  margin-bottom: .625rem;
-}
-
-.modal__extra-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .375rem;
-  margin-bottom: .625rem;
-}
+.modal__new-client-row  { display: flex; gap: .5rem; align-items: center; margin-bottom: .625rem; }
+.modal__extra-list      { display: flex; flex-wrap: wrap; gap: .375rem; margin-bottom: .625rem; }
 
 .modal__extra-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  background: rgba($primary, .07);
-  border: 1px solid rgba($primary, .2);
-  border-radius: 6rem;
-  padding: .1875rem .625rem .1875rem .75rem;
-  font-size: .75rem;
-  font-weight: 600;
-  color: $primary;
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: rgba($primary,.07); border: 1px solid rgba($primary,.2);
+  border-radius: 6rem; padding: .1875rem .625rem .1875rem .75rem;
+  font-size: .75rem; font-weight: 600; color: $primary;
 }
 
 .modal__extra-remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: $primary;
-  font-size: .9375rem;
-  padding: 0;
-  display: flex;
-  opacity: .7;
-
-  &:hover {
-    opacity: 1;
-  }
+  background: none; border: none; cursor: pointer;
+  color: $primary; font-size: .9375rem; padding: 0; display: flex; opacity: .7;
+  &:hover { opacity: 1; }
 }

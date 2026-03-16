@@ -137,7 +137,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                       </span>
                     </div>
                     <span className="trade-table__master hide-mobile">
-                      {t.masterClientCode || '—'}
+                      {t.masterClientCode || t.clientCode}
                     </span>
                     <span className={`trade-table__badge ${isPlace ? 'trade-table__badge--place' : 'trade-table__badge--cancel'}`}>
                       {isPlace ? 'PLACE' : 'CANCEL'}

@@ -13,6 +13,8 @@ export const API_ENDPOINTS = {
     UPDATE:           (code: string) => `/api/client/update/${code}`,
     UPDATE_FIELD:     (code: string) => `/api/client/update-field/${code}`,
     DELETE:           (code: string) => `/api/client/delete/${code}`,
+    DETAILS_ENRICHED: (code: string) => `/api/client/details/${code}/enriched`,
+
   },
 
   BROKER: {

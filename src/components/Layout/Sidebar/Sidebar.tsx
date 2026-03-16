@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Users, TrendingUp, History,
   Settings, BarChart3, ScrollText,
   ChevronLeft, ChevronRight, LogOut, FolderArchive,
+  PieChart,   // ← NEW: portfolio icon
 } from 'lucide-react';
 import { NavPage } from '../../../types/type';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -19,9 +20,12 @@ interface SidebarProps {
   mobileOpen?: boolean;
 }
 
-const allNavItems: { id: NavPage; label: string; icon: React.ReactNode; masterOnly?: boolean }[] = [
+const allNavItems: {
+  id: NavPage; label: string; icon: React.ReactNode; masterOnly?: boolean;
+}[] = [
   { id: 'dashboard',     label: 'Dashboard',    icon: <LayoutDashboard size={18} /> },
   { id: 'clients',       label: 'Clients',      icon: <Users size={18} /> },
+  { id: 'portfolio',     label: 'Portfolio',    icon: <PieChart size={18} />, masterOnly: true },  // ← NEW
   { id: 'bulk-trading',  label: 'Bulk Trading', icon: <TrendingUp size={18} /> },
   { id: 'trade-history', label: 'Trade History',icon: <History size={18} /> },
   { id: 'order-logs',    label: 'Order Logs',   icon: <ScrollText size={18} />, masterOnly: true },
@@ -80,7 +84,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      <button className="sidebar__collapse-btn" onClick={onToggleCollapse} title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+      <button
+        className="sidebar__collapse-btn"
+        onClick={onToggleCollapse}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>
     </aside>

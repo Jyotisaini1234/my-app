@@ -143,7 +143,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({ onClose }) => {
 
       await clientService.add({
         clientCode,
-        userId:        form.user_id.trim(),
+        userId:        form.user_id.trim(), 
         password:      form.password.trim(),
         apiKey:        form.api_key.trim(),
         totpSecret:    form.totp_secret.trim()   || undefined,

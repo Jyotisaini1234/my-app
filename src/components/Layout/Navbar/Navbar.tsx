@@ -12,6 +12,7 @@ const pageTitles: Record<NavPage, string> = {
   settings: 'Settings',
   'order-logs': 'Order Logs',
   'log-export': 'Log Export',
+  portfolio: 'Portfolio'
 };
 
 interface NavbarProps {
