@@ -32,7 +32,7 @@ import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
 import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
 import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
 import { useToast }         from '../../../context/Toastcontext';
-import { UserPortal } from '../Userportal/Userportal';
+import { UserInfo, UserPortal } from '../Userportal/Userportal';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }
 
@@ -93,7 +93,7 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
 
   if (!isMaster) {
   return (
-    <UserPortal client={clientsList[0]} loading={loading} onNavigate={onNavigate} onRefresh={handleRefresh}/>
+    <UserPortal client={clientsList[0]}  user={user as unknown as UserInfo | undefined}loading={loading} onNavigate={onNavigate} onRefresh={handleRefresh}/>
   );
 }
 

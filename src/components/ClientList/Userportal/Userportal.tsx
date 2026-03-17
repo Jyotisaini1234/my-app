@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
+import RefreshIcon  from '@mui/icons-material/Refresh';
+import ShowChartIcon  from '@mui/icons-material/ShowChart';
 import HistoryIcon from '@mui/icons-material/History';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ErrorOutlineIcon  from '@mui/icons-material/ErrorOutline';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -15,7 +15,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import TagIcon from '@mui/icons-material/Tag';
 import LayersIcon from '@mui/icons-material/Layers';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import './Userportal.scss'; 
+import './Userportal.scss';                             
 import { NavPage, Client } from '../../../types/type';
 import { HoldingsDrawer } from '../../common/HoldingsDrawer/HoldingsDrawer';
 
@@ -31,39 +31,38 @@ const fmt = (v: number | null | undefined, fallback = '—') => {
 const fmtPct = (v: number | null | undefined) =>
   v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 
-interface UserInfo {
-  clientCode?: string;
-  name?:       string;
-  email?:      string;
-  phone?:      string;
-  city?:       string;
-  [key: string]: unknown;  
+export interface UserInfo {
+  clientCode?:string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  city?: string;
+  [key: string]: unknown;   
 }
 
 interface UserPortalProps {
-  client?:    Client;
-  user?:      UserInfo;      
-  loading?:   boolean;
+  client?: Client;
+  user?: UserInfo;    
+  loading?: boolean;
   onNavigate: (page: NavPage) => void;
   onRefresh?: () => void;
 }
 
-export const UserPortal: React.FC<UserPortalProps> = ({client, user, loading = false,onNavigate,onRefresh,}) => {
+export const UserPortal: React.FC<UserPortalProps> = ({client,user,loading = false, onNavigate, onRefresh,}) => {
   const [showHoldings, setShowHoldings] = useState(false);
-  const isActive  = client?.is_active;
-  const displayName = client?.client_name && client.client_name !== '—'? client.client_name : user?.name || user?.clientCode || 'User';
-  let invested = client?.invested_amount  ?? null;
-  let current  = client?.current_value  ?? null;
-  let pnl = client?.profit_loss ?? null;
-  let pnlPct = client?.profit_loss_pct  ?? null;
-  let holdings = client?.total_holdings  ?? 0;
-  let isProfit = (pnl ?? 0) >= 0;
-  let avail = client?.available_cash   ?? null;
-  let used = client?.used_margin      ?? null;
-  let ledger = client?.ledger_balance   ?? null;
-  let collat = client?.collateral_value ?? null;
-  let isNegBal = avail != null && avail < 0;
-
+  const isActive    = client?.is_active;
+  const displayName = client?.client_name && client.client_name !== '—' ? client.client_name : user?.name || user?.clientCode || 'User';
+  const invested = client?.invested_amount ?? null;
+  const current  = client?.current_value ?? null;
+  const pnl      = client?.profit_loss ?? null;
+  const pnlPct   = client?.profit_loss_pct ?? null;
+  const holdings = client?.total_holdings ?? 0;
+  const isProfit = (pnl ?? 0) >= 0;
+  const avail    = client?.available_cash ?? null;
+  const used     = client?.used_margin ?? null;
+  const ledger   = client?.ledger_balance ?? null;
+  const collat   = client?.collateral_value ?? null;
+  const isNegBal = avail != null && avail < 0;
   const isEnrichedLoading = loading || (client != null && invested == null && avail == null);
 
   const infoRows = [
@@ -76,6 +75,8 @@ export const UserPortal: React.FC<UserPortalProps> = ({client, user, loading = f
   return (
     <>
       <div className="up">
+
+        {/* ── Hero ─────────────────────────────────────────────── */}
         <div className="up__hero">
           <div className="up__hero-top">
             <span className="up__badge">
@@ -95,6 +96,7 @@ export const UserPortal: React.FC<UserPortalProps> = ({client, user, loading = f
           </div>
         </div>
 
+        {/* ── Portfolio ────────────────────────────────────────── */}
         <div className="up__pf">
 
           {isEnrichedLoading && (
@@ -104,6 +106,7 @@ export const UserPortal: React.FC<UserPortalProps> = ({client, user, loading = f
             </div>
           )}
 
+          {/* Invested + Current */}
           <div className="up__pf-row">
             <div className="up__pf-box">
               <ShowChartIcon className="up__pf-ico up__pf-ico--blue" />
@@ -202,31 +205,24 @@ export const UserPortal: React.FC<UserPortalProps> = ({client, user, loading = f
           ))}
         </div>
 
-        {/* ── Actions ──────────────────────────────────────────── */}
         <div className="up__actions">
-          <button className="up__btn up__btn--primary" onClick={() => onNavigate('bulk-trading')} >
+          <button className="up__btn up__btn--primary" onClick={() => onNavigate('bulk-trading')}>
             <ShowChartIcon />Trade Now
           </button>
           <button className="up__btn up__btn--ghost" onClick={() => onNavigate('trade-history')}>
             <HistoryIcon />History
           </button>
-          <button className="up__btn up__btn--ghost up__btn--full" onClick={onRefresh} disabled={loading} >
+          <button className="up__btn up__btn--ghost up__btn--full" onClick={onRefresh} disabled={loading}>
             <RefreshIcon className={loading ? 'spin' : ''} />
             {loading ? 'Refreshing…' : 'Refresh'}
           </button>
         </div>
       </div>
 
-      {/* ── Holdings Drawer ───────────────────────────────────── */}
       {showHoldings && (
         <>
           <div className="hd-backdrop" onClick={() => setShowHoldings(false)} />
-          <HoldingsDrawer
-            clientCode={user?.clientCode ?? client?.client_code ?? ''}
-            clientName={displayName}
-            holdings={client?.holdings ?? []}
-            onClose={() => setShowHoldings(false)}
-          />
+          <HoldingsDrawer clientCode={user?.clientCode ?? client?.client_code ?? ''} clientName={displayName} holdings={client?.holdings ?? []} onClose={() => setShowHoldings(false)} />
         </>
       )}
     </>
