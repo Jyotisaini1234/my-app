@@ -10,7 +10,6 @@ export interface TimelineResponse {
   };
 }
 
-
 export interface Client {
   client_code:      string;
   user_id?:         string;
@@ -34,16 +33,12 @@ export interface Client {
   token_expiry?: { $date: string };
   created_at?:   { $date: string };
   updated_at?:   { $date: string };
-
-  // portfolio (holdings P&L)
   invested_amount?:  number;
   current_value?:    number;
   profit_loss?:      number;
   profit_loss_pct?:  number;
   total_holdings?:   number;
   ltp_warning?:      string;
-
-  // trading balance (getreportmargindetail srno map)
   available_cash?:     number | null;
   available_for_cash?: number | null;
   available_for_fo?:   number | null;
@@ -54,6 +49,7 @@ export interface Client {
   total_pnl?:          number | null;
   total_available?:    number | null;
   balance_error?:      string;
+  holdings?:         HoldingDetail[];
 }
 
 export interface ClientsState {
@@ -366,3 +362,17 @@ export interface ClientForm {
   is_active: boolean;
   is_master: boolean;
 }
+export interface HoldingDetail {
+  name:            string;
+  isin:            string;
+  quantity:        number;
+  avg_price:       number;
+  ltp:             number;
+  invested_amount: number;
+  current_value:   number;
+  profit_loss:     number;
+  profit_loss_pct: number;
+  nse_token:       number;
+  bse_token:       number;
+}
+

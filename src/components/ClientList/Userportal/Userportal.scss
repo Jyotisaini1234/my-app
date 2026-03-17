@@ -1,0 +1,455 @@
+@import '../../../styles/variables';
+
+// ─── shared animations ────────────────────────────────────────────────────────
+.spin { animation: spin .8s linear infinite; }
+
+@keyframes spin   { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pulse  { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-.25rem); }
+  to   { opacity: 1; transform: none; }
+}
+
+// ─── button base ──────────────────────────────────────────────────────────────
+%up-btn-base {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: $transition;
+  white-space: nowrap;
+  &:disabled { opacity: .45; cursor: not-allowed; }
+  svg { font-size: 1rem !important; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  USER PORTAL   .up
+// ═══════════════════════════════════════════════════════════════════════════════
+.up {
+  max-width: 28rem;
+  margin: 0 auto;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  border: 1px solid $border;
+  background: $bg-card;
+  box-shadow: $shadow-elevated;
+  animation: fadeUp .35s ease both;
+
+  // ── Hero ─────────────────────────────────────────────────────────────────────
+  &__hero {
+    padding: 1.5rem 1.5rem 2rem;
+    background: linear-gradient(140deg, $primary-dark 0%, $primary 55%, $primary-light 100%);
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 85% 15%, rgba($accent, .22) 0%, transparent 50%),
+        repeating-linear-gradient(45deg, rgba(#fff, .025) 0, rgba(#fff, .025) 1px, transparent 0, transparent 50%);
+      background-size: auto, 1.5rem 1.5rem;
+    }
+  }
+
+  &__hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .25rem .75rem;
+    border-radius: 2rem;
+    background: rgba(#fff, .12);
+    border: 1px solid rgba(#fff, .18);
+    font-size: .6875rem;
+    font-weight: 700;
+    color: rgba(#fff, .88);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    svg { font-size: .55rem !important; color: $accent; animation: pulse 2s ease infinite; }
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .2rem .625rem;
+    border-radius: 2rem;
+    font-size: .625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    svg { font-size: .85rem !important; }
+    &--on  { background: rgba($success, .22); color: #86efac; border: 1px solid rgba($success, .3); }
+    &--off { background: rgba($error, .22);   color: #fca5a5; border: 1px solid rgba($error, .3);   }
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: .875rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__avatar {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: .875rem;
+    background: linear-gradient(135deg, $accent, darken($accent, 10%));
+    color: #fff;
+    font-size: 1.375rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 .375rem 1.25rem rgba($accent, .45), 0 0 0 .1875rem rgba(#fff, .15);
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -.02em;
+    line-height: 1.2;
+  }
+
+  &__code {
+    font-size: .75rem;
+    color: rgba(#fff, .5);
+    font-family: $font-mono;
+    display: block;
+    margin-top: .125rem;
+  }
+
+  // ── Portfolio ─────────────────────────────────────────────────────────────────
+  &__pf {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-bottom: 1px solid $border;
+    animation: slideIn .25s ease both;
+  }
+
+  &__pf-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid $border;
+    &--3 { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  &__pf-box {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .25rem;
+    padding: .875rem 1rem;
+    position: relative;
+    & + & { border-left: 1px solid $border; }
+    &--warn { background: rgba($error, .03); }
+  }
+
+  &__pf-ico {
+    font-size: 1.125rem !important;
+    &--blue   { color: $info; }
+    &--purple { color: $primary; }
+    &--green  { color: $success; }
+    &--orange { color: $accent; }
+    &--warn   { color: $error; }
+  }
+
+  &__pf-lbl {
+    font-size: .5625rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    white-space: nowrap;
+  }
+
+  &__pf-val {
+    font-size: .9375rem;
+    font-weight: 800;
+    color: $text-primary;
+    font-family: $font-mono;
+    line-height: 1.1;
+    &--neg { color: $error; }
+  }
+
+  &__pf-warn-tag {
+    font-size: .5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    background: $error-bg;
+    color: $error;
+    border: 1px solid rgba($error, .2);
+    border-radius: 2rem;
+    padding: .1rem .4rem;
+  }
+
+  // P&L banner
+  &__pf-pnl {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .75rem 1rem;
+    gap: .75rem;
+    border-bottom: 1px solid $border;
+    svg { font-size: 1.375rem !important; flex-shrink: 0; }
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: .625rem;
+      flex: 1;
+    }
+
+    &-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: .25rem;
+    }
+
+    &--profit {
+      background: $success-bg;
+      .up__pf-lbl { color: darken($success, 10%); }
+      svg          { color: $success; }
+    }
+
+    &--loss {
+      background: $error-bg;
+      .up__pf-lbl { color: darken($error, 10%); }
+      svg          { color: $error; }
+    }
+  }
+
+  &__pf-amt {
+    display: block;
+    font-size: 1.0625rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    color: $text-primary;
+    .up__pf-pnl--profit & { color: darken($success, 8%); }
+    .up__pf-pnl--loss   & { color: darken($error,   8%); }
+  }
+
+  &__pf-pct {
+    font-size: .9375rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    .up__pf-pnl--profit & { color: $success; }
+    .up__pf-pnl--loss   & { color: $error; }
+  }
+
+  // ── Holdings pill button ───────────────────────────────────────────────────
+  &__holdings-btn {
+    @extend %up-btn-base;
+    padding: .25rem .625rem;
+    border-radius: 2rem;
+    font-size: .625rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    background: transparent;
+    border: 1px solid rgba($text-muted, .3) !important;
+    color: $text-muted;
+    cursor: default;
+
+    svg { font-size: .8rem !important; opacity: .6; }
+
+    // when holdings exist — make it look clickable
+    &--active {
+      cursor: pointer;
+      border-color: rgba($primary, .35) !important;
+      color: $primary;
+      background: rgba($primary, .06);
+      svg { opacity: 1; }
+
+      &:hover {
+        background: rgba($primary, .12);
+        border-color: $primary !important;
+        box-shadow: 0 0 0 .1875rem rgba($primary, .1);
+        transform: translateY(-.0625rem);
+      }
+
+      &:active { transform: none; }
+    }
+
+    .up__pf-pnl--profit & {
+      &--active {
+        border-color: rgba($success, .4) !important;
+        color: darken($success, 12%);
+        background: rgba($success, .08);
+        svg { color: darken($success, 12%); }
+        &:hover {
+          background: rgba($success, .15);
+          border-color: $success !important;
+          box-shadow: 0 0 0 .1875rem rgba($success, .12);
+        }
+      }
+    }
+
+    .up__pf-pnl--loss & {
+      &--active {
+        border-color: rgba($error, .4) !important;
+        color: darken($error, 8%);
+        background: rgba($error, .07);
+        svg { color: darken($error, 8%); }
+        &:hover {
+          background: rgba($error, .13);
+          border-color: $error !important;
+          box-shadow: 0 0 0 .1875rem rgba($error, .12);
+        }
+      }
+    }
+  }
+
+  // Loading shimmer
+  &__pf-loading {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    font-size: .8125rem;
+    color: $text-muted;
+    border-bottom: 1px solid $border;
+    background: $bg-page;
+    svg { font-size: 1rem !important; color: $primary; }
+  }
+
+  // Collateral row
+  &__pf-collateral {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .625rem 1rem;
+    background: rgba($info, .03);
+    border-bottom: 1px solid $border;
+    .up__pf-lbl { font-size: .625rem; }
+    .up__pf-val { font-size: .875rem; }
+  }
+
+  // ── Account Details body ───────────────────────────────────────────────────
+  &__body {
+    padding: 1rem 1.125rem .75rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4375rem;
+  }
+
+  &__section-lbl {
+    font-size: .625rem;
+    font-weight: 800;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin: .25rem 0 .125rem;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    padding: .625rem .75rem;
+    background: $bg-page;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    transition: $transition;
+    &:hover { background: $bg-card-hover; box-shadow: $shadow-card; }
+    &--accent {
+      background: linear-gradient(135deg, rgba($primary, .04), rgba($accent, .035));
+      border-color: rgba($primary, .18);
+    }
+  }
+
+  &__row-icon  { display: flex; color: $text-muted; svg { font-size: 1.125rem !important; } }
+
+  &__row-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .0625rem;
+    min-width: 0;
+  }
+
+  &__row-lbl {
+    font-size: .625rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  &__row-val {
+    font-size: .875rem;
+    font-weight: 700;
+    color: $text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    &--mono { font-family: $font-mono; font-size: .8125rem; }
+  }
+
+  &__tag {
+    padding: .1875rem .5rem;
+    border-radius: 2rem;
+    font-size: .5625rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    flex-shrink: 0;
+    &--ok  { background: $success-bg; color: $success; }
+    &--err { background: $error-bg;   color: $error;   }
+  }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
+  &__actions {
+    padding: .75rem 1.125rem 1.125rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
+  }
+
+  &__btn {
+    @extend %up-btn-base;
+    justify-content: center;
+    border-radius: $radius-md;
+    padding: .6875rem 1rem;
+    font-size: .8125rem;
+
+    &--primary {
+      background: $accent;
+      color: #fff;
+      box-shadow: 0 .25rem .75rem rgba($accent, .3);
+      &:hover:not(:disabled) { background: $accent-hover; transform: translateY(-.0625rem); }
+    }
+
+    &--ghost {
+      background: $bg-page;
+      color: $text-secondary;
+      border: 1px solid $border !important;
+      &:hover:not(:disabled) { background: $bg-card-hover; border-color: $primary !important; color: $primary; }
+    }
+
+    &--full { grid-column: 1 / -1; }
+  }
+}

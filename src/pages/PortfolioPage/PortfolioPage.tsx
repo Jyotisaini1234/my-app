@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {
-  TrendingUp, TrendingDown, Wallet, BarChart2,
-  RefreshCw, AlertCircle, CheckCircle, Clock,
-  ChevronUp, ChevronDown, Minus
-} from 'lucide-react';
+import {TrendingUp, TrendingDown, Wallet, BarChart2,RefreshCw, AlertCircle, CheckCircle, Clock,ChevronUp, ChevronDown, Minus} from 'lucide-react';
 import './PortfolioPage.scss';
 import { Spinner } from '../../components/common/Spinner/Spinner';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClients } from '../../store/slice/clientsSlice/clientsSlice';
 import { Client } from '../../types/type';
+import { HoldingsDrawer } from '../../components/common/HoldingsDrawer/HoldingsDrawer';
 
 
 const inr = (v: number | null | undefined) => {
@@ -31,28 +28,23 @@ type SortDir = 'asc' | 'desc';
 export const PortfolioPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { data: clients, loading, isFetched } = useAppSelector(s => s.clients);
-
   const [sortKey, setSortKey] = useState<SortKey>('profit_loss_pct');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [filter,  setFilter]  = useState<'all' | 'profit' | 'loss' | 'zero'>('all');
   const [search,  setSearch]  = useState('');
-
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   useEffect(() => { if (!isFetched) dispatch(fetchClients()); }, [isFetched, dispatch]);
-
   const clientList = Object.values(clients) as Client[];
-
-  // ── Aggregates ───────────────────────────────────────────────────────────
-  const totalInvested  = clientList.reduce((s, c) => s + (c.invested_amount  ?? 0), 0);
-  const totalCurrent   = clientList.reduce((s, c) => s + (c.current_value    ?? 0), 0);
-  const totalPnl       = totalCurrent - totalInvested;
-  const totalPnlPct    = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+  const totalInvested = clientList.reduce((s, c) => s + (c.invested_amount  ?? 0), 0);
+  const totalCurrent = clientList.reduce((s, c) => s + (c.current_value    ?? 0), 0);
+  const totalPnl = totalCurrent - totalInvested;
+  const totalPnlPct = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
   const totalAvailable = clientList.reduce((s, c) => s + (c.available_cash   ?? 0), 0);
-  const totalUsed      = clientList.reduce((s, c) => s + (c.used_margin      ?? 0), 0);
-  const inProfit       = clientList.filter(c => (c.profit_loss ?? 0) > 0).length;
-  const inLoss         = clientList.filter(c => (c.profit_loss ?? 0) < 0).length;
-  const withHoldings   = clientList.filter(c => (c.total_holdings ?? 0) > 0).length;
+  const totalUsed = clientList.reduce((s, c) => s + (c.used_margin      ?? 0), 0);
+  const inProfit = clientList.filter(c => (c.profit_loss ?? 0) > 0).length;
+  const inLoss = clientList.filter(c => (c.profit_loss ?? 0) < 0).length;
+  const withHoldings = clientList.filter(c => (c.total_holdings ?? 0) > 0).length;
 
-  // ── Sort + filter ─────────────────────────────────────────────────────────
   const sorted = [...clientList]
     .filter(c => {
       if (search) {
@@ -160,22 +152,12 @@ export const PortfolioPage: React.FC = () => {
       {/* ── Toolbar ────────────────────────────────────────────────────────── */}
       <div className="pf-toolbar">
         <div className="pf-search">
-          <input
-            type="text"
-            placeholder="Search client code or name…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pf-search__input"
-          />
+          <input type="text" placeholder="Search client code or name…" value={search} onChange={e => setSearch(e.target.value)}  className="pf-search__input" />
         </div>
 
         <div className="pf-filters">
           {(['all', 'profit', 'loss', 'zero'] as const).map(f => (
-            <button
-              key={f}
-              className={`pf-filter ${filter === f ? 'pf-filter--on' : ''} pf-filter--${f}`}
-              onClick={() => setFilter(f)}
-            >
+            <button key={f} className={`pf-filter ${filter === f ? 'pf-filter--on' : ''} pf-filter--${f}`} onClick={() => setFilter(f)}>
               {f === 'all' ? 'All' : f === 'profit' ? '↑ Profit' : f === 'loss' ? '↓ Loss' : '— Zero'}
             </button>
           ))}
@@ -187,7 +169,6 @@ export const PortfolioPage: React.FC = () => {
         </button>
       </div>
 
-      {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div className="pf-table-wrap">
         <table className="pf-table">
           <thead>
@@ -219,15 +200,15 @@ export const PortfolioPage: React.FC = () => {
               <tr><td colSpan={8} className="pf-empty">No clients match the filter</td></tr>
             )}
             {sorted.map(client => {
-              const pl         = client.profit_loss     ?? 0;
-              const plPct      = client.profit_loss_pct ?? 0;
-              const avail      = client.available_cash  ?? null;
-              const inv        = client.invested_amount ?? 0;
-              const cur        = client.current_value   ?? 0;
-              const isProfit   = pl > 0;
-              const isLoss     = pl < 0;
+              const pl = client.profit_loss     ?? 0;
+              const plPct = client.profit_loss_pct ?? 0;
+              const avail = client.available_cash  ?? null;
+              const inv = client.invested_amount ?? 0;
+              const cur = client.current_value   ?? 0;
+              const isProfit = pl > 0;
+              const isLoss = pl < 0;
               const hasHoldings = (client.total_holdings ?? 0) > 0;
-              const isNegBal   = avail != null && avail < 0;
+              const isNegBal = avail != null && avail < 0;
 
               return (
                 <tr key={client.client_code} className={`pf-row${isNegBal ? ' pf-row--warn' : ''}`}>
@@ -298,9 +279,9 @@ export const PortfolioPage: React.FC = () => {
                   </td>
 
                   {/* Holdings count */}
-                  <td className="pf-td pf-td--num">
+                 <td className="pf-td pf-td--num" onClick={() => (client.holdings?.length ?? 0) > 0 ? setSelectedClient(client) : undefined}  style={{ cursor: (client.holdings?.length ?? 0) > 0 ? 'pointer' : 'default' }}>
                     {hasHoldings
-                      ? <span className="pf-chip">{client.total_holdings}</span>
+                      ? <span className="pf-chip pf-chip--clickable">{client.total_holdings}</span>
                       : <span className="pf-dim">0</span>}
                   </td>
 
@@ -310,7 +291,14 @@ export const PortfolioPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-
+{selectedClient && selectedClient.holdings && (
+  <HoldingsDrawer
+    clientCode={selectedClient.client_code}
+    clientName={selectedClient.client_name}
+    holdings={selectedClient.holdings}
+    onClose={() => setSelectedClient(null)}
+  />
+)}
       <div className="pf-footer">
         Showing {sorted.length} of {clientList.length} clients
       </div>

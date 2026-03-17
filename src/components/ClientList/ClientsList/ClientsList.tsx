@@ -32,42 +32,28 @@ import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
 import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
 import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
 import { useToast }         from '../../../context/Toastcontext';
+import { UserPortal } from '../Userportal/Userportal';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }
 
-const inr = (v: number | null | undefined, fallback = '—') => {
-  if (v == null) return fallback;
-  const abs = Math.abs(v);
-  const str = new Intl.NumberFormat('en-IN', {
-    minimumFractionDigits: 2, maximumFractionDigits: 2,
-  }).format(abs);
-  return `${v < 0 ? '−' : ''}₹${str}`;
-};
-
-const pct = (v: number | null | undefined) =>
-  v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 
 export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
-  const dispatch      = useAppDispatch();
+  const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { data: clients, loading, authenticatingAll, isFetched } = useAppSelector(s => s.clients);
   const { user } = useAppSelector(s => s.auth);
   const isMaster = user?.role === 'MASTER';
   const { data: groups = {}, isLoading: groupsLoading, refetch: refetchGroups } = useFetchGroupsQuery();
   const [deleteGroup] = useDeleteGroupMutation();
-
-  const [showAddModal,         setShowAddModal]         = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
-  const [addToGroup,           setAddToGroup]           = useState<string | null>(null);
-  const [expandedGroups,       setExpandedGroups]       = useState<Set<string>>(new Set());
-  const [selectedGroups,       setSelectedGroups]       = useState<Set<string>>(new Set());
-  const [confirmDeleteGroup,   setConfirmDeleteGroup]   = useState<string | null>(null);
-
+  const [addToGroup, setAddToGroup] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
+  const [confirmDeleteGroup,setConfirmDeleteGroup]   = useState<string | null>(null);
   useEffect(() => { if (!isFetched) dispatch(fetchClients()); }, [isFetched, dispatch]);
-
   const clientsList    = Object.values(clients);
   const allClientCodes = clientsList.map(c => c.client_code);
-
   const toggle = (set: Set<string>, val: string) => {
     const n = new Set(set); n.has(val) ? n.delete(val) : n.add(val); return n;
   };
@@ -105,183 +91,11 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
 
   const handleRefresh = () => { dispatch(fetchClients()); refetchGroups(); };
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // USER VIEW
-  // ════════════════════════════════════════════════════════════════════════════
   if (!isMaster) {
-    const myClient   = clientsList.find(c => c.client_code === user?.clientCode) ?? clientsList[0];
-    const isActive   = myClient?.is_active;
-    const displayName = myClient?.client_name && myClient.client_name !== '—'
-      ? myClient.client_name
-      : user?.name || user?.clientCode || 'User';
-
-    // Portfolio values — will be null until enriched endpoint responds
-    const invested  = myClient?.invested_amount  ?? null;
-    const current   = myClient?.current_value    ?? null;
-    const pnl       = myClient?.profit_loss      ?? null;
-    const pnlPct    = myClient?.profit_loss_pct  ?? null;
-    const holdings  = myClient?.total_holdings   ?? 0;
-    const isProfit  = (pnl ?? 0) >= 0;
-
-    // Balance values
-    const avail    = myClient?.available_cash   ?? null;
-    const used     = myClient?.used_margin      ?? null;
-    const ledger   = myClient?.ledger_balance   ?? null;
-    const collat   = myClient?.collateral_value ?? null;
-    const isNegBal = avail != null && avail < 0;
-
-    // Still loading first time
-    if (loading && !myClient) return <Spinner text="Loading your account…" />;
-
-    // Data is being fetched (client exists but enriched data not yet received)
-    const isEnrichedLoading = loading || (
-      myClient != null &&
-      invested == null &&
-      avail    == null
-    );
-
-    const infoRows = [
-      { icon: <TagIcon />,               label: 'Client Code', value: user?.clientCode || '—', mono: true, accent: true },
-      { icon: <AlternateEmailIcon />,     label: 'Email',       value: user?.email,             mono: true },
-      { icon: <PhoneAndroidIcon />,       label: 'Phone',       value: user?.phone },
-      { icon: <LocationOnOutlinedIcon />, label: 'City',        value: user?.city },
-    ].filter(r => r.value);
-
-    return (
-      <div className="up">
-
-        {/* ── Hero ── */}
-        <div className="up__hero">
-          <div className="up__hero-top">
-            <span className="up__badge">
-              <FiberManualRecordIcon className="up__badge-dot" />Client Portal
-            </span>
-            <span className={`up__chip up__chip--${isActive ? 'on' : 'off'}`}>
-              {isActive ? <VerifiedUserIcon /> : <ErrorOutlineIcon />}
-              {isActive ? 'Active' : 'Inactive'}
-            </span>
-          </div>
-          <div className="up__identity">
-            <div className="up__avatar">{displayName[0]?.toUpperCase() ?? 'U'}</div>
-            <div>
-              <h2 className="up__name">{displayName}</h2>
-              <span className="up__code">{user?.clientCode || '—'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Portfolio cards ── */}
-        <div className="up__pf">
-
-          {/* Loading shimmer while enriched data fetches */}
-          {isEnrichedLoading && (
-            <div className="up__pf-loading">
-              <RefreshIcon className="spin" />
-              <span>Loading portfolio &amp; balance…</span>
-            </div>
-          )}
-
-          {/* Row 1: Invested + Current */}
-          <div className="up__pf-row">
-            <div className="up__pf-box">
-              <ShowChartIcon className="up__pf-ico up__pf-ico--blue" />
-              <span className="up__pf-lbl">Total Invested</span>
-              <strong className="up__pf-val">{inr(invested)}</strong>
-            </div>
-            <div className="up__pf-box">
-              <AccountBalanceIcon className="up__pf-ico up__pf-ico--purple" />
-              <span className="up__pf-lbl">Current Value</span>
-              <strong className="up__pf-val">{inr(current)}</strong>
-            </div>
-          </div>
-
-          {/* Row 2: P&L — only show when data exists */}
-          {pnl != null && (
-            <div className={`up__pf-pnl up__pf-pnl--${isProfit ? 'profit' : 'loss'}`}>
-              <div className="up__pf-pnl-left">
-                {isProfit ? <TrendingUpIcon /> : <TrendingDownIcon />}
-                <div>
-                  <span className="up__pf-lbl">{isProfit ? 'Total Profit' : 'Total Loss'}</span>
-                  <strong className="up__pf-amt">{inr(pnl)}</strong>
-                </div>
-              </div>
-              <div className="up__pf-pnl-right">
-                <span className="up__pf-pct">{pct(pnlPct)}</span>
-                <span className="up__pf-holdings">{holdings} holdings</span>
-              </div>
-            </div>
-          )}
-
-          {/* Row 3: Balance boxes */}
-          <div className="up__pf-row up__pf-row--3">
-            <div className={`up__pf-box${isNegBal ? ' up__pf-box--warn' : ''}`}>
-              {isNegBal
-                ? <WarningAmberIcon className="up__pf-ico up__pf-ico--warn" />
-                : <AccountBalanceWalletIcon className="up__pf-ico up__pf-ico--green" />}
-              <span className="up__pf-lbl">Available Cash</span>
-              <strong className={`up__pf-val${isNegBal ? ' up__pf-val--neg' : ''}`}>
-                {inr(avail)}
-              </strong>
-              {isNegBal && <span className="up__pf-warn-tag">Deficit</span>}
-            </div>
-            <div className="up__pf-box">
-              <AccountBalanceWalletIcon className="up__pf-ico up__pf-ico--orange" />
-              <span className="up__pf-lbl">Used Margin</span>
-              <strong className="up__pf-val">{inr(used)}</strong>
-            </div>
-            <div className="up__pf-box">
-              <AccountBalanceIcon className="up__pf-ico up__pf-ico--blue" />
-              <span className="up__pf-lbl">Ledger Balance</span>
-              <strong className={`up__pf-val${(ledger ?? 0) < 0 ? ' up__pf-val--neg' : ''}`}>
-                {inr(ledger)}
-              </strong>
-            </div>
-          </div>
-
-          {/* Row 4: Collateral — only if non-zero */}
-          {collat != null && collat !== 0 && (
-            <div className="up__pf-collateral">
-              <span className="up__pf-lbl">Collateral (Pledged stocks)</span>
-              <strong className="up__pf-val">{inr(collat)}</strong>
-            </div>
-          )}
-        </div>
-
-      <div className="up__body">
-          <p className="up__section-lbl">Account Details</p>
-          {infoRows.map(r => (
-            <div key={r.label} className={`up__row${r.accent ? ' up__row--accent' : ''}`}>
-              <span className="up__row-icon">{r.icon}</span>
-              <div className="up__row-meta">
-                <span className="up__row-lbl">{r.label}</span>
-                <span className={`up__row-val${r.mono ? ' up__row-val--mono' : ''}`}>{r.value}</span>
-              </div>
-              {r.label === 'Client Code' && (
-                <span className={`up__tag up__tag--${isActive ? 'ok' : 'err'}`}>
-                  {isActive ? 'Live' : 'Off'}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* ── Actions ── */}
-        <div className="up__actions">
-          <button className="up__btn up__btn--primary" onClick={() => onNavigate('bulk-trading')}>
-            <ShowChartIcon />Trade Now
-          </button>
-          <button className="up__btn up__btn--ghost" onClick={() => onNavigate('trade-history')}>
-            <HistoryIcon />History
-          </button>
-          <button className="up__btn up__btn--ghost up__btn--full"
-            onClick={handleRefresh} disabled={loading}>
-            <RefreshIcon className={loading ? 'spin' : ''} />
-            {loading ? 'Refreshing…' : 'Refresh'}
-          </button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <UserPortal client={clientsList[0]} loading={loading} onNavigate={onNavigate} onRefresh={handleRefresh}/>
+  );
+}
 
 const selectedCodes = getSelectedClientCodes();
 
