@@ -4,7 +4,7 @@ import './AddClientModal.scss';
 import { useAppDispatch } from '../../../store/hooks';
 import { fetchClients } from '../../../store/slice/clientsSlice/clientsSlice';
 import { clientService } from '../../../services/api';
-import { useToast } from '../../../context/Toastcontext';
+import { useToast } from '../../../context/ToastContext/Toastcontext';
 import { ClientForm } from '../../../types/type';
 
 interface AddClientModalProps {

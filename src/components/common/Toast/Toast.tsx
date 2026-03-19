@@ -15,6 +15,20 @@ interface ToastProps {
   duration?: number;
 }
 
+
+export const STATUS_TOAST: Record<string, ToastType> = {
+  COMPLETE:  'success',
+  REJECTED:  'error',
+  CANCELLED: 'warning',
+};
+
+export const STATUS_TITLE: Record<string, string> = {
+  COMPLETE:  'Order Executed',
+  REJECTED:  'Order Rejected',
+  CANCELLED: 'Order Cancelled',
+};
+
+
 const Toast: React.FC<ToastProps> = ({ message, type, onClose, duration = 4000 }) => {
   useEffect(() => {
     const timer = setTimeout(() => {

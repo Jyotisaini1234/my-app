@@ -7,6 +7,7 @@ import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 import authReducer from './slice/authSlice/authSlice';
 import { groupApi } from './slice/groupsSlice/groupsSlice';
 import logExportReducer from './slice/logExportSlice/logExportSlice';
+import notificationsReducer from './slice/notificationsSlice/notificationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +18,7 @@ export const store = configureStore({
     auth: authReducer,
     groupApi: groupApi.reducer,
     logExport: logExportReducer,
+    notifications: notificationsReducer,
   },
   middleware: (get) => get().concat(groupApi.middleware),
 });

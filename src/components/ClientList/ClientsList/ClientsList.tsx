@@ -31,7 +31,7 @@ import { useFetchGroupsQuery, useDeleteGroupMutation, GroupEntry } from '../../.
 import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
 import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
 import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
-import { useToast }         from '../../../context/Toastcontext';
+import { useToast }         from '../../../context/ToastContext/Toastcontext';
 import { UserInfo, UserPortal } from '../Userportal/Userportal';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }

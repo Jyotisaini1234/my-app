@@ -31,7 +31,10 @@ export const API_ENDPOINTS = {
     HEALTH:        '/api/trade/health',
     CONFIG:        '/api/trade/config',
   },
-
+ NOTIFICATIONS: {
+    SUBSCRIBE: (clientCode: string) =>
+      `/api/notifications/subscribe?clientCode=${encodeURIComponent(clientCode)}`,
+  },
   LOGS: {
     TRACE:           (id: string)   => `/api/logs/trace/${id}`,
     SPAN:            (id: string)   => `/api/logs/span/${id}`,

@@ -9,6 +9,8 @@ type TradeFilters = {
   clientCode?: string;
 };
 
+
+
 export const fetchTradeHistory = createAsyncThunk<TradeLogEntry[], TradeFilters>(
   'tradeHistory/fetchAll',
   async (filters, { rejectWithValue, getState }) => {
@@ -75,7 +77,6 @@ const tradeHistorySlice = createSlice({
     },
     clearFilters(state) { state.filters = initialState.filters; },
     clearError(state)   { state.error = null; },
-    // ✅ Logout ya user switch pe data reset
     resetTradeHistory(state) {
       state.data      = [];
       state.isFetched = false;

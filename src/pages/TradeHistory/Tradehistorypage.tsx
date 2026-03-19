@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {Alert, Box, Button, Chip, CircularProgress, IconButton, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead,TableRow, TextField, Tooltip, Typography,} from '@mui/material';
-import { Download, RefreshCw, XCircle, AlertCircle } from 'lucide-react';
+import {Alert, Box, Button, Chip, CircularProgress, IconButton, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell,TableContainer, TableHead, TableRow, TextField, Tooltip, Typography,} from '@mui/material';
+import { XCircle, AlertCircle } from 'lucide-react';
 import './TradeHistoryPage.scss';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchTradeHistory, setFilters, clearError } from '../../store/slice/tradeHistorySlice/tradeHistorySlice';
-import { tradeService } from '../../services/api';
+import { brokerService } from '../../services/api'; 
 import { TradeLogEntry } from '../../types/type';
 import { CancelModal } from '../../components/Modal/CancelModal/CancelModal';
 
@@ -23,26 +23,48 @@ function toInputDate(backendDate: string): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-const statusColor = (
-  s?: string
-): 'default' | 'warning' | 'info' | 'success' | 'error' => {
-  switch (s?.toLowerCase()) {
-    case 'executed':  return 'success';
-    case 'executing': return 'info';
-    case 'estimated': return 'warning';
-    case 'failed':    return 'error';
-    default:          return 'default';
-  }
-};
+
+function getUniqueOrderId(row: TradeLogEntry): string | undefined {
+  return row.uniqueOrderId || (row as any).unique_order_id;
+}
 
 function isCancellable(row: TradeLogEntry): boolean {
   const status = row.status?.toLowerCase();
+  const uid    = getUniqueOrderId(row);
   return (
     row.action === 'PLACE_ORDER' &&
-    (status === 'estimated' || status === 'executing') &&
-    !!row.uniqueOrderId
+    !!uid &&
+    (status === 'success' || status === 'open' ||
+     status === 'estimated' || status === 'executing')
   );
 }
+
+function getCancelBlockReason(row: TradeLogEntry): string {
+  const uid    = getUniqueOrderId(row);
+  const status = row.status?.toLowerCase();
+  if (row.action !== 'PLACE_ORDER') return 'Sirf PLACE orders cancel ho sakte hain';
+  if (!uid)                          return 'Order ID missing — cancel possible nahi';
+  if (status === 'error')            return 'Order place hi nahi hua tha (ERROR)';
+  if (status === 'cancelled')        return 'Yeh order pehle se cancel ho chuka hai';
+  if (status === 'complete' || status === 'executed') return 'Order execute ho chuka hai — cancel nahi ho sakta';
+  return 'Is status mein cancel allowed nahi';
+}
+
+
+const statusColor = ( s?: string): 'default' | 'warning' | 'info' | 'success' | 'error' => {
+  switch (s?.toLowerCase()) {
+    case 'success':
+    case 'executed':
+    case 'complete':   return 'success';
+    case 'executing':
+    case 'open':       return 'info';
+    case 'estimated':  return 'warning';
+    case 'failed':
+    case 'error':      return 'error';
+    case 'cancelled':  return 'default';
+    default:           return 'default';
+  }
+};
 
 
 export const TradeHistoryPage: React.FC = () => {
@@ -50,13 +72,14 @@ export const TradeHistoryPage: React.FC = () => {
   const { data, loading, error, filters } = useAppSelector((s) => s.tradeHistory);
   const user     = useAppSelector((s) => s.auth.user);
   const isMaster = user?.role === 'MASTER';
-  const [typeFilter,  setTypeFilter]  = useState<string>(filters.type || 'All');
-  const [clientInput, setClientInput] = useState<string>(filters.clientCode || '');
-  const [startInput,  setStartInput]  = useState<string>(toInputDate(filters.startDate));
-  const [endInput,    setEndInput]    = useState<string>(toInputDate(filters.endDate));
+  const [typeFilter,   setTypeFilter]   = useState<string>(filters.type || 'All');
+  const [clientInput,  setClientInput]  = useState<string>(filters.clientCode || '');
+  const [startInput,   setStartInput]   = useState<string>(toInputDate(filters.startDate));
+  const [endInput,     setEndInput]     = useState<string>(toInputDate(filters.endDate));
   const [cancelTarget, setCancelTarget] = useState<TradeLogEntry | null>(null);
   const [cancelling,   setCancelling]   = useState(false);
   const [cancelError,  setCancelError]  = useState<string | null>(null);
+  const [cancelSuccess,setCancelSuccess]= useState<string | null>(null);
 
   useEffect(() => {
     dispatch(fetchTradeHistory({}));
@@ -66,7 +89,6 @@ export const TradeHistoryPage: React.FC = () => {
     const sd = toBackendDate(startInput);
     const ed = toBackendDate(endInput);
     const cc = isMaster ? clientInput.trim().toUpperCase() : '';
-
     dispatch(clearError());
     dispatch(setFilters({ type: typeFilter, startDate: sd, endDate: ed, clientCode: cc }));
     dispatch(fetchTradeHistory({
@@ -77,25 +99,46 @@ export const TradeHistoryPage: React.FC = () => {
   };
 
   const handleCancelConfirm = async () => {
-    if (!cancelTarget?.uniqueOrderId) return;
+    const uid        = cancelTarget ? getUniqueOrderId(cancelTarget) : undefined;
+    const clientCode = cancelTarget?.clientCode;
+
+    if (!uid || !clientCode) {
+      setCancelError('Order ID ya Client Code missing — cancel possible nahi');
+      setCancelTarget(null);
+      return;
+    }
     setCancelling(true);
     setCancelError(null);
+    setCancelSuccess(null);
     try {
-      await tradeService.cancelOrder(cancelTarget.uniqueOrderId);
+      const res: any = await brokerService.cancelOrder({
+        clientcode:    clientCode,
+        uniqueorderid: uid,
+      });
+      if (res?.status === 'SUCCESS' || res?.status === 'success') {
+        setCancelSuccess(
+          `Order cancel success— Client: ${clientCode}, Order: ${uid}`
+        );
+      } else {
+        const reason = res?.message || res?.error || 'Unknown reason';
+        setCancelError(`Cancel failed: ${reason}`);
+      }
       setCancelTarget(null);
       applyAndFetch();
     } catch (err: any) {
-      setCancelError(err.message || 'Cancel failed');
+      const msg = err?.response?.data?.message || err?.message || 'Server error';
+      setCancelError(`Cancel: ${msg}`);
+      setCancelTarget(null);
     } finally {
       setCancelling(false);
     }
   };
 
   const filteredData = data.filter((row) => {
-  if (typeFilter === 'BUY')  return row.buyOrSell === 'BUY';
-  if (typeFilter === 'SELL') return row.buyOrSell === 'SELL';
-  return true;
-});
+    if (typeFilter === 'BUY')  return row.buyOrSell === 'BUY';
+    if (typeFilter === 'SELL') return row.buyOrSell === 'SELL';
+    return true;
+  });
 
   const handleClear = () => {
     setTypeFilter('All');
@@ -113,8 +156,8 @@ export const TradeHistoryPage: React.FC = () => {
         <Typography variant="h5" fontWeight={700}>Trade History</Typography>
       </Stack>
 
+      {/* ── Filters ── */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2.5, borderRadius: 2, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-end' }}>
-
         <Box>
           <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Type</Typography>
           <Select size="small" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} sx={{ minWidth: 160 }}>
@@ -127,13 +170,13 @@ export const TradeHistoryPage: React.FC = () => {
         {isMaster && (
           <Box>
             <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>Client Code</Typography>
-            <TextField size="small" placeholder="e.g. SOAR1439" value={clientInput} onChange={(e) => { setClientInput(e.target.value.toUpperCase()); if (error) dispatch(clearError()); }} onKeyDown={(e) => e.key === 'Enter' && applyAndFetch()}  error={!!error && !!clientInput}  sx={{ width: 160 }} />
+            <TextField  size="small" placeholder="e.g. SOAR1439" value={clientInput} onChange={(e) => { setClientInput(e.target.value.toUpperCase()); if (error) dispatch(clearError()); }} onKeyDown={(e) => e.key === 'Enter' && applyAndFetch()} error={!!error && !!clientInput} sx={{ width: 160 }} />
           </Box>
         )}
 
         <Box>
           <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>From</Typography>
-          <TextField type="date" size="small" value={startInput} onChange={(e) => setStartInput(e.target.value)} sx={{ width: 170 }}  inputProps={{ max: endInput || undefined }} />
+          <TextField type="date" size="small" value={startInput} onChange={(e) => setStartInput(e.target.value)} sx={{ width: 170 }} inputProps={{ max: endInput || undefined }} />
         </Box>
 
         <Box>
@@ -141,27 +184,33 @@ export const TradeHistoryPage: React.FC = () => {
           <TextField type="date" size="small" value={endInput} onChange={(e) => setEndInput(e.target.value)} sx={{ width: 170 }} inputProps={{ min: startInput || undefined }} />
         </Box>
 
-        <Button variant='contained' size="small" onClick={applyAndFetch} sx={{ textTransform: 'none', height: 40,bgcolor:'#1a2b5c',color:'white' }}>
-          Apply
-        </Button>
-        <Button variant='outlined' size="small" onClick={handleClear} sx={{ textTransform: 'none', height: 40 ,color:'#1a2b5c',border:'1px solid #1a2b5c'}}>
-          Clear
-        </Button>
+        <Button variant="contained" size="small" onClick={applyAndFetch} sx={{ textTransform: 'none', height: 40, bgcolor: '#1a2b5c', color: 'white' }}>Apply</Button>
+        <Button variant="outlined"  size="small" onClick={handleClear}   sx={{ textTransform: 'none', height: 40, color: '#1a2b5c', border: '1px solid #1a2b5c' }}>Clear</Button>
       </Paper>
 
+      {/* ── Alerts ── */}
       {error && (
-        <Alert severity="error" icon={<AlertCircle size={18} />} onClose={() => dispatch(clearError())}   sx={{ mb: 2, borderRadius: 2 }}>  {error}</Alert>
+        <Alert severity="error" icon={<AlertCircle size={18} />} onClose={() => dispatch(clearError())} sx={{ mb: 2, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {cancelSuccess && (
+        <Alert severity="success" onClose={() => setCancelSuccess(null)} sx={{ mb: 2, borderRadius: 2 }}>
+          {cancelSuccess}
+        </Alert>
       )}
 
       {cancelError && (
-        <Chip color="error" label={`Cancel failed: ${cancelError}`} onDelete={() => setCancelError(null)} sx={{ mb: 2 }} />
+        <Alert severity="error" onClose={() => setCancelError(null)} sx={{ mb: 2, borderRadius: 2 }}>
+          {cancelError}
+        </Alert>
       )}
 
+      {/* ── Table ── */}
       <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
-          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
         ) : error ? (
           <Box sx={{ textAlign: 'center', py: 6 }}>
             <Typography color="error" fontWeight={600} mb={1}>Invalid Client Code</Typography>
@@ -181,62 +230,70 @@ export const TradeHistoryPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredData.map((row, i) => (
-                <TableRow key={row.id || i} hover sx={{ '&:last-child td': { border: 0 } }}>
+              {filteredData.map((row, i) => {
+                const cancellable = isCancellable(row);
+                const blockReason = cancellable ? '' : getCancelBlockReason(row);
 
-                  <TableCell>
-                    <Typography variant="body2" fontFamily="monospace">{row.clientCode || '—'}</Typography>
-                  </TableCell>
+                return (
+                  <TableRow key={row.id || i} hover sx={{ '&:last-child td': { border: 0 } }}>
+                    <TableCell>
+                      <Typography variant="body2" fontFamily="monospace">{row.clientCode || '—'}</Typography>
+                    </TableCell>
 
-                  <TableCell>{row.clientName || 'Not Found'}</TableCell>
+                    <TableCell>{row.clientName || '—'}</TableCell>
 
-                  <TableCell>
-                    <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small" color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined" />
-                  </TableCell>
-                  <TableCell> {row.buyOrSell ? ( 
-                    <Chip label={row.buyOrSell} size="small" color={row.buyOrSell === 'BUY' ? 'success' : 'error'} variant="outlined"/>) : '—'}
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>
-                      {row.symbol || '—'}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.uniqueOrderId || 'Invalid Order'}</Typography>
-                  </TableCell>
-                
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    {row.createdAt ? new Date(row.createdAt).toLocaleString('en-IN', {
-                      day: '2-digit', month: 'short', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    }) : '—'}
-                  </TableCell>
+                    <TableCell>
+                      <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small"  color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined"  />
+                    </TableCell>
 
-                  <TableCell>
-                    <Chip label={row.status || 'Unknown'} size="small" color={statusColor(row.status)} />
-                  </TableCell>
+                    <TableCell>
+                      {row.buyOrSell
+                        ? <Chip label={row.buyOrSell} size="small" color={row.buyOrSell === 'BUY' ? 'success' : 'error'} variant="outlined" />
+                        : '—'}
+                    </TableCell>
 
-                  <TableCell>{row.quantity || '—'}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.symbol || '—'}</Typography>
+                    </TableCell>
 
-                  <TableCell>
-                    <Tooltip title={isCancellable(row) ? 'Cancel this order' : 'Cannot cancel'}>
-                      <span>
-                        <IconButton size="small" color="error" disabled={!isCancellable(row)}  onClick={() => { setCancelError(null); setCancelTarget(row); }} >
-                          <XCircle size={16} />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontFamily="monospace" fontSize={11}>
+                        {getUniqueOrderId(row) || 'Invalid Order'}
+                      </Typography>
+                    </TableCell>
 
-                </TableRow>
-              ))}
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      {row.createdAt
+                        ? new Date(row.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        : '—'}
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip label={row.status || 'Unknown'} size="small" color={statusColor(row.status)} />
+                    </TableCell>
+
+                    <TableCell>{row.quantity || '—'}</TableCell>
+
+                    <TableCell>
+                      <Tooltip title={cancellable ? `Cancel: ${row.clientCode} — ${getUniqueOrderId(row)}` : blockReason}>
+                        <span>
+                          <IconButton size="small" color="error" disabled={!cancellable} onClick={() => { setCancelError(null); setCancelSuccess(null); setCancelTarget(row); }} >
+                            <XCircle size={16} />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
       </TableContainer>
 
       {cancelTarget && (
-        <CancelModal row={cancelTarget} onConfirm={handleCancelConfirm}onClose={() => { if (!cancelling) setCancelTarget(null); }} loading={cancelling}/>
+        <CancelModal row={cancelTarget} onConfirm={handleCancelConfirm}  onClose={() => { if (!cancelling) setCancelTarget(null); }} loading={cancelling} />
       )}
     </Box>
   );
