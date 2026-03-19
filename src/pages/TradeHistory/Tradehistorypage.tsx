@@ -237,10 +237,10 @@ export const TradeHistoryPage: React.FC = () => {
                 return (
                   <TableRow key={row.id || i} hover sx={{ '&:last-child td': { border: 0 } }}>
                     <TableCell>
-                      <Typography variant="body2" fontFamily="monospace">{row.clientCode || '—'}</Typography>
+                      <Typography variant="body2" fontFamily="monospace">{row.clientCode || 'Invalid code'}</Typography>
                     </TableCell>
 
-                    <TableCell>{row.clientName || '—'}</TableCell>
+                    <TableCell>{row.clientName || 'Invalid client'}</TableCell>
 
                     <TableCell>
                       <Chip label={row.action === 'PLACE_ORDER' ? 'PLACE' : row.action === 'CANCEL_ORDER' ? 'CANCEL' : row.action || '—'} size="small"  color={row.action === 'PLACE_ORDER' ? 'success' : row.action === 'CANCEL_ORDER' ? 'error' : 'default'} variant="outlined"  />
@@ -253,7 +253,7 @@ export const TradeHistoryPage: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.symbol || '—'}</Typography>
+                      <Typography variant="body2" fontFamily="monospace" fontSize={11}>{row.symbol || 'Invalid symbol'}</Typography>
                     </TableCell>
 
                     <TableCell>
@@ -269,7 +269,7 @@ export const TradeHistoryPage: React.FC = () => {
                     </TableCell>
 
                     <TableCell>
-                      <Chip label={row.status || 'Unknown'} size="small" color={statusColor(row.status)} />
+                      <Chip label={row.status || 'Unknown'} size="small" color={statusColor(row.status)} sx={{ width:'5.5rem' ,textAlign:'center'}} />
                     </TableCell>
 
                     <TableCell>{row.quantity || '—'}</TableCell>
