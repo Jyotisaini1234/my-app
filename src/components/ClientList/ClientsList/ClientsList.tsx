@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import RefreshIcon            from '@mui/icons-material/Refresh';
-import PowerSettingsNewIcon   from '@mui/icons-material/PowerSettingsNew';
-import ExpandMoreIcon         from '@mui/icons-material/ExpandMore';
-import ChevronRightIcon       from '@mui/icons-material/ChevronRight';
-import DeleteOutlineIcon      from '@mui/icons-material/DeleteOutline';
-import PersonAddAltIcon       from '@mui/icons-material/PersonAddAlt';
-import AddIcon                from '@mui/icons-material/Add';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import AddIcon from '@mui/icons-material/Add';
 import './ClientsList.scss';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { fetchClients, authenticateAllClients } from '../../../store/slice/clientsSlice/clientsSlice';
 import { setSelectedClients } from '../../../store/slice/bulkTradeSlice/bulkTradeSlice';
 import { Spinner } from '../../common/Spinner/Spinner';
-import { NavPage } from '../../../types/type';
-import { useFetchGroupsQuery, useDeleteGroupMutation, GroupEntry } from '../../../store/slice/groupsSlice/groupsSlice';
+import { GroupEntry, NavPage } from '../../../types/type';
+import { useFetchGroupsQuery, useDeleteGroupMutation } from '../../../store/slice/groupsSlice/groupsSlice';
 import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
 import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
 import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
 import { useToast }         from '../../../context/ToastContext/Toastcontext';
-import { UserInfo, UserPortal } from '../Userportal/Userportal';
+import { UserPortal } from '../Userportal/Userportal';
+import { UserInfo } from '../../../types/profile';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }
 

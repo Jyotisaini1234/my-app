@@ -50,7 +50,6 @@ const SymbolSearch: React.FC<SymbolSearchProps> = ({ exchange, masterClientCode,
       setSuggestions(list.slice(0, 10));
       setOpen(list.length > 0);
     } catch (err) {
-      console.error('Symbol search error:', err);
       setSuggestions([]);
     } finally {
       setLoading(false);

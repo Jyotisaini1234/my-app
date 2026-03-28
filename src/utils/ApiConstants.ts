@@ -1,5 +1,5 @@
-export const BROKER_BASE = 'https://partners.2xrealty.com/trade/broker';
-export const TRADE_BASE  = 'https://partners.2xrealty.com/trade';
+export const BROKER_BASE = process.env.REACT_APP_BROKER_BASE || 'https://partners.2xrealty.com/trade/broker';
+export const TRADE_BASE  = process.env.REACT_APP_TRADE_BASE  || 'https://partners.2xrealty.com/trade';
 
 export const API_ENDPOINTS = {
 
@@ -14,7 +14,6 @@ export const API_ENDPOINTS = {
     UPDATE_FIELD:     (code: string) => `/api/client/update-field/${code}`,
     DELETE:           (code: string) => `/api/client/delete/${code}`,
     DETAILS_ENRICHED: (code: string) => `/api/client/details/${code}/enriched`,
-
   },
 
   BROKER: {
@@ -26,24 +25,26 @@ export const API_ENDPOINTS = {
   },
 
   TRADE: {
-    PLACE_ORDER:   '/api/trade/place-order',
-    CANCEL_ORDER:  '/api/trade/cancel-order-all',  
-    HEALTH:        '/api/trade/health',
-    CONFIG:        '/api/trade/config',
+    PLACE_ORDER:  '/api/trade/place-order',
+    CANCEL_ORDER: '/api/trade/cancel-order-all',
+    HEALTH:       '/api/trade/health',
+    CONFIG:       '/api/trade/config',
   },
- NOTIFICATIONS: {
+
+  NOTIFICATIONS: {
     SUBSCRIBE: (clientCode: string) =>
       `/api/notifications/subscribe?clientCode=${encodeURIComponent(clientCode)}`,
   },
+
   LOGS: {
-    TRACE:           (id: string)   => `/api/logs/trace/${id}`,
-    SPAN:            (id: string)   => `/api/logs/span/${id}`,
-    TRACE_SPAN:      (t: string, s: string) => `/api/logs/trace/${t}/span/${s}`,
-    CLIENT:          (code: string) => `/api/logs/client/${code}`,
-    CLIENT_NAME:     (name: string) => `/api/logs/client-name/${name}`,
-    CLIENT_GROUPED:  (code: string) => `/api/logs/client/${code}/grouped`,
-    DATA_ALL:        '/api/logs/data/all',
-    DATA_COUNT:      '/api/logs/data/count',
+    TRACE:          (id: string)            => `/api/logs/trace/${id}`,
+    SPAN:           (id: string)            => `/api/logs/span/${id}`,
+    TRACE_SPAN:     (t: string, s: string)  => `/api/logs/trace/${t}/span/${s}`,
+    CLIENT:         (code: string)          => `/api/logs/client/${code}`,
+    CLIENT_NAME:    (name: string)          => `/api/logs/client-name/${name}`,
+    CLIENT_GROUPED: (code: string)          => `/api/logs/client/${code}/grouped`,
+    DATA_ALL:       '/api/logs/data/all',
+    DATA_COUNT:     '/api/logs/data/count',
   },
 
   EXPORT: {

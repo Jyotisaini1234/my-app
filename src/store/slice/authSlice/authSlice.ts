@@ -1,43 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { BROKER_BASE, API_ENDPOINTS } from '../../../utils/ApiConstants';
+import { BROKER_BASE, TRADE_BASE, API_ENDPOINTS } from '../../../utils/ApiConstants';
+import { AuthState, AuthView } from '../../../types/type';
 
-const AUTH_BASE = 'https://partners.2xrealty.com/trade/api/auth';
+const AUTH_BASE = `${TRADE_BASE}/api/auth`;
 
-export interface AuthUser {
-  id: string;
-  clientCode: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  address: string;
-  role: string;
-  status: string;
-  lastLoginAt?: string;
-}
-
-export interface PendingSignup {
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  password: string;
-}
-
-export type AuthView = 'login' | 'forgot';
-
-export interface AuthState {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  loading: boolean;
-  error: string | null;
-  otpSent: boolean;
-  resetToken: string | null;
-  forgotEmail: string | null;
-  forgotStep: 1 | 2 | 3;
-  authView: AuthView;
-  pendingSignup: PendingSignup | null;
-}
 
 const fetchWithTimeout = (url: string, options: RequestInit, timeoutMs = 15000): Promise<Response> => {
   const controller = new AbortController();
@@ -91,7 +57,6 @@ const fetchProfileNameAsync = async (clientCode: string): Promise<string> => {
   }
 };
 
-// ─── Thunks ───────────────────────────────────────────────────────────────────
 
 export const loginThunk = createAsyncThunk('auth/login',
   async (payload: { identifier: string; password: string }, { rejectWithValue, dispatch }) => {
@@ -99,7 +64,9 @@ export const loginThunk = createAsyncThunk('auth/login',
       const loginData  = await apiPost('/login', payload);
       const clientCode = loginData.clientCode ?? '';
       if (clientCode) {
-        fetchProfileNameAsync(clientCode).then(realName => dispatch(updateUserName(realName)));
+        fetchProfileNameAsync(clientCode)
+          .then(realName => dispatch(updateUserName(realName)))
+          .catch(() => {});
       }
       return { ...loginData, realName: clientCode };
     } catch (e: any) {
@@ -115,7 +82,9 @@ export const validateSessionThunk = createAsyncThunk('auth/validateSession',
       if (sessionData.authenticated && sessionData.user) {
         const clientCode = sessionData.user.clientCode ?? sessionData.user.id ?? '';
         if (clientCode) {
-          fetchProfileNameAsync(clientCode).then(realName => dispatch(updateUserName(realName)));
+          fetchProfileNameAsync(clientCode)
+            .then(realName => dispatch(updateUserName(realName)))
+            .catch(() => {});
         }
         return { ...sessionData, realName: clientCode };
       }
@@ -140,9 +109,6 @@ export const verifySignupOtpThunk = createAsyncThunk('auth/verifySignupOtp',
   }
 );
 
-// ── Forgot Password Thunks (FIXED endpoints) ──────────────────────────────────
-
-// Step 1: POST /forgot-password  →  { email }
 export const sendForgotOtpThunk = createAsyncThunk('auth/sendForgotOtp',
   async (email: string, { rejectWithValue }) => {
     try { return await apiPost('/forgot-password', { email }); }
@@ -150,19 +116,17 @@ export const sendForgotOtpThunk = createAsyncThunk('auth/sendForgotOtp',
   }
 );
 
-// Step 2: POST /verify-forgot-otp  →  { email, otp }
 export const verifyForgotOtpThunk = createAsyncThunk('auth/verifyForgotOtp',
   async (payload: { identifier: string; otp: string }, { rejectWithValue }) => {
     try {
       return await apiPost('/verify-forgot-otp', {
-        email: payload.identifier,   // backend expects "email" key
+        email: payload.identifier,
         otp:   payload.otp,
       });
     } catch (e: any) { return rejectWithValue(e.message); }
   }
 );
 
-// Step 3: POST /reset-password  →  { email, resetToken, newPassword }
 export const resetPasswordThunk = createAsyncThunk('auth/resetPassword',
   async (payload: { email: string; resetToken: string; newPassword: string }, { rejectWithValue }) => {
     try { return await apiPost('/reset-password', payload); }
@@ -170,16 +134,12 @@ export const resetPasswordThunk = createAsyncThunk('auth/resetPassword',
   }
 );
 
-// Resend OTP: forgot password ke liye dobara /forgot-password call karo
 export const resendOtpThunk = createAsyncThunk('auth/resendOtp',
   async (payload: { email: string; purpose: 'signup' | 'forgot-password' | 'login' }, { rejectWithValue }) => {
     try {
-      // Backend mein alag resend endpoint nahi hai
-      // Forgot password ke liye same /forgot-password endpoint dobara call karo
       if (payload.purpose === 'forgot-password') {
         return await apiPost('/forgot-password', { email: payload.email });
       }
-      // Signup ke liye
       return await apiPost('/send-signup-otp', { email: payload.email });
     } catch (e: any) { return rejectWithValue(e.message); }
   }
@@ -199,7 +159,6 @@ export const refreshTokenThunk = createAsyncThunk('auth/refreshToken',
   }
 );
 
-// ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState: AuthState = {
   user: null,
@@ -214,7 +173,6 @@ const initialState: AuthState = {
   pendingSignup: null,
 };
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
 
 const authSlice = createSlice({
   name: 'auth',

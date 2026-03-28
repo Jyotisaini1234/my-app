@@ -104,7 +104,7 @@ export const startSseConnection = createAsyncThunk<
           const payload: SsePayload = JSON.parse(event.data as string);
           onMessage(payload);
         } catch (err) {
-          console.error('[SSE] Payload parse error:', err);
+          // console.error('[SSE] Payload parse error:', err);
         }
       });
 

@@ -2,7 +2,6 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { BulkTradeState, BulkTradeResponse, OrderRequest } from '../../../types/type';
 import { tradeService } from '../../../services/api';
 
-// ─── Async Thunks ─────────────────────────────────────────────────────────────
 
 export const placeOrderForAll = createAsyncThunk(
   'bulkTrade/placeOrder',

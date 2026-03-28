@@ -32,7 +32,6 @@ export const clientService = {
   details: (clientCode: string) =>
     request(`${BROKER_BASE}${API_ENDPOINTS.CLIENT.DETAILS(clientCode)}`),
 
-  // ✅ FIX: email, phone, authorization, totpToken added to type + body
   add: (data: {
     clientCode:     string;
     userId:         string;
@@ -59,7 +58,6 @@ export const clientService = {
         twoFa:       data.twoFa         ?? '',
         active:      data.active        ?? true,
         master:      data.master        ?? false,
-        // ✅ yeh fields pehle body mein the hi nahi — isliye save nahi ho rahe the
         ...(data.email         ? { email:         data.email }         : {}),
         ...(data.phone         ? { phone:         data.phone }         : {}),
         ...(data.authorization ? { authorization: data.authorization } : {}),
@@ -201,29 +199,6 @@ export const exportService = {
 
   listRemote: () =>
     request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.LIST_REMOTE}`),
-
-  downloadRemote: (filename: string) =>
-    fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DOWNLOAD_REMOTE(filename)}`, {
-      credentials: 'include',
-    }),
-
-  uploadArchive: (file: File) => {
-    const form = new FormData();
-    form.append('file', file);
-    return fetch(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.UPLOAD_ARCHIVE}`, {
-      method: 'POST',
-      credentials: 'include',
-      body: form,
-    }).then((r) => {
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r.json();
-    });
-  },
-
-  deleteRemote: (filename: string) =>
-    request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.DELETE_REMOTE(filename)}`, {
-      method: 'DELETE',
-    }),
 
   restoreArchive: (filename: string) =>
     request(`${TRADE_BASE}${API_ENDPOINTS.EXPORT.RESTORE_ARCHIVE(filename)}`, {

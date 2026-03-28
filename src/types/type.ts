@@ -1,3 +1,98 @@
+
+export interface AuthUser {
+  id: string;
+  clientCode: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  address: string;
+  role: string;
+  status: string;
+  lastLoginAt?: string;
+}
+
+export interface PendingSignup {
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  password: string;
+}
+
+export type AuthView = 'login' | 'forgot';
+
+export interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+  otpSent: boolean;
+  resetToken: string | null;
+  forgotEmail: string | null;
+  forgotStep: 1 | 2 | 3;
+  authView: AuthView;
+  pendingSignup: PendingSignup | null;
+}
+
+
+
+
+
+export interface ClientDetails {
+  client_code: string;
+  user_id: string;
+  is_active: boolean;
+  is_master: boolean;
+  email?: string;
+  phone?: number;
+  is_authenticated: boolean;
+  last_login?: string;
+  token_expiry?: string;
+}
+
+export interface GroupEntry {
+  group_id: string;
+  group_name: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  client_codes?: string[];
+  client_count?: number;
+  clients: Record<string, ClientDetails>;
+}
+
+export interface GroupsListResponse {
+  status: string;
+  total: number;
+  groups: Record<string, GroupEntry>;
+}
+
+export interface GroupResponse {
+  status: string;
+  message?: string;
+  data: GroupEntry;
+}
+
+export interface CreateGroupPayload {
+  group_name: string;
+  created_by: string;
+  client_codes?: string[];
+}
+
+export interface AddRemoveClientsPayload {
+  groupName: string;
+  client_codes: string[];
+}
+
+export interface RenameGroupPayload {
+  groupName: string;
+  new_name: string;
+}
+
+
+
+
 export interface TimelineResponse {
   status: string;
   totalLogs: number;

@@ -1,19 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  FolderArchive, Download, Upload, Trash2, RefreshCw,
-  HardDrive, FileArchive, CheckCircle, XCircle, Loader2, Info,
-} from 'lucide-react';
+import {FolderArchive, Download, Upload, Trash2, RefreshCw,HardDrive, FileArchive, CheckCircle, XCircle, Loader2, Info,} from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import {
-  fetchArchiveList, fetchLokiStatus,
-  downloadArchive, deleteArchive, uploadArchive,
-} from '../../store/slice/logExportSlice/logExportSlice';
+import { fetchArchiveList, fetchLokiStatus,downloadArchive, deleteArchive, uploadArchive,} from '../../store/slice/logExportSlice/logExportSlice';
 import './LogExportPage.scss';
 
 type ToastType = 'success' | 'error' | 'info';
 interface Toast { id: number; msg: string; type: ToastType; }
 let toastId = 0;
 
+function parseSizeToBytes(sizeStr: string): number {
+  if (!sizeStr) return 0;
+  const s = sizeStr.trim().toUpperCase();
+  const num = parseFloat(s);
+  if (isNaN(num)) return 0;
+  if (s.endsWith('G')) return num * 1024 * 1024 * 1024;
+  if (s.endsWith('M')) return num * 1024 * 1024;
+  if (s.endsWith('K')) return num * 1024;
+  return num; // raw bytes
+}
+ 
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  if (bytes >= 1024 * 1024)        return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  if (bytes >= 1024)               return `${(bytes / 1024).toFixed(2)} KB`;
+  return `${bytes} B`;
+}
 export const LogExportPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { files, lokiStatus, isFetched, loadingList, loadingStatus, actionTarget, actionType, error } =
@@ -22,15 +33,18 @@ export const LogExportPage: React.FC = () => {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [toasts, setToasts]               = useState<Toast[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const totalArchiveSize: string = (() => {
+    if (loadingList || files.length === 0) return '—';
+    const totalBytes = files.reduce((acc, f) => acc + parseSizeToBytes(f.size), 0);
+    return formatBytes(totalBytes);
+  })();
 
-  // Sirf pehli baar fetch karo
   useEffect(() => {
     if (isFetched) return;
     dispatch(fetchArchiveList());
     dispatch(fetchLokiStatus());
   }, [isFetched, dispatch]);
 
-  // Slice error aane pr toast dikhao
   useEffect(() => {
     if (error) toast(error, 'error');
   }, [error]);
@@ -94,19 +108,11 @@ export const LogExportPage: React.FC = () => {
           </div>
         </div>
         <div className="log-export__header-actions">
-          <button
-            className="btn btn--ghost"
-            onClick={() => { dispatch(fetchArchiveList()); dispatch(fetchLokiStatus()); }}
-            disabled={loadingList}
-          >
+          <button className="btn btn--ghost"  onClick={() => { dispatch(fetchArchiveList()); dispatch(fetchLokiStatus()); }} disabled={loadingList}>
             <RefreshCw size={13} className={loadingList ? 'spin' : ''} />
             Refresh
           </button>
-          <button
-            className="btn btn--primary"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={actionType === 'upload'}
-          >
+          <button className="btn btn--primary" onClick={() => fileInputRef.current?.click()} disabled={actionType === 'upload'} >
             {actionType === 'upload' ? <Loader2 size={13} className="spin" /> : <Upload size={13} />}
             {actionType === 'upload' ? 'Uploading…' : 'Upload'}
           </button>
@@ -120,7 +126,9 @@ export const LogExportPage: React.FC = () => {
           <div className="status-card__icon status-card__icon--blue"><HardDrive size={16} /></div>
           <div>
             <span className="status-card__label">Chunks Size</span>
-            <span className="status-card__value">{loadingStatus ? '…' : (lokiStatus?.chunksSize ?? '—')}</span>
+             <span className="status-card__value">
+              {loadingList ? '…' : totalArchiveSize}
+            </span>
           </div>
         </div>
         <div className="status-card">
@@ -162,22 +170,12 @@ export const LogExportPage: React.FC = () => {
                   <span title={f.filename}>{f.filename}</span>
                 </div>
                 <div className="archive-table__actions">
-                  <button
-                    className="action-btn action-btn--download"
-                    onClick={() => handleDownload(f.filename)}
-                    disabled={isBusy(f.filename)}
-                    title="Download"
-                  >
+                  <button className="action-btn action-btn--download" onClick={() => handleDownload(f.filename)} disabled={isBusy(f.filename)} title="Download" >
                     {isBusy(f.filename) && actionType === 'download'
                       ? <Loader2 size={12} className="spin" /> : <Download size={12} />}
                     Download
                   </button>
-                  <button
-                    className="action-btn action-btn--delete"
-                    onClick={() => setConfirmDelete(f.filename)}
-                    disabled={isBusy(f.filename)}
-                    title="Delete"
-                  >
+                  <button className="action-btn action-btn--delete"  onClick={() => setConfirmDelete(f.filename)} disabled={isBusy(f.filename)} title="Delete" >
                     {isBusy(f.filename) && actionType === 'delete'
                       ? <Loader2 size={12} className="spin" /> : <Trash2 size={12} />}
                     Delete

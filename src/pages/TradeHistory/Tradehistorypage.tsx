@@ -42,12 +42,12 @@ function isCancellable(row: TradeLogEntry): boolean {
 function getCancelBlockReason(row: TradeLogEntry): string {
   const uid    = getUniqueOrderId(row);
   const status = row.status?.toLowerCase();
-  if (row.action !== 'PLACE_ORDER') return 'Sirf PLACE orders cancel ho sakte hain';
-  if (!uid)                          return 'Order ID missing — cancel possible nahi';
-  if (status === 'error')            return 'Order place hi nahi hua tha (ERROR)';
-  if (status === 'cancelled')        return 'Yeh order pehle se cancel ho chuka hai';
-  if (status === 'complete' || status === 'executed') return 'Order execute ho chuka hai — cancel nahi ho sakta';
-  return 'Is status mein cancel allowed nahi';
+  if (row.action !== 'PLACE_ORDER') return 'Only PLACE orders can be cancelled';
+  if (!uid)                          return 'Order ID missing — cancel not possible';
+  if (status === 'error')            return 'Order was never placed (ERROR)';
+  if (status === 'cancelled')        return 'This order is already cancelled';
+  if (status === 'complete' || status === 'executed') return 'Order has been executed — cannot be cancelled';
+  return 'Cancel not allowed in this status';
 }
 
 
@@ -103,7 +103,7 @@ export const TradeHistoryPage: React.FC = () => {
     const clientCode = cancelTarget?.clientCode;
 
     if (!uid || !clientCode) {
-      setCancelError('Order ID ya Client Code missing — cancel possible nahi');
+      setCancelError('Order ID or Client Code missing — cancel not possible');
       setCancelTarget(null);
       return;
     }
@@ -117,7 +117,7 @@ export const TradeHistoryPage: React.FC = () => {
       });
       if (res?.status === 'SUCCESS' || res?.status === 'success') {
         setCancelSuccess(
-          `Order cancel success— Client: ${clientCode}, Order: ${uid}`
+          `Order cancelled successfully — Client: ${clientCode}, Order: ${uid}`
         );
       } else {
         const reason = res?.message || res?.error || 'Unknown reason';
@@ -127,7 +127,7 @@ export const TradeHistoryPage: React.FC = () => {
       applyAndFetch();
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Server error';
-      setCancelError(`Cancel: ${msg}`);
+      setCancelError(`Cancel failed: ${msg}`);
       setCancelTarget(null);
     } finally {
       setCancelling(false);

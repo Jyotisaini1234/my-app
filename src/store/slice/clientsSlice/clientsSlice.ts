@@ -4,7 +4,6 @@ import { clientService } from '../../../services/api';
 import { RootState } from '../../store';
 import { BROKER_BASE } from '../../../utils/ApiConstants';
 
-// ── Helper ────────────────────────────────────────────────────────────────────
 const toClientMap = (input: Client[] | Record<string, Client>): Record<string, Client> => {
   if (Array.isArray(input)) {
     return input.reduce((acc, c) => {
@@ -20,18 +19,18 @@ const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
   const res = await fetch(url, {
     method:  'GET',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Enriched fetch failed: ${res.status}`);
+    throw new Error(`Enriched fetch failed: ${res.status} — ${text}`); 
   }
   const json = await res.json();
   if (json?.data) return json.data as Client;
   return json as Client;
 };
 
-// ── Thunks ────────────────────────────────────────────────────────────────────
 
 export const fetchClients = createAsyncThunk(
   'clients/fetchAll',
@@ -39,16 +38,12 @@ export const fetchClients = createAsyncThunk(
     try {
       const state = getState() as RootState;
       const user  = state.auth.user;
-
-      // USER — fetch enriched single client
       if (user && user.role !== 'MASTER') {
         const clientCode = user.clientCode || user.id;
         if (!clientCode) return rejectWithValue('No client code linked to your account.');
         const clientData = await fetchEnrichedClient(clientCode);
         return { [clientCode]: clientData } as Record<string, Client>;
       }
-
-      // MASTER — fetch all clients (enriched from /api/client/list)
       const res = await clientService.list();
       return toClientMap(res.clients);
 
@@ -134,7 +129,6 @@ export const deleteClient = createAsyncThunk(
   }
 );
 
-// ── Slice ─────────────────────────────────────────────────────────────────────
 
 const initialState: ClientsState = {
   data: {},

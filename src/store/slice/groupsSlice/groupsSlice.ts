@@ -1,58 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BROKER_BASE } from '../../../utils/ApiConstants'; 
 import { RootState } from '../../store';
+import { GroupEntry, GroupsListResponse, GroupResponse, CreateGroupPayload, AddRemoveClientsPayload, RenameGroupPayload } from '../../../types/type';
 
-
-export interface ClientDetails {
-  client_code: string;
-  user_id: string;
-  is_active: boolean;
-  is_master: boolean;
-  email?: string;
-  phone?: number;
-  is_authenticated: boolean;
-  last_login?: string;
-  token_expiry?: string;
-}
-
-export interface GroupEntry {
-  group_id: string;
-  group_name: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  client_codes?: string[];
-  client_count?: number;
-  clients: Record<string, ClientDetails>;
-}
-
-export interface GroupsListResponse {
-  status: string;
-  total: number;
-  groups: Record<string, GroupEntry>;
-}
-
-export interface GroupResponse {
-  status: string;
-  message?: string;
-  data: GroupEntry;
-}
-
-export interface CreateGroupPayload {
-  group_name: string;
-  created_by: string;
-  client_codes?: string[];
-}
-
-export interface AddRemoveClientsPayload {
-  groupName: string;
-  client_codes: string[];
-}
-
-export interface RenameGroupPayload {
-  groupName: string;
-  new_name: string;
-}
 
 export const groupApi = createApi({
   reducerPath: 'groupApi',

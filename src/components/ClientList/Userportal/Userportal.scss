@@ -1,47 +1,61 @@
 @import '../../../styles/variables';
 
-// ─── shared animations ────────────────────────────────────────────────────────
-.spin { animation: spin .8s linear infinite; }
+// ─── Animations ───────────────────────────────────────────────────────────────
+
+.spin { animation: spin 0.8s linear infinite; }
 
 @keyframes spin   { to { transform: rotate(360deg); } }
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(.5rem); }
+  from { opacity: 0; transform: translateY(0.5rem); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes pulse  { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 @keyframes slideIn {
-  from { opacity: 0; transform: translateY(-.25rem); }
+  from { opacity: 0; transform: translateY(-0.2rem); }
   to   { opacity: 1; transform: none; }
 }
 
-// ─── button base ──────────────────────────────────────────────────────────────
-%up-btn-base {
+%btn {
   display: inline-flex;
   align-items: center;
-  gap: .375rem;
-  border: none;
-  cursor: pointer;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.875rem;
+  border-radius: $radius-sm;
+  font-size: 0.8125rem;
   font-weight: 600;
+  cursor: pointer;
+  border: none;
   transition: $transition;
   white-space: nowrap;
-  &:disabled { opacity: .45; cursor: not-allowed; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
   svg { font-size: 1rem !important; }
 }
 
+// ─── Motilal / Shoonya brand colours ─────────────────────────────────────────
+// Used throughout — defined once here for easy update
+$mo-color:   #534ab7;
+$mo-bg:      rgba(#534ab7, 0.08);
+$mo-border:  rgba(#534ab7, 0.2);
+$sh-color:   #0f6e56;
+$sh-bg:      rgba(#0f6e56, 0.08);
+$sh-border:  rgba(#0f6e56, 0.2);
+
 // ═══════════════════════════════════════════════════════════════════════════════
-//  USER PORTAL   .up
+// USER PORTAL (.up)
 // ═══════════════════════════════════════════════════════════════════════════════
+
 .up {
-  max-width: 28rem;
+  max-width: 44rem;
   margin: 0 auto;
   border-radius: $radius-lg;
   overflow: hidden;
   border: 1px solid $border;
   background: $bg-card;
   box-shadow: $shadow-elevated;
-  animation: fadeUp .35s ease both;
+  animation: fadeUp 0.35s ease both;
 
   // ── Hero ─────────────────────────────────────────────────────────────────────
+
   &__hero {
     padding: 1.5rem 1.5rem 2rem;
     background: linear-gradient(140deg, $primary-dark 0%, $primary 55%, $primary-light 100%);
@@ -54,8 +68,10 @@
       inset: 0;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 85% 15%, rgba($accent, .22) 0%, transparent 50%),
-        repeating-linear-gradient(45deg, rgba(#fff, .025) 0, rgba(#fff, .025) 1px, transparent 0, transparent 50%);
+        radial-gradient(ellipse at 85% 15%, rgba($accent, 0.22) 0%, transparent 50%),
+        repeating-linear-gradient(45deg,
+          rgba(#fff, 0.025) 0, rgba(#fff, 0.025) 1px,
+          transparent 0, transparent 50%);
       background-size: auto, 1.5rem 1.5rem;
     }
   }
@@ -72,38 +88,38 @@
   &__badge {
     display: inline-flex;
     align-items: center;
-    gap: .3rem;
-    padding: .25rem .75rem;
+    gap: 0.3rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 2rem;
-    background: rgba(#fff, .12);
-    border: 1px solid rgba(#fff, .18);
-    font-size: .6875rem;
+    background: rgba(#fff, 0.12);
+    border: 1px solid rgba(#fff, 0.18);
+    font-size: 0.6875rem;
     font-weight: 700;
-    color: rgba(#fff, .88);
-    letter-spacing: .07em;
+    color: rgba(#fff, 0.88);
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    svg { font-size: .55rem !important; color: $accent; animation: pulse 2s ease infinite; }
+    svg { font-size: 0.55rem !important; color: $accent; animation: pulse 2s ease infinite; }
   }
 
   &__chip {
     display: inline-flex;
     align-items: center;
-    gap: .25rem;
-    padding: .2rem .625rem;
+    gap: 0.25rem;
+    padding: 0.2rem 0.625rem;
     border-radius: 2rem;
-    font-size: .625rem;
+    font-size: 0.625rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .05em;
-    svg { font-size: .85rem !important; }
-    &--on  { background: rgba($success, .22); color: #86efac; border: 1px solid rgba($success, .3); }
-    &--off { background: rgba($error, .22);   color: #fca5a5; border: 1px solid rgba($error, .3);   }
+    letter-spacing: 0.05em;
+    svg { font-size: 0.85rem !important; }
+    &--on  { background: rgba($success, 0.22); color: #86efac; border: 1px solid rgba($success, 0.3); }
+    &--off { background: rgba($error,   0.22); color: #fca5a5; border: 1px solid rgba($error,   0.3); }
   }
 
   &__identity {
     display: flex;
     align-items: center;
-    gap: .875rem;
+    gap: 0.875rem;
     position: relative;
     z-index: 1;
   }
@@ -111,7 +127,7 @@
   &__avatar {
     width: 3.25rem;
     height: 3.25rem;
-    border-radius: .875rem;
+    border-radius: 0.875rem;
     background: linear-gradient(135deg, $accent, darken($accent, 10%));
     color: #fff;
     font-size: 1.375rem;
@@ -120,7 +136,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    box-shadow: 0 .375rem 1.25rem rgba($accent, .45), 0 0 0 .1875rem rgba(#fff, .15);
+    box-shadow: 0 0.375rem 1.25rem rgba($accent, 0.45), 0 0 0 0.1875rem rgba(#fff, 0.15);
   }
 
   &__name {
@@ -128,65 +144,227 @@
     font-size: 1.125rem;
     font-weight: 800;
     color: #fff;
-    letter-spacing: -.02em;
+    letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
   &__code {
-    font-size: .75rem;
-    color: rgba(#fff, .5);
+    font-size: 0.75rem;
+    color: rgba(#fff, 0.5);
     font-family: $font-mono;
     display: block;
-    margin-top: .125rem;
+    margin-top: 0.125rem;
   }
 
-  // ── Portfolio ─────────────────────────────────────────────────────────────────
-  &__pf {
+  &__broker-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: rgba(#fff, 0.55);
+    letter-spacing: 0.04em;
+    svg { font-size: 0.75rem !important; }
+  }
+
+  // ── Loading strip ─────────────────────────────────────────────────────────────
+
+  &__loading-strip {
     display: flex;
-    flex-direction: column;
-    gap: 0;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    color: $text-muted;
     border-bottom: 1px solid $border;
-    animation: slideIn .25s ease both;
+    background: $bg-page;
+    svg { font-size: 1rem !important; color: $primary; }
   }
 
-  &__pf-row {
+  // ── Broker cards grid ─────────────────────────────────────────────────────────
+
+  &__brokers-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     border-bottom: 1px solid $border;
-    &--3 { grid-template-columns: repeat(3, 1fr); }
+    &--single { grid-template-columns: 1fr; }
+    @media (max-width: 34rem) { grid-template-columns: 1fr; }
   }
 
-  &__pf-box {
+  &__broker-card {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: .25rem;
-    padding: .875rem 1rem;
-    position: relative;
-    & + & { border-left: 1px solid $border; }
-    &--warn { background: rgba($error, .03); }
+    border-right: 1px solid $border;
+    animation: slideIn 0.2s ease both;
+    &:last-child { border-right: none; }
+    &--motilal { border-top: 3px solid $mo-color; }
+    &--shoonya  { border-top: 3px solid $sh-color; }
+
+    @media (max-width: 34rem) {
+      border-right: none;
+      border-bottom: 1px solid $border;
+      &:last-child { border-bottom: none; }
+    }
   }
 
-  &__pf-ico {
-    font-size: 1.125rem !important;
-    &--blue   { color: $info; }
-    &--purple { color: $primary; }
-    &--green  { color: $success; }
-    &--orange { color: $accent; }
-    &--warn   { color: $error; }
+  // Card header
+  &__bc-head {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid $border;
+    background: $bg-page;
   }
 
-  &__pf-lbl {
-    font-size: .5625rem;
+  &__bc-logo {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.625rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    &--motilal { background: $mo-bg;  color: $mo-color; }
+    &--shoonya  { background: $sh-bg;  color: $sh-color; }
+  }
+
+  &__bc-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__bc-name { font-size: 0.8125rem; font-weight: 700; color: $text-primary; line-height: 1.2; }
+  &__bc-uid  { font-size: 0.625rem;  color: $text-muted; font-family: $font-mono; }
+
+  &__broker-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 2rem;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    &--ok   { background: $success-bg; color: $success; }
+    &--warn { background: $warning-bg; color: $warning; }
+  }
+
+  // Shoonya detail rows inside broker card
+  &__sh-rows {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  // Generic detail row (used inside Shoonya card)
+  &__detail-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.875rem;
+    gap: 0.5rem;
+    border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+    &:hover { background: $bg-page; }
+  }
+
+  &__detail-lbl {
+    font-size: 0.5625rem;
     font-weight: 700;
     color: $text-muted;
     text-transform: uppercase;
-    letter-spacing: .07em;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  &__detail-val {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $text-primary;
+    text-align: right;
+    line-height: 1.3;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    &--mono { font-family: $font-mono; font-size: 0.6875rem; }
+  }
+
+  &__detail-tag {
+    padding: 0.125rem 0.4375rem;
+    border-radius: 2rem;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    &--green { background: $success-bg; color: $success; }
+    &--blue  { background: rgba($info, 0.1); color: $info; }
+    &--warn  { background: $warning-bg;  color: $warning; }
+  }
+
+  // Error / empty inside broker card
+  &__bc-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 0.875rem;
+    background: $error-bg;
+    color: $error;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.4;
+    border-bottom: 1px solid rgba($error, 0.15);
+    svg { flex-shrink: 0; margin-top: 0.0625rem; }
+  }
+
+  &__bc-empty {
+    padding: 1.5rem 0.875rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: $text-muted;
+    font-style: italic;
+    border-bottom: 1px solid $border;
+    flex: 1;
+  }
+
+  // ── Balance grid ──────────────────────────────────────────────────────────────
+
+  &__bal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid $border;
+    &--no-border { border-bottom: none; }
+  }
+
+  &__bal-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.625rem 0.75rem;
+    & + & { border-left: 1px solid $border; }
+  }
+
+  &__bal-lbl {
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     white-space: nowrap;
   }
 
-  &__pf-val {
-    font-size: .9375rem;
+  &__bal-val {
+    font-size: 0.875rem;
     font-weight: 800;
     color: $text-primary;
     font-family: $font-mono;
@@ -194,262 +372,344 @@
     &--neg { color: $error; }
   }
 
-  &__pf-warn-tag {
-    font-size: .5rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    background: $error-bg;
-    color: $error;
-    border: 1px solid rgba($error, .2);
-    border-radius: 2rem;
-    padding: .1rem .4rem;
-  }
+  // ── P&L banner ───────────────────────────────────────────────────────────────
 
-  // P&L banner
-  &__pf-pnl {
+  &__pnl-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: .75rem 1rem;
-    gap: .75rem;
+    padding: 0.625rem 0.75rem;
+    gap: 0.5rem;
     border-bottom: 1px solid $border;
-    svg { font-size: 1.375rem !important; flex-shrink: 0; }
-
-    &-left {
-      display: flex;
-      align-items: center;
-      gap: .625rem;
-      flex: 1;
-    }
-
-    &-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: .25rem;
-    }
-
-    &--profit {
-      background: $success-bg;
-      .up__pf-lbl { color: darken($success, 10%); }
-      svg          { color: $success; }
-    }
-
-    &--loss {
-      background: $error-bg;
-      .up__pf-lbl { color: darken($error, 10%); }
-      svg          { color: $error; }
-    }
+    svg { font-size: 1.125rem !important; flex-shrink: 0; }
+    &--profit { background: $success-bg; svg { color: $success; } }
+    &--loss   { background: $error-bg;   svg { color: $error; } }
   }
 
-  &__pf-amt {
-    display: block;
-    font-size: 1.0625rem;
-    font-weight: 800;
-    font-family: $font-mono;
-    color: $text-primary;
-    .up__pf-pnl--profit & { color: darken($success, 8%); }
-    .up__pf-pnl--loss   & { color: darken($error,   8%); }
-  }
-
-  &__pf-pct {
-    font-size: .9375rem;
-    font-weight: 800;
-    font-family: $font-mono;
-    .up__pf-pnl--profit & { color: $success; }
-    .up__pf-pnl--loss   & { color: $error; }
-  }
-
-  // ── Holdings pill button ───────────────────────────────────────────────────
-  &__holdings-btn {
-    @extend %up-btn-base;
-    padding: .25rem .625rem;
-    border-radius: 2rem;
-    font-size: .625rem;
-    font-weight: 700;
-    letter-spacing: .03em;
-    background: transparent;
-    border: 1px solid rgba($text-muted, .3) !important;
-    color: $text-muted;
-    cursor: default;
-
-    svg { font-size: .8rem !important; opacity: .6; }
-
-    // when holdings exist — make it look clickable
-    &--active {
-      cursor: pointer;
-      border-color: rgba($primary, .35) !important;
-      color: $primary;
-      background: rgba($primary, .06);
-      svg { opacity: 1; }
-
-      &:hover {
-        background: rgba($primary, .12);
-        border-color: $primary !important;
-        box-shadow: 0 0 0 .1875rem rgba($primary, .1);
-        transform: translateY(-.0625rem);
-      }
-
-      &:active { transform: none; }
-    }
-
-    .up__pf-pnl--profit & {
-      &--active {
-        border-color: rgba($success, .4) !important;
-        color: darken($success, 12%);
-        background: rgba($success, .08);
-        svg { color: darken($success, 12%); }
-        &:hover {
-          background: rgba($success, .15);
-          border-color: $success !important;
-          box-shadow: 0 0 0 .1875rem rgba($success, .12);
-        }
-      }
-    }
-
-    .up__pf-pnl--loss & {
-      &--active {
-        border-color: rgba($error, .4) !important;
-        color: darken($error, 8%);
-        background: rgba($error, .07);
-        svg { color: darken($error, 8%); }
-        &:hover {
-          background: rgba($error, .13);
-          border-color: $error !important;
-          box-shadow: 0 0 0 .1875rem rgba($error, .12);
-        }
-      }
-    }
-  }
-
-  // Loading shimmer
-  &__pf-loading {
+  &__pnl-left {
     display: flex;
     align-items: center;
-    gap: .5rem;
-    padding: .75rem 1rem;
-    font-size: .8125rem;
-    color: $text-muted;
-    border-bottom: 1px solid $border;
-    background: $bg-page;
-    svg { font-size: 1rem !important; color: $primary; }
-  }
-
-  // Collateral row
-  &__pf-collateral {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: .625rem 1rem;
-    background: rgba($info, .03);
-    border-bottom: 1px solid $border;
-    .up__pf-lbl { font-size: .625rem; }
-    .up__pf-val { font-size: .875rem; }
-  }
-
-  // ── Account Details body ───────────────────────────────────────────────────
-  &__body {
-    padding: 1rem 1.125rem .75rem;
-    display: flex;
-    flex-direction: column;
-    gap: .4375rem;
-  }
-
-  &__section-lbl {
-    font-size: .625rem;
-    font-weight: 800;
-    color: $text-muted;
-    text-transform: uppercase;
-    letter-spacing: .1em;
-    margin: .25rem 0 .125rem;
-  }
-
-  &__row {
-    display: flex;
-    align-items: center;
-    gap: .625rem;
-    padding: .625rem .75rem;
-    background: $bg-page;
-    border: 1px solid $border;
-    border-radius: $radius-sm;
-    transition: $transition;
-    &:hover { background: $bg-card-hover; box-shadow: $shadow-card; }
-    &--accent {
-      background: linear-gradient(135deg, rgba($primary, .04), rgba($accent, .035));
-      border-color: rgba($primary, .18);
-    }
-  }
-
-  &__row-icon  { display: flex; color: $text-muted; svg { font-size: 1.125rem !important; } }
-
-  &__row-meta {
+    gap: 0.5rem;
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: .0625rem;
     min-width: 0;
   }
 
-  &__row-lbl {
-    font-size: .625rem;
+  &__pnl-lbl {
+    display: block;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    .up__pnl-banner--profit & { color: darken($success, 10%); }
+    .up__pnl-banner--loss   & { color: darken($error,   10%); }
+  }
+
+  &__pnl-amt {
+    font-size: 0.9375rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    .up__pnl-banner--profit & { color: darken($success, 8%); }
+    .up__pnl-banner--loss   & { color: darken($error,   8%); }
+  }
+
+  &__pnl-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  &__pnl-pct {
+    font-size: 0.8125rem;
+    font-weight: 800;
+    font-family: $font-mono;
+    .up__pnl-banner--profit & { color: $success; }
+    .up__pnl-banner--loss   & { color: $error; }
+  }
+
+  &__holdings-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.1875rem 0.5rem;
+    border-radius: 2rem;
+    font-size: 0.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: $text-muted;
+    transition: $transition;
+    &--active {
+      color: $primary;
+      border-color: rgba($primary, 0.3);
+      background: rgba($primary, 0.05);
+      &:hover { background: rgba($primary, 0.12); }
+    }
+    svg { font-size: 0.75rem !important; }
+  }
+
+  // ── TOTP ─────────────────────────────────────────────────────────────────────
+
+  &__bc-totp {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: linear-gradient(135deg, $primary-dark, $primary);
+    border-top: 1px solid rgba(#fff, 0.08);
+    margin-top: auto;
+  }
+
+  &__totp-lbl  { font-size: 0.5625rem; font-weight: 800; color: rgba(#fff, 0.55); text-transform: uppercase; letter-spacing: 0.08em; }
+  &__totp-code { font-family: $font-mono; font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: 0.2rem; flex: 1; text-align: center; }
+  &__totp-exp  { font-size: 0.5625rem; color: rgba(#fff, 0.5); white-space: nowrap; flex-shrink: 0; }
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // PROFILE SECTIONS  (below broker cards)
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  &__profile-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  // Each grouped block (Personal info, KYC, Bank, IDs)
+  &__profile-block {
+    border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+  }
+
+  // Section heading row
+  &__sec-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: $bg-page;
+    border-bottom: 1px solid $border;
+  }
+
+  &__sec-head-icon {
+    display: flex;
+    color: $text-muted;
+    svg { font-size: 0.875rem !important; }
+  }
+
+  &__sec-head-title {
+    font-size: 0.625rem;
+    font-weight: 800;
+    color: $text-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  // ── Compare row — splits Motilal vs Shoonya side-by-side ─────────────────────
+
+  &__compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+
+    @media (max-width: 30rem) { grid-template-columns: 1fr; }
+  }
+
+  &__compare-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.625rem 1rem;
+    position: relative;
+
+    // Left cell — Motilal
+    &--mo {
+      border-right: 1px solid $border;
+      border-left: 3px solid $mo-color;
+      @media (max-width: 30rem) { border-right: none; border-bottom: 1px solid $border; }
+    }
+
+    // Right cell — Shoonya
+    &--sh {
+      border-left: 3px solid $sh-color;
+    }
+
+    // Full-width cell (used when only one broker has the data)
+    &--full {
+      grid-column: 1 / -1;
+      border-right: none;
+    }
+
+    // Subtle tint when both values match
+    &--same {
+      background: rgba($success, 0.03);
+    }
+
+    &:last-child { border-right: none; }
+  }
+
+  // Tiny broker source tag at top of cell
+  &__compare-broker-tag {
+    display: inline-block;
+    font-size: 0.45rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.0625rem 0.375rem;
+    border-radius: 2rem;
+    width: fit-content;
+    margin-bottom: 0.125rem;
+
+    &--mo { background: $mo-bg; color: $mo-color; border: 1px solid $mo-border; }
+    &--sh { background: $sh-bg; color: $sh-color; border: 1px solid $sh-border; }
+  }
+
+  &__compare-lbl {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.5625rem;
     font-weight: 700;
     color: $text-muted;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: 0.06em;
+    svg { font-size: 0.6875rem !important; flex-shrink: 0; }
   }
 
-  &__row-val {
-    font-size: .875rem;
-    font-weight: 700;
+  &__compare-val {
+    font-size: 0.8125rem;
+    font-weight: 600;
     color: $text-primary;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    &--mono { font-family: $font-mono; font-size: .8125rem; }
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+
+    &--mono {
+      font-family: $font-mono;
+      font-size: 0.75rem;
+    }
   }
 
-  &__tag {
-    padding: .1875rem .5rem;
-    border-radius: 2rem;
-    font-size: .5625rem;
+  // "Same" badge when values match across brokers
+  &__same-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.0625rem 0.375rem;
+    background: $success-bg;
+    color: $success;
+    font-size: 0.45rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .04em;
-    flex-shrink: 0;
-    &--ok  { background: $success-bg; color: $success; }
-    &--err { background: $error-bg;   color: $error;   }
+    letter-spacing: 0.06em;
+    border-radius: 2rem;
+    border: 1px solid rgba($success, 0.2);
   }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
-  &__actions {
-    padding: .75rem 1.125rem 1.125rem;
+  // KYC reveal — shows masked by default, full value in title attr
+  &__kyc-reveal {
+    display: none; // hover reveal handled via parent title attr (tooltip)
+  }
+
+  // ── Bank card ─────────────────────────────────────────────────────────────────
+
+  &__bank-card {
+    border-bottom: 1px solid $border;
+    &:last-child { border-bottom: none; }
+  }
+
+  &__bank-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: $sh-bg;
+    border-bottom: 1px solid $sh-border;
+    border-left: 3px solid $sh-color;
+  }
+
+  &__bank-name {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $text-primary;
+    flex: 1;
+  }
+
+  &__bank-primary-tag {
+    font-size: 0.45rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.0625rem 0.4rem;
+    border-radius: 2rem;
+    background: $sh-bg;
+    color: $sh-color;
+    border: 1px solid $sh-border;
+  }
+
+  &__bank-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .5rem;
+    border-left: 3px solid $sh-color;
+
+    @media (max-width: 30rem) { grid-template-columns: 1fr; }
+  }
+
+  &__bank-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.625rem 1rem;
+    border-right: 1px solid $border;
+    &:last-child { border-right: none; }
+  }
+
+  // ── Actions ──────────────────────────────────────────────────────────────────
+
+  &__actions {
+    padding: 0.75rem 1.125rem 1.125rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    border-top: 1px solid $border;
   }
 
   &__btn {
-    @extend %up-btn-base;
+    @extend %btn;
     justify-content: center;
     border-radius: $radius-md;
-    padding: .6875rem 1rem;
-    font-size: .8125rem;
+    padding: 0.6875rem 1rem;
+    font-size: 0.8125rem;
 
     &--primary {
       background: $accent;
       color: #fff;
-      box-shadow: 0 .25rem .75rem rgba($accent, .3);
-      &:hover:not(:disabled) { background: $accent-hover; transform: translateY(-.0625rem); }
+      box-shadow: 0 0.25rem 0.75rem rgba($accent, 0.3);
+      &:hover:not(:disabled) { background: $accent-hover; transform: translateY(-0.0625rem); }
     }
 
     &--ghost {
       background: $bg-page;
       color: $text-secondary;
-      border: 1px solid $border !important;
-      &:hover:not(:disabled) { background: $bg-card-hover; border-color: $primary !important; color: $primary; }
+      border: 1px solid $border;
+      &:hover:not(:disabled) { background: $bg-card-hover; border-color: $primary; color: $primary; }
     }
 
     &--full { grid-column: 1 / -1; }
   }
+}
+
+// ── Holdings backdrop ──────────────────────────────────────────────────────────
+
+.hd-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(0.125rem);
+  z-index: 900;
 }
