@@ -23,7 +23,6 @@ function toInputDate(backendDate: string): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-
 function getUniqueOrderId(row: TradeLogEntry): string | undefined {
   return row.uniqueOrderId || (row as any).unique_order_id;
 }
@@ -38,7 +37,6 @@ function isCancellable(row: TradeLogEntry): boolean {
      status === 'estimated' || status === 'executing')
   );
 }
-
 function getCancelBlockReason(row: TradeLogEntry): string {
   const uid    = getUniqueOrderId(row);
   const status = row.status?.toLowerCase();
@@ -49,7 +47,6 @@ function getCancelBlockReason(row: TradeLogEntry): string {
   if (status === 'complete' || status === 'executed') return 'Order has been executed — cannot be cancelled';
   return 'Cancel not allowed in this status';
 }
-
 
 const statusColor = ( s?: string): 'default' | 'warning' | 'info' | 'success' | 'error' => {
   switch (s?.toLowerCase()) {
@@ -65,7 +62,6 @@ const statusColor = ( s?: string): 'default' | 'warning' | 'info' | 'success' | 
     default:           return 'default';
   }
 };
-
 
 export const TradeHistoryPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -91,55 +87,58 @@ export const TradeHistoryPage: React.FC = () => {
     const cc = isMaster ? clientInput.trim().toUpperCase() : '';
     dispatch(clearError());
     dispatch(setFilters({ type: typeFilter, startDate: sd, endDate: ed, clientCode: cc }));
-    dispatch(fetchTradeHistory({
-      startDate:  sd || undefined,
-      endDate:    ed || undefined,
-      clientCode: cc || undefined,
-    }));
+    dispatch(fetchTradeHistory({ startDate:  sd || undefined, endDate:    ed || undefined, clientCode: cc || undefined,}));
   };
 
-  const handleCancelConfirm = async () => {
-    const uid        = cancelTarget ? getUniqueOrderId(cancelTarget) : undefined;
-    const clientCode = cancelTarget?.clientCode;
+const handleCancelConfirm = async () => {
+  const uid        = cancelTarget ? getUniqueOrderId(cancelTarget) : undefined;
+  const clientCode = cancelTarget?.clientCode;
+  const broker     = cancelTarget?.broker?.toUpperCase() || 'MOTILAL';
+  if (!uid || !clientCode) {
+    setCancelError('Order ID or Client Code missing — cancel not possible');
+    setCancelTarget(null);
+    return;
+  }
 
-    if (!uid || !clientCode) {
-      setCancelError('Order ID or Client Code missing — cancel not possible');
-      setCancelTarget(null);
-      return;
+  setCancelling(true);
+  setCancelError(null);
+  setCancelSuccess(null);
+
+  try {
+    const payload: Record<string, string> = {
+      clientcode:    clientCode,
+      uniqueorderid: uid,
+      broker:        broker,
+    };
+    if (broker === 'SHOONYA') {
+      payload['norenordno'] = uid;
     }
-    setCancelling(true);
-    setCancelError(null);
-    setCancelSuccess(null);
-    try {
-      const res: any = await brokerService.cancelOrder({
-        clientcode:    clientCode,
-        uniqueorderid: uid,
-      });
-      if (res?.status === 'SUCCESS' || res?.status === 'success') {
-        setCancelSuccess(
-          `Order cancelled successfully — Client: ${clientCode}, Order: ${uid}`
-        );
-      } else {
-        const reason = res?.message || res?.error || 'Unknown reason';
-        setCancelError(`Cancel failed: ${reason}`);
-      }
-      setCancelTarget(null);
-      applyAndFetch();
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Server error';
-      setCancelError(`Cancel failed: ${msg}`);
-      setCancelTarget(null);
-    } finally {
-      setCancelling(false);
+
+    const res: any = await brokerService.cancelOrder(payload);
+
+    if (res?.status === 'SUCCESS' || res?.status === 'success' ||
+        res?.stat?.toLowerCase() === 'ok') {
+      setCancelSuccess(`Order cancelled successfully — Client: ${clientCode}, Order: ${uid}`);
+    } else {
+      const reason = res?.message || res?.emsg || res?.error || 'Unknown reason';
+      setCancelError(`Cancel failed: ${reason}`);
     }
-  };
+    setCancelTarget(null);
+    applyAndFetch();
+  } catch (err: any) {
+    const msg = err?.response?.data?.message || err?.message || 'Server error';
+    setCancelError(`Cancel failed: ${msg}`);
+    setCancelTarget(null);
+  } finally {
+    setCancelling(false);
+  }
+};
 
   const filteredData = data.filter((row) => {
     if (typeFilter === 'BUY')  return row.buyOrSell === 'BUY';
     if (typeFilter === 'SELL') return row.buyOrSell === 'SELL';
     return true;
   });
-
   const handleClear = () => {
     setTypeFilter('All');
     setClientInput('');

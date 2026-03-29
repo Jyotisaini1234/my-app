@@ -7,9 +7,9 @@ type TradeFilters = {
   startDate?: string;
   endDate?: string;
   clientCode?: string;
+  masterClientCode?: string; 
+
 };
-
-
 
 export const fetchTradeHistory = createAsyncThunk<TradeLogEntry[], TradeFilters>(
   'tradeHistory/fetchAll',
@@ -21,7 +21,7 @@ export const fetchTradeHistory = createAsyncThunk<TradeLogEntry[], TradeFilters>
       if (user && user.role !== 'MASTER') {
         const userCode = user.id || user.clientCode;
         if (!userCode) return rejectWithValue('No client code linked to your account.');
-        const res: any = await logService.getAllData({ ...filters, clientCode: userCode });
+        const res: any = await logService.getAllData({ ...filters, masterClientCode: userCode });
         return (res.data || []) as TradeLogEntry[];
       }
 

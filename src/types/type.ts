@@ -104,7 +104,15 @@ export interface TimelineResponse {
     totalCount: number;
   };
 }
-
+export interface BrokerEntry {
+  user_id?:         string;
+  is_authenticated: boolean;
+  enabled?:         boolean;
+  last_login?:      { $date: string };
+  token_expiry?:    { $date: string };
+  current_totp?:    string;
+  totp_expires_in?: number;
+}
 export interface Client {
   client_code:      string;
   user_id?:         string;
@@ -115,6 +123,7 @@ export interface Client {
   is_active:        boolean;
   is_master:        boolean;
   is_authenticated: boolean;
+  brokers?:         Record<string, BrokerEntry>;
   email?:           string | null;
   phone?:           number | null;
   client_name?:     string;
@@ -399,6 +408,7 @@ export interface TradeLogEntry {
   traceId?: string;
   spanId?: string;
   createdAt?: string;
+  broker?: string;
 }
 export interface TradeHistoryState {
   data: TradeLogEntry[];

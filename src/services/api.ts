@@ -180,11 +180,12 @@ export const logService = {
   getByClientGrouped: (clientCode: string, hours = 24) =>
     request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.CLIENT_GROUPED(clientCode)}?hours=${hours}`),
 
-  getAllData: (params?: { startDate?: string; endDate?: string; clientCode?: string }) => {
+  getAllData: (params?: { startDate?: string; endDate?: string; clientCode?: string,masterClientCode?: string; }) => {
     const q = new URLSearchParams();
     if (params?.startDate)  q.append('startDate',  params.startDate);
     if (params?.endDate)    q.append('endDate',     params.endDate);
     if (params?.clientCode) q.append('clientCode',  params.clientCode);
+    if (params?.masterClientCode) q.append('masterClientCode',  params.masterClientCode);
     return request(`${TRADE_BASE}${API_ENDPOINTS.LOGS.DATA_ALL}?${q}`);
   },
 
