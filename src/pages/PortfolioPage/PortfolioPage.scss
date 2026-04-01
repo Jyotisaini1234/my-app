@@ -499,3 +499,53 @@
     border-color: rgba($primary, .3);
   }
 }
+
+.pf-row--broker {
+  &.pf-row--broker-sub td {
+    border-top: 1px dashed rgba(var(--border-rgb, 200 200 200), 0.4) !important;
+    background-color: rgba(0, 0, 0, 0.012);
+  }
+
+  &.pf-row--broker-first td {
+    border-top: 1px solid var(--border, #e5e7eb);
+  }
+
+  &.pf-row--broker-last td {
+    padding-bottom: 10px;
+  }
+}
+
+.pf-client__avatar--ghost {
+  visibility: hidden;
+}
+
+.pf-row-connector {
+  color: var(--text-muted, #9ca3af);
+  font-size: 0.75rem;
+  padding-left: 4px;
+  font-family: monospace;
+}
+
+.pf-broker-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-broker-name {
+  font-size: 0.72rem;
+  color: var(--text-secondary, #6b7280);
+  font-weight: 500;
+}
+
+.pf-broker-badge--motilal {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+.pf-broker-badge--shoonya {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}

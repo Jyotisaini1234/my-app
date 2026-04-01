@@ -11,23 +11,8 @@ import { brokerService } from '../../services/api';
 import { useToast } from '../../context/ToastContext/Toastcontext';
 import { TRADE_BASE } from '../../utils/ApiConstants';
 import {  UserInfo } from '../../types/profile';
+import { SymbolSuggestion, BrokerAccount } from '../../types/type';
 
-interface SymbolSuggestion {
-  exchange:       string;
-  scripcode:      number;
-  scripfullname:  string;
-  scripshortname: string;
-}
-
-interface BrokerAccount {
-  clientCode:      string;
-  brokerName:      string;
-  userId:          string;
-  isAuthenticated: boolean;
-  isMaster:        boolean;
-  isActive:        boolean;
-  selectionKey:    string;
-}
 
 interface SymbolSearchProps {
   exchange:       string;
@@ -163,39 +148,43 @@ export const BulkTradingPage: React.FC <userDetails>= ({user})=>{
   const loggedInAccount = useMemo(() => activeClients.find(c => c.client_code === loggedInClientCode) ?? activeClients[0] ?? null,[activeClients, loggedInClientCode], );
 
   const brokerAccounts = useMemo((): BrokerAccount[] => {
-    const items: BrokerAccount[] = [];
-    activeClients.forEach(c => {
-      const brokersMap = ((c as any)?.brokers ?? {}) as Record<string, any>;
-      const brokerKeys = Object.keys(brokersMap).filter(k => brokersMap[k]?.enabled !== false);
+  const items: BrokerAccount[] = [];
+  activeClients.forEach(c => {
+    const brokersMap = ((c as any)?.brokers ?? {}) as Record<string, any>;
+    const brokerKeys = Object.keys(brokersMap).filter(k => brokersMap[k]?.enabled !== false);
+    const clientName = (c as any)?.client_name && (c as any).client_name !== '—'
+      ? (c as any).client_name
+      : c.client_code;
 
-      if (brokerKeys.length === 0) {
+    if (brokerKeys.length === 0) {
+      items.push({
+        clientCode:      c.client_code,
+        clientName,                   
+        brokerName:      'UNKNOWN',
+        userId:          c.user_id ?? '—',
+        isAuthenticated: (c as any).is_authenticated ?? false,
+        isMaster:        c.is_master,
+        isActive:        c.is_active,
+        selectionKey:    `${c.client_code}:UNKNOWN`,
+      });
+    } else {
+      brokerKeys.forEach(brokerName => {
+        const b = brokersMap[brokerName];
         items.push({
           clientCode:      c.client_code,
-          brokerName:      'UNKNOWN',
-          userId:          c.user_id ?? '—',
-          isAuthenticated: (c as any).is_authenticated ?? false,
+          clientName,                 
+          brokerName,
+          userId:          b?.user_id ?? c.user_id ?? '—',
+          isAuthenticated: b?.is_authenticated ?? false,
           isMaster:        c.is_master,
           isActive:        c.is_active,
-          selectionKey:    `${c.client_code}:UNKNOWN`,
+          selectionKey:    `${c.client_code}:${brokerName}`,
         });
-      } else {
-        brokerKeys.forEach(brokerName => {
-          const b = brokersMap[brokerName];
-          items.push({
-            clientCode:      c.client_code,
-            brokerName,
-            userId:          b?.user_id ?? c.user_id ?? '—',
-            isAuthenticated: b?.is_authenticated ?? false,
-            isMaster:        c.is_master,
-            isActive:        c.is_active,
-            selectionKey:    `${c.client_code}:${brokerName}`,
-          });
-        });
-      }
-    });
-    return items;
-  }, [activeClients]);
-
+      });
+    }
+  });
+  return items;
+}, [activeClients]);
   const allSelected = brokerAccounts.length > 0 && brokerAccounts.every(a => selectedClients.includes(a.selectionKey));
 
  
@@ -456,7 +445,9 @@ export const BulkTradingPage: React.FC <userDetails>= ({user})=>{
                       </div>
 
                       <div className="client-selection__item-info">
-                        <strong>{displayName}</strong>
+                       <strong>
+                          {(() => { const c = activeClients.find(x => x.client_code === account.clientCode); return (c as any)?.client_name && (c as any).client_name !== '—'? (c as any).client_name : account.clientCode; })()}
+                        </strong>
                         <span className="client-selection__item-uid">{account.userId}</span>
                       </div>
 

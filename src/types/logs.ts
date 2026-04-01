@@ -46,3 +46,35 @@ export interface LogsModalProps {
   onClose: () => void;
   fullData?: any;
 }
+
+export interface ArchiveFile {
+  filename: string;
+  size: string;
+  lastModified: string;
+}
+
+export interface LokiStatus {
+  chunksSize: string;
+  indexSize: string;
+  totalLokiSize: string;
+  lokiDataPath: string;
+  note: string;
+}
+
+export interface TradeLog {
+  id?: string;
+  clientCode?: string;
+  clientName?: string;
+  action?: string;
+  status?: string;
+  uniqueOrderId?: string;
+  quantity?: number;
+  createdAt?: string;
+  traceId?: string;
+  spanId?: string;
+  buyOrSell?: string;
+  symbol?: string;
+  exchange?: string;
+  price?: number;
+}
+

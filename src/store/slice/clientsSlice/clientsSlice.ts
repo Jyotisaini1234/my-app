@@ -129,7 +129,33 @@ export const deleteClient = createAsyncThunk(
   }
 );
 
+// ── Update client (broker upsert) ─────────────────────────────────────────────
+export const updateClient = createAsyncThunk(
+  'clients/update',
+  async (
+    { clientCode, body }: { clientCode: string; body: Record<string, any> },
+    { rejectWithValue, dispatch }
+  ) => {
+    try {
+      const res = await fetch(`${BROKER_BASE}/api/client/update/${clientCode}`, {
+        method:      'PUT',
+        headers:     { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body:        JSON.stringify(body),
+      });
 
+      const data = await res.json();
+      if (data.status !== 'SUCCESS') {
+        return rejectWithValue(data.message ?? 'Update failed');
+      }
+
+      dispatch(fetchClients()); // refresh list after update
+      return data;
+    } catch (err: any) {
+      return rejectWithValue(err.message ?? 'Network error');
+    }
+  }
+);
 const initialState: ClientsState = {
   data: {},
   loading: false,
@@ -193,6 +219,13 @@ const clientsSlice = createSlice({
 
     builder.addCase(authenticateClient.rejected, (state, action) => { state.error = action.payload as string; });
     builder.addCase(deleteClient.rejected,        (state, action) => { state.error = action.payload as string; });
+    builder
+  .addCase(updateClient.pending,   (state) => { state.loading = true;  state.error = null; })
+  .addCase(updateClient.fulfilled, (state) => { state.loading = false; })
+  .addCase(updateClient.rejected,  (state, action) => {
+    state.loading = false;
+    state.error   = action.payload as string;
+  });
   },
 });
 

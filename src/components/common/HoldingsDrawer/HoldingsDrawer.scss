@@ -247,3 +247,138 @@
   flex-shrink: 0;
   background: $surface;
 }
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.hd-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid $border;
+  background: $surface;
+  flex-shrink: 0;
+}
+
+.hd-tab {
+  flex: 1;
+  padding: .625rem .5rem;
+  font-size: .75rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: $text-muted;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375rem;
+
+  &:hover { color: $text-primary; }
+
+  &--active {
+    color: $primary;
+    border-bottom-color: $primary;
+    background: rgba($primary, .04);
+  }
+
+  &__count {
+    background: $border;
+    border-radius: 2rem;
+    padding: .1rem .4rem;
+    font-size: .6rem;
+    font-weight: 700;
+  }
+
+  &--active &__count { background: rgba($primary, .15); color: $primary; }
+  &--motilal.hd-tab--active { color: #e67e22; border-bottom-color: #e67e22; }
+  &--shoonya.hd-tab--active { color: #2ecc71; border-bottom-color: #2ecc71; }
+}
+
+// ── Summary strip ─────────────────────────────────────────────────────────────
+.hd-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid $border;
+  background: $surface;
+  flex-shrink: 0;
+
+  &__item {
+    padding: .625rem .875rem;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+    border-right: 1px solid $border;
+    &:last-child { border-right: none; }
+
+    &--up   .hd-summary__val { color: $success; }
+    &--down .hd-summary__val { color: $error; }
+  }
+
+  &__lbl {
+    font-size: .5875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: $text-muted;
+  }
+
+  &__val {
+    font-family: $font-mono;
+    font-size: .8125rem;
+    font-weight: 700;
+    color: $text-primary;
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+  }
+
+  &__pct {
+    font-size: .6875rem;
+    font-weight: 600;
+  }
+}
+
+// ── Source badge on holding card ──────────────────────────────────────────────
+.hd-card__meta {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  margin-top: .15rem;
+}
+
+.hd-card__exch {
+  font-size: .6rem;
+  color: $text-muted;
+  font-family: $font-mono;
+}
+
+.hd-card__source {
+  font-size: .55rem;
+  font-weight: 800;
+  padding: .1rem .35rem;
+  border-radius: 2rem;
+
+  &--motilal { background: rgba(#e67e22, .12); color: #e67e22; }
+  &--shoonya { background: rgba(#2ecc71, .12); color: #27ae60; }
+}
+
+// ── Broker badges in table ────────────────────────────────────────────────────
+.pf-broker-badges {
+  display: flex;
+  gap: .3rem;
+}
+
+.pf-broker-badge {
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  font-size: .6rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &--motilal { background: rgba(#e67e22, .12); color: #e67e22; border: 1px solid rgba(#e67e22, .25); }
+  &--shoonya { background: rgba(#2ecc71, .12); color: #27ae60; border: 1px solid rgba(#2ecc71, .25); }
+}

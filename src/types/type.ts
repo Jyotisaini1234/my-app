@@ -1,3 +1,4 @@
+import { TradeLog } from "./logs";
 
 export interface AuthUser {
   id: string;
@@ -154,6 +155,12 @@ export interface Client {
   total_available?:    number | null;
   balance_error?:      string;
   holdings?:         HoldingDetail[];
+  motilal_portfolio?: BrokerPortfolio;
+  shoonya_portfolio?: BrokerPortfolio;
+  balances?: {
+    MOTILAL?: BrokerBalance;
+    SHOONYA?: BrokerBalance;
+  };
 }
 
 export interface ClientsState {
@@ -224,34 +231,6 @@ export interface TimelineFilters {
   limit?: number;
 }
 
-export interface TradeLog {
-  id?: number;
-  traceId?: string;
-  trace_id?: string;
-  spanId?: string;
-  span_id?: string;
-  requestId?: string;
-  request_id?: string;
-  timestamp?: string | number | Date;
-  clientCode?: string;
-  client_code?: string;
-  clientName?: string;
-  client_name?: string;
-  action?: string;
-  status?: string;
-  requestTime?: string | Date;
-  responseTime?: string | Date;
-  durationMs?: number;
-  errorMessage?: string;
-  created_at?: { $date: string } | string | Date;
-  createdAt?: string | Date;
-  unique_order_id?: string;
-  level?: string;
-  message?: string;
-  thread?: string;
-  logger?: string;
-}
-
 export interface TimelineResponse {
   status: string;
   totalLogs: number;
@@ -264,11 +243,6 @@ export interface TimelineResponse {
   };
 }
 
-export interface Client {
-  client_code: string;
-  is_master: boolean;
-  is_authenticated: boolean;
-}
 
 export interface SymbolData {
   exchange: string;
@@ -454,6 +428,7 @@ export interface RootState {
 }
 
 export interface ClientForm {
+  name:string;
   client_code: string;
   user_id: string;
   password: string;
@@ -479,5 +454,62 @@ export interface HoldingDetail {
   profit_loss_pct: number;
   nse_token:       number;
   bse_token:       number;
+  source?:         string;  
+  symbol?:         string;                
+  exchange?:       string;  
 }
 
+
+
+
+export interface ShoonyaHolding {
+  symbol:          string;
+  exchange:        string;
+  qty:             number;
+  avg_price:       number;
+  ltp:             number;
+  invested_amount: number;
+  current_value:   number;
+  profit_loss:     number;
+  profit_loss_pct: number;
+}
+
+export interface BrokerPortfolio {
+  invested_amount: number;
+  current_value:   number;
+  profit_loss:     number;
+  profit_loss_pct: number;
+  total_holdings:  number;
+  holdings:        HoldingDetail[] | ShoonyaHolding[];
+  stat?:           string;
+  message?:        string;
+}
+
+export interface BrokerBalance {
+  available_cash?:   number;
+  total_available?:  number;
+  used_margin?:      number;
+  collateral_value?: number;
+  stat?:             string;
+  message?:          string;
+}
+
+
+
+export interface SymbolSuggestion {
+  exchange:       string;
+  scripcode:      number;
+  scripfullname:  string;
+  scripshortname: string;
+}
+
+export interface BrokerAccount {
+  clientName:      string;
+  clientCode:      string;
+  brokerName:      string;
+  userId:          string;
+  isAuthenticated: boolean;
+  isMaster:        boolean;
+  isActive:        boolean;
+  selectionKey:    string;
+}

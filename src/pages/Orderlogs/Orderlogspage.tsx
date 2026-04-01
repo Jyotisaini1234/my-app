@@ -2,24 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, Search, X, Loader2, AlertCircle } from 'lucide-react';
 import { logService } from '../../services/api';
 import './OrderLogsPage.scss';
+import { TradeLog } from '../../types/logs';
 
 
-interface TradeLog {
-  id?: string;
-  clientCode?: string;
-  clientName?: string;
-  action?: string;
-  status?: string;
-  uniqueOrderId?: string;
-  quantity?: number;
-  createdAt?: string;
-  traceId?: string;
-  spanId?: string;
-  buyOrSell?: string;
-  symbol?: string;
-  exchange?: string;
-  price?: number;
-}
 
 
 interface ResponseModalProps {
@@ -37,7 +22,10 @@ const ResponseModal: React.FC<ResponseModalProps> = ({ title, id, fetchFn, onClo
   useEffect(() => {
     fetchFn(id)
       .then(setData)
-      .catch((e: any) => setError(e.message || 'Failed to fetch'))
+      .catch((e: any) => {
+        const msg = e.message || '';
+        setError(msg.includes('404') ? 'No logs found for this ID' : msg || 'Failed to fetch');
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -227,7 +215,7 @@ export const OrderLogsPage: React.FC = () => {
                       </span>
                     ) : '—'}
                   </td>
-                    <td>
+                  <td>
                     {log.buyOrSell ? (
                       <span className={`order-logs__action order-logs__action--${log.buyOrSell.toLowerCase()}`}>
                         {log.buyOrSell}

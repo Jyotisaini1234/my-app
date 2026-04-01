@@ -1,445 +1,256 @@
 @import '../../styles/variables';
 
-$radius: $radius-md;
+@keyframes spin    { to { transform: rotate(360deg); } }
+@keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp  { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 
-.log-export {
-  padding: 1.5rem;
+.spin { animation: spin 0.7s linear infinite; }
+
+// ── Root ──────────────────────────────────────────────────────────────────────
+.lep {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  max-width: 75rem;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
+  animation: fadeUp 0.3s ease both;
+}
 
-  @media (max-width: 48rem) {
-    padding: 1rem 0.875rem;
-    gap: 1rem;
+// ── Toasts ────────────────────────────────────────────────────────────────────
+.lep-toasts {
+  position: fixed;
+  top: 1.25rem; right: 1.25rem;
+  z-index: 900;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  pointer-events: none;
+}
+.lep-toast {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem; font-weight: 500;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0,0,0,.12);
+  animation: slideIn 0.25s ease both;
+  pointer-events: auto; max-width: 22rem;
+
+  &--success { background:rgba(22,163,74,.12);  border:1px solid rgba(22,163,74,.3);  color:#15803d; }
+  &--error   { background:rgba(220,38,38,.1);   border:1px solid rgba(220,38,38,.25); color:#b91c1c; }
+  &--warning { background:rgba(217,119,6,.1);   border:1px solid rgba(217,119,6,.25); color:#b45309; }
+  &--info    { background:rgba(37,99,235,.08);  border:1px solid rgba(37,99,235,.2);  color:#1d4ed8; }
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+.lep__top {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.lep__top-left { display:flex; flex-direction:column; gap:0.25rem; }
+
+.lep__breadcrumb {
+  display:flex; align-items:center; gap:0.375rem;
+  font-size:0.75rem; color:$text-secondary;
+  &--active { color:$text-primary; font-weight:500; }
+}
+.lep__title    { font-size:1.25rem; font-weight:700; color:$text-primary; margin:0; letter-spacing:-0.01em; }
+.lep__subtitle { font-size:0.8125rem; color:$text-secondary; margin:0; }
+
+.lep__top-actions { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; }
+.lep__hidden-input { display:none; }
+
+// ── Buttons ───────────────────────────────────────────────────────────────────
+.lep-btn {
+  display:inline-flex; align-items:center; gap:0.4rem;
+  height:2.25rem; padding:0 1rem;
+  border-radius:0.5rem; font-size:0.8125rem; font-weight:600;
+  cursor:pointer; transition:all 0.15s; white-space:nowrap; border:1px solid transparent;
+
+  &--ghost   { background:$surface; border-color:$border; color:$text-primary;
+               &:hover:not(:disabled) { border-color:$primary; color:$primary; background:rgba($primary,.05); } }
+  &--primary { background:$primary; color:#fff; &:hover:not(:disabled) { opacity:.88; } }
+  &--danger  { background:#dc2626; color:#fff; &:hover:not(:disabled) { background:#b91c1c; } }
+  &--restore { background:#2563eb; color:#fff; &:hover:not(:disabled) { background:#1d4ed8; } }
+  &:disabled { opacity:.45; cursor:not-allowed; }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+.lep-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.875rem;
+  @media (max-width:56rem) { grid-template-columns:repeat(2,1fr); }
+  @media (max-width:32rem) { grid-template-columns:1fr; }
+}
+.lep-stat {
+  display:flex; align-items:center; gap:0.875rem;
+  padding:1rem 1.125rem;
+  background:$surface; border:1px solid $border; border-radius:0.75rem;
+  transition:box-shadow 0.15s;
+  &:hover { box-shadow:0 2px 12px rgba(0,0,0,.06); }
+
+  &__icon {
+    display:flex; align-items:center; justify-content:center;
+    width:2.5rem; height:2.5rem; border-radius:0.625rem; flex-shrink:0;
   }
+  &__body { display:flex; flex-direction:column; gap:0.2rem; min-width:0; }
+  &__label { font-size:0.6875rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:$text-secondary; }
+  &__value { font-size:1.125rem; font-weight:700; color:$text-primary; display:flex; align-items:center; gap:0.375rem; }
 
-  // ── Toast ────────────────────────────────────────────────────────────────
-  .toast-stack {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    z-index: 999;
-    max-width: min(22rem, calc(100vw - 2rem));
+  &--blue   .lep-stat__icon { background:rgba(37,99,235,.1);  color:#2563eb; }
+  &--teal   .lep-stat__icon { background:rgba(13,148,136,.1); color:#0d9488; }
+  &--orange .lep-stat__icon { background:rgba(234,88,12,.1);  color:#ea580c; }
+  &--purple .lep-stat__icon { background:rgba(124,58,237,.1); color:#7c3aed; }
+}
 
-    @media (max-width: 30rem) {
-      top: auto;
-      bottom: 1rem;
-      left: 1rem;
-      right: 1rem;
-      max-width: 100%;
-    }
+// ── Info strip ────────────────────────────────────────────────────────────────
+.lep-info {
+  display:flex; align-items:flex-start; gap:0.5rem;
+  padding:0.625rem 0.875rem;
+  background:rgba($primary,.04); border:1px solid rgba($primary,.15);
+  border-radius:0.5rem; font-size:0.75rem; color:$text-secondary; line-height:1.6;
+  svg { color:$primary; opacity:.7; }
+  strong { color:$text-primary; font-weight:600; }
+}
+
+// ── Panel ─────────────────────────────────────────────────────────────────────
+.lep-panel {
+  background:$surface; border:1px solid $border; border-radius:0.875rem; overflow:hidden;
+
+  &__head {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 1.25rem; border-bottom:1px solid $border; gap:0.75rem;
   }
-
-  .toast {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 0.875rem;
-    border-radius: $radius-sm;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    box-shadow: $shadow-elevated;
-    animation: slideIn 0.2s ease;
-    line-height: 1.4;
-
-    &--success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-    &--error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-    &--info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
-
-    svg { flex-shrink: 0; }
+  &__head-left {
+    display:flex; align-items:center; gap:0.625rem;
+    svg { color:$text-secondary; }
+    h2  { font-size:0.9375rem; font-weight:700; color:$text-primary; margin:0; }
   }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(0.75rem); }
-    to   { opacity: 1; transform: translateX(0); }
+  &__pills { display:flex; gap:0.375rem; }
+  &__count {
+    font-size:0.75rem; color:$text-secondary; background:$bg;
+    border:1px solid $border; padding:0.2rem 0.6rem; border-radius:2rem; font-weight:600; white-space:nowrap;
   }
-
-  // ── Page header ──────────────────────────────────────────────────────────
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
+  &__state {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0.75rem; padding:4rem 2rem; color:$text-secondary; text-align:center;
+    svg  { opacity:.3; }
+    span { font-size:0.9375rem; font-weight:500; }
+    p    { font-size:0.8125rem; margin:0; opacity:.7; }
   }
+}
 
-  &__title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+.lep-pill {
+  display:inline-flex; align-items:center;
+  padding:0.15rem 0.5rem; border-radius:2rem; font-size:0.625rem; font-weight:700;
+  &--green { background:rgba(22,163,74,.1);  color:#15803d; }
+  &--amber { background:rgba(217,119,6,.1);  color:#b45309; }
+}
 
-    .log-export__title-icon {
-      width: 2.5rem;
-      height: 2.5rem;
-      background: rgba($accent, 0.12);
-      border-radius: $radius-sm;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: $accent;
-      flex-shrink: 0;
-    }
-
-    h2 {
-      font-size: 1.125rem;
-      font-weight: 700;
-      color: $text-primary;
-      margin: 0;
-      line-height: 1.2;
-
-      @media (max-width: 30rem) { font-size: 1rem; }
-    }
-
-    p {
-      font-size: 0.8rem;
-      color: $text-secondary;
-      margin: 0.1rem 0 0;
-    }
-  }
-
-  &__header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  // ── Buttons ──────────────────────────────────────────────────────────────
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.875rem;
-    border-radius: $radius-sm;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: $transition;
-    white-space: nowrap;
-    line-height: 1;
-
-    @media (max-width: 30rem) {
-      padding: 0.5rem 0.75rem;
-      font-size: 0.75rem;
-    }
-
-    &:disabled { opacity: 0.55; cursor: not-allowed; }
-
-    &--primary {
-      background: $accent;
-      color: white;
-      &:hover:not(:disabled) { background: $accent-hover; }
-    }
-    &--ghost {
-      background: white;
-      color: $text-primary;
-      border: 1px solid $border;
-      &:hover:not(:disabled) { background: $bg-page; }
-    }
-    &--danger {
-      background: $error;
-      color: white;
-      &:hover:not(:disabled) { background: darken(#ef4444, 8%); }
-    }
-    &--warn {
-      background: $warning;
-      color: white;
-      &:hover:not(:disabled) { background: darken(#f59e0b, 8%); }
-    }
-  }
-
-  .hidden-input { display: none; }
-
-  // ── Status cards ─────────────────────────────────────────────────────────
-  .status-cards {
+.lep-table {
+  &__head,
+  &__row {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 100px 260px; 
     gap: 0.75rem;
+    align-items: center;
+    padding: 0.625rem 1.25rem;
 
-    @media (max-width: 30rem) {
+    @media (max-width: 48rem) {
+      grid-template-columns: 1fr 80px 180px;
+    }
+    @media (max-width: 36rem) {
+      grid-template-columns: 1fr 70px;
+      .lep-table__actions { display: none; }
+    }
+    @media (max-width: 28rem) {
       grid-template-columns: 1fr;
-    }
-  }
-
-  .status-card {
-    background: white;
-    border: 1px solid $border;
-    border-radius: $radius;
-    padding: 1rem 1.125rem;
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    box-shadow: $shadow-card;
-
-    &__icon {
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: $radius-sm;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-
-      &--blue   { background: #dbeafe; color: #1d4ed8; }
-      &--green  { background: #dcfce7; color: #15803d; }
-      &--orange { background: #ffedd5; color: #c2410c; }
-    }
-
-    &__label {
-      display: block;
-      font-size: 0.6875rem;
-      font-weight: 600;
-      color: $text-secondary;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    &__value {
-      display: block;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: $text-primary;
-      margin-top: 0.125rem;
-      font-family: $font-mono;
-
-      @media (max-width: 30rem) { font-size: 1.125rem; }
-    }
-  }
-
-  // ── Archive panel ─────────────────────────────────────────────────────────
-  .archive-panel {
-    background: white;
-    border: 1px solid $border;
-    border-radius: $radius;
-    box-shadow: $shadow-card;
-    overflow: hidden;
-
-    &__head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.875rem 1.25rem;
-      border-bottom: 1px solid $border;
-      background: $bg-page;
-
-      h3 {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: $text-primary;
-        margin: 0;
-      }
-    }
-
-    &__count {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: $text-secondary;
-      background: white;
-      padding: 0.2rem 0.6rem;
-      border-radius: 999rem;
-      border: 1px solid $border;
-    }
-
-    &__loading,
-    &__empty {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.625rem;
-      padding: 3.5rem 1.5rem;
-      color: $text-muted;
-      font-size: 0.875rem;
-    }
-  }
-
-  // ── Archive table ──────────────────────────────────────────────────────────
-  .archive-table {
-
-    // Desktop column header
-    &__header {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      padding: 0.5rem 1.25rem;
-      background: $bg-page;
-      font-size: 0.6875rem;
-      font-weight: 700;
-      color: $text-secondary;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 1px solid $border;
-
-      @media (max-width: 40rem) { display: none; }
-    }
-
-    // ── Row ──────────────────────────────────────────────────────────────
-    &__row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      padding: 0.75rem 1.25rem;
-      border-bottom: 1px solid $border;
-      gap: 0.75rem;
-      transition: background 0.15s ease;
-
-      &:last-child { border-bottom: none; }
-      &:hover { background: $bg-page; }
-
-      // Mobile — stack filename above, buttons below full width
-      @media (max-width: 40rem) {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-        padding: 0.875rem 1rem;
-      }
-    }
-
-    // ── Filename ────────────────────────────────────────────────────────
-    &__name {
-      display: flex;
-      align-items: center;
       gap: 0.5rem;
-      min-width: 0;
-
-      svg { flex-shrink: 0; color: $text-secondary; }
-
-      span {
-        font-size: 0.8125rem;
-        font-weight: 500;
-        color: $text-primary;
-        font-family: $font-mono;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-
-    // ── Action buttons ────────────────────────────────────────────────
-    &__actions {
-      display: flex;
-      align-items: center;
-      gap: 2.5rem;
-      flex-wrap: nowrap;
-      flex-shrink: 0;
-
-      @media (max-width: 40rem) {
-        gap: 0.75rem;
-
-        .action-btn {
-          flex: 1;
-          justify-content: center;
-        }
-      }
     }
   }
 
-  // ── Per-action buttons ────────────────────────────────────────────────────
-  .action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: $radius-sm;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: $transition;
-    white-space: nowrap;
-    flex-shrink: 0;
-    line-height: 1;
-
-    &:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    &--download {
-      width: auto;
-      background: #dbeafe;
-      color: $primary;
-      border-color: #bfdbfe;
-      &:hover:not(:disabled) { background: #bfdbfe; }
-    }
-    &--delete {
-      width: auto;
-      background: $error-bg;
-      color: $delete;
-      border-color: #fecaca;
-      &:hover:not(:disabled) { background: #fecaca; }
-    }
+  &__head {
+    background:$bg; font-size:0.625rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em; color:$text-secondary;
   }
 
-  // ── Modal ──────────────────────────────────────────────────────────────────
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 1rem;
+  &__row {
+    border-top:1px solid $border-light; transition:background 0.12s;
+    &:hover      { background:$surface-hover; }
+    &--empty     { opacity:.65; }
+    &--busy      { opacity:.8; pointer-events:none; }
   }
 
-  .modal {
-    background: white;
-    border-radius: $radius;
-    padding: 2rem 1.75rem 1.5rem;
-    max-width: 25rem;
-    width: 100%;
-    box-shadow: $shadow-elevated;
-    text-align: center;
-
-    @media (max-width: 30rem) {
-      padding: 1.5rem 1.25rem 1.25rem;
-    }
-
-    h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: $text-primary;
-      margin: 0.75rem 0 0.5rem;
-    }
-
-    p {
-      font-size: 0.8375rem;
-      color: $text-secondary;
-      line-height: 1.65;
-      margin: 0 0 1.25rem;
-      word-break: break-word;
-    }
-
-    strong { color: $text-primary; }
-
-    &__icon {
-      width: 3rem;
-      height: 3rem;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto;
-
-      &--danger { background: #fee2e2; color: #dc2626; }
-      &--warn   { background: #fef3c7; color: #d97706; }
-    }
-
-    &__actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-
-      .btn { min-width: 5.5rem; }
-    }
+  &__file {
+    display:flex; align-items:center; gap:0.625rem; min-width:0;
+  }
+  &__file-icon {
+    display:flex; align-items:center; justify-content:center;
+    width:2rem; height:2rem; border-radius:0.375rem; flex-shrink:0;
+    background:rgba($primary,.08); color:$primary;
+    &--empty { background:rgba(217,119,6,.08); color:#b45309; }
+  }
+  &__file-name {
+    display:block; font-size:0.8125rem; font-weight:600; color:$text-primary;
+    font-family:$font-mono; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
-  // ── Spin ────────────────────────────────────────────────────────────────────
-  .spin { animation: spin 0.75s linear infinite; }
+  &__cell { font-size:0.8125rem; color:$text-primary; display:flex; align-items:center; }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
+  &__size       { font-size:0.8125rem; font-weight:600; color:$text-primary; }
+  &__size-empty { display:inline-flex; align-items:center; gap:0.25rem; font-size:0.75rem; color:#b45309; font-weight:500; }
+
+  &__actions { display:flex; align-items:center; gap:0.375rem; flex-wrap:wrap; }
+}
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+.lep-action {
+  display:inline-flex; align-items:center; gap:0.3rem;
+  height:1.875rem; padding:0 0.625rem;
+  border-radius:0.375rem; font-size:0.75rem; font-weight:600;
+  cursor:pointer; transition:all 0.12s; border:1px solid transparent; white-space:nowrap;
+  &:disabled { opacity:.4; cursor:not-allowed; }
+
+  &--download { background:rgba(37,99,235,.08); color:#2563eb; border-color:rgba(37,99,235,.2);
+                &:hover:not(:disabled) { background:rgba(37,99,235,.15); border-color:rgba(37,99,235,.35); } }
+  &--restore  { background:rgba(13,148,136,.08); color:#0d9488; border-color:rgba(13,148,136,.2);
+                &:hover:not(:disabled) { background:rgba(13,148,136,.15); border-color:rgba(13,148,136,.35); } }
+  &--delete   { background:rgba(220,38,38,.07); color:#dc2626; border-color:rgba(220,38,38,.18);
+                &:hover:not(:disabled) { background:rgba(220,38,38,.14); border-color:rgba(220,38,38,.3); } }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+.lep-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:700;
+  display:flex; align-items:center; justify-content:center;
+  padding:1rem; backdrop-filter:blur(2px);
+}
+.lep-modal {
+  background:$surface; border:1px solid $border; border-radius:1rem;
+  padding:2rem; width:100%; max-width:26rem;
+  display:flex; flex-direction:column; gap:0.875rem;
+  box-shadow:0 20px 60px rgba(0,0,0,.15); animation:slideIn 0.2s ease both;
+
+  h3   { font-size:1.0625rem; font-weight:700; color:$text-primary; margin:0; }
+  p    { font-size:0.875rem; color:$text-secondary; margin:0; line-height:1.5;
+         code { font-family:$font-mono; font-size:0.8125rem; background:$bg; border:1px solid $border;
+                padding:0.1rem 0.4rem; border-radius:0.25rem; color:$text-primary; word-break:break-all; } }
+
+  &__icon {
+    display:flex; align-items:center; justify-content:center;
+    width:3rem; height:3rem; border-radius:0.75rem;
+  }
+  &--danger  .lep-modal__icon { background:rgba(220,38,38,.1); color:#dc2626; }
+  &--restore .lep-modal__icon { background:rgba(37,99,235,.1); color:#2563eb; }
+
+  &__alert {
+    display:flex; align-items:flex-start; gap:0.5rem;
+    padding:0.75rem; border-radius:0.5rem; font-size:0.8125rem; line-height:1.5;
+    svg { flex-shrink:0; margin-top:0.1rem; }
+    strong { font-weight:600; }
+    &--danger { background:rgba(220,38,38,.07); border:1px solid rgba(220,38,38,.2); color:#b91c1c; }
+    &--info   { background:rgba(37,99,235,.07);  border:1px solid rgba(37,99,235,.2);  color:#1d4ed8; }
+  }
+
+  &__foot {
+    display:flex; justify-content:flex-end; gap:0.5rem;
+    padding-top:0.5rem; border-top:1px solid $border-light;
+  }
 }

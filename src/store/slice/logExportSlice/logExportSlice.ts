@@ -1,34 +1,27 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { exportService } from '../../../services/api';
 import { TRADE_BASE } from '../../../utils/ApiConstants';
+import { ArchiveFile, LokiStatus } from '../../../types/logs';
 
 const BASE_URL = `${TRADE_BASE}/api/logs/export`;
 
-interface ArchiveFile {
-  filename: string;
-  size: string;
-  lastModified: string;
-}
 
-interface LokiStatus {
-  chunksSize: string;
-  indexSize: string;
-}
 
 interface LogExportState {
   files: ArchiveFile[];
   lokiStatus: LokiStatus | null;
+  totalSize: string;
   isFetched: boolean;
   loadingList: boolean;
   loadingStatus: boolean;
   actionTarget: string | null;
-  actionType: 'download' | 'delete' | 'upload' | null;
+  actionType: 'download' | 'delete' | 'upload' | 'restore' | null;
   error: string | null;
 }
 
 const initialState: LogExportState = {
   files: [],
   lokiStatus: null,
+  totalSize: '0 B',
   isFetched: false,
   loadingList: false,
   loadingStatus: false,
@@ -43,8 +36,10 @@ export const fetchArchiveList = createAsyncThunk(
   'logExport/fetchList',
   async (_, { rejectWithValue }) => {
     try {
-      const data: any = await exportService.listRemote();
-      return data.files || [];
+      const res  = await fetch(`${BASE_URL}/list-remote`, { credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
+      return { files: data.files || [], totalSize: data.totalSize || '0 B' };
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -55,8 +50,10 @@ export const fetchLokiStatus = createAsyncThunk(
   'logExport/fetchStatus',
   async (_, { rejectWithValue }) => {
     try {
-      const data: any = await exportService.getLokiStatus();
-      return { chunksSize: data.chunksSize, indexSize: data.indexSize };
+      const res  = await fetch(`${BASE_URL}/loki-data-status`, { credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
+      return data as LokiStatus;
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -75,7 +72,9 @@ export const downloadArchive = createAsyncThunk(
       const blob = await res.blob();
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
+      a.href     = url;
+      a.download = filename;
+      a.click();
       URL.revokeObjectURL(url);
       return filename;
     } catch (e: any) {
@@ -86,15 +85,18 @@ export const downloadArchive = createAsyncThunk(
 
 export const deleteArchive = createAsyncThunk(
   'logExport/delete',
-  async (filename: string, { rejectWithValue }) => {
+  async (
+    { filename, purgeLoki = true }: { filename: string; purgeLoki?: boolean },
+    { rejectWithValue }
+  ) => {
     try {
       const res = await fetch(
-        `${BASE_URL}/delete-remote/${encodeURIComponent(filename)}`,
+        `${BASE_URL}/delete-remote/${encodeURIComponent(filename)}?purgeLoki=${purgeLoki}`,
         { credentials: 'include', method: 'DELETE' }
       );
       const json = await res.json();
       if (!res.ok) throw new Error(json?.message || `Error ${res.status}`);
-      return filename;
+      return { filename, lokiPurge: json.lokiPurge };
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -112,7 +114,28 @@ export const uploadArchive = createAsyncThunk(
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.message || 'Upload failed');
-      return { filename: file.name, size: '', lastModified: new Date().toISOString() };
+      return {
+        filename:     file.name,
+        size:         json.uploadedSize || '',
+        lastModified: new Date().toISOString(),
+      } as ArchiveFile;
+    } catch (e: any) {
+      return rejectWithValue(e.message);
+    }
+  }
+);
+
+export const restoreArchive = createAsyncThunk(
+  'logExport/restore',
+  async (filename: string, { rejectWithValue }) => {
+    try {
+      const res  = await fetch(
+        `${BASE_URL}/restore-archive/${encodeURIComponent(filename)}`,
+        { method: 'POST', credentials: 'include' }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.message || `Error ${res.status}`);
+      return json;
     } catch (e: any) {
       return rejectWithValue(e.message);
     }
@@ -125,18 +148,22 @@ const logExportSlice = createSlice({
   name: 'logExport',
   initialState,
   reducers: {
-    resetLogExport(state) {
-      Object.assign(state, initialState);
-    },
+    clearError(state)      { state.error = null; },
+    resetLogExport(state)  { Object.assign(state, initialState); },
   },
   extraReducers: (builder) => {
 
+    // fetchArchiveList
     builder
-      .addCase(fetchArchiveList.pending,   (state) => { state.loadingList = true; state.error = null; })
+      .addCase(fetchArchiveList.pending,   (state) => {
+        state.loadingList = true;
+        state.error       = null;
+      })
       .addCase(fetchArchiveList.fulfilled, (state, action) => {
         state.loadingList = false;
         state.isFetched   = true;
-        state.files       = action.payload;
+        state.files       = action.payload.files;
+        state.totalSize   = action.payload.totalSize;
       })
       .addCase(fetchArchiveList.rejected,  (state, action) => {
         state.loadingList = false;
@@ -144,6 +171,7 @@ const logExportSlice = createSlice({
         state.error       = action.payload as string;
       });
 
+    // fetchLokiStatus
     builder
       .addCase(fetchLokiStatus.pending,   (state) => { state.loadingStatus = true; })
       .addCase(fetchLokiStatus.fulfilled, (state, action) => {
@@ -152,10 +180,12 @@ const logExportSlice = createSlice({
       })
       .addCase(fetchLokiStatus.rejected,  (state) => { state.loadingStatus = false; });
 
+    // downloadArchive
     builder
       .addCase(downloadArchive.pending,   (state, action) => {
         state.actionTarget = action.meta.arg;
         state.actionType   = 'download';
+        state.error        = null;
       })
       .addCase(downloadArchive.fulfilled, (state) => {
         state.actionTarget = null;
@@ -167,13 +197,15 @@ const logExportSlice = createSlice({
         state.error        = action.payload as string;
       });
 
+    // deleteArchive
     builder
       .addCase(deleteArchive.pending,   (state, action) => {
-        state.actionTarget = action.meta.arg;
+        state.actionTarget = action.meta.arg.filename;
         state.actionType   = 'delete';
+        state.error        = null;
       })
       .addCase(deleteArchive.fulfilled, (state, action) => {
-        state.files        = state.files.filter(f => f.filename !== action.payload);
+        state.files        = state.files.filter(f => f.filename !== action.payload.filename);
         state.actionTarget = null;
         state.actionType   = null;
       })
@@ -183,8 +215,12 @@ const logExportSlice = createSlice({
         state.error        = action.payload as string;
       });
 
+    // uploadArchive
     builder
-      .addCase(uploadArchive.pending,   (state) => { state.actionType = 'upload'; })
+      .addCase(uploadArchive.pending,   (state) => {
+        state.actionType = 'upload';
+        state.error      = null;
+      })
       .addCase(uploadArchive.fulfilled, (state, action) => {
         state.actionType = null;
         if (!state.files.find(f => f.filename === action.payload.filename)) {
@@ -195,8 +231,25 @@ const logExportSlice = createSlice({
         state.actionType = null;
         state.error      = action.payload as string;
       });
+
+    // restoreArchive
+    builder
+      .addCase(restoreArchive.pending,   (state, action) => {
+        state.actionTarget = action.meta.arg;
+        state.actionType   = 'restore';
+        state.error        = null;
+      })
+      .addCase(restoreArchive.fulfilled, (state) => {
+        state.actionTarget = null;
+        state.actionType   = null;
+      })
+      .addCase(restoreArchive.rejected,  (state, action) => {
+        state.actionTarget = null;
+        state.actionType   = null;
+        state.error        = action.payload as string;
+      });
   },
 });
 
-export const { resetLogExport } = logExportSlice.actions;
+export const { clearError, resetLogExport } = logExportSlice.actions;
 export default logExportSlice.reducer;
