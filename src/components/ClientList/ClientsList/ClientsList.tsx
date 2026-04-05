@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import RefreshIcon         from '@mui/icons-material/Refresh';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
-import AddIcon from '@mui/icons-material/Add';
+import ExpandMoreIcon      from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon    from '@mui/icons-material/ChevronRight';
+import DeleteOutlineIcon   from '@mui/icons-material/DeleteOutline';
+import PersonAddAltIcon    from '@mui/icons-material/PersonAddAlt';
+import AddIcon             from '@mui/icons-material/Add';
 import './ClientsList.scss';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+
+import { useAppDispatch, useAppSelector }    from '../../../store/hooks';
 import { fetchClients, authenticateAllClients } from '../../../store/slice/clientsSlice/clientsSlice';
-import { setSelectedClients } from '../../../store/slice/bulkTradeSlice/bulkTradeSlice';
-import { Spinner } from '../../common/Spinner/Spinner';
+import { setSelectedClients }                from '../../../store/slice/bulkTradeSlice/bulkTradeSlice';
+import {
+  fetchGroups, deleteGroup,
+  selectGroups, selectGroupsLoading, selectGroupsFetched,
+} from '../../../store/slice/groupsSlice/groupsSlice';
+
+import { Spinner }          from '../../common/Spinner/Spinner';
 import { GroupEntry, NavPage } from '../../../types/type';
-import { useFetchGroupsQuery, useDeleteGroupMutation } from '../../../store/slice/groupsSlice/groupsSlice';
-import { AddClientModal }    from '../AddClientModal.tsx/AddClientModal';
-import { AddToGroupModal }   from '../AddToGroupModal/AddToGroupModal';
-import { CreateGroupModal }  from '../CreateGroupModal/CreateGroupModal';
-import { useToast }          from '../../../context/ToastContext/Toastcontext';
-import { UserPortal }        from '../Userportal/Userportal';
-import { UserInfo }          from '../../../types/profile';
+import { AddClientModal }   from '../AddClientModal.tsx/AddClientModal';
+import { AddToGroupModal }  from '../AddToGroupModal/AddToGroupModal';
+import { CreateGroupModal } from '../CreateGroupModal/CreateGroupModal';
+import { useToast }         from '../../../context/ToastContext/Toastcontext';
+import { UserPortal }       from '../Userportal/Userportal';
+import { UserInfo }         from '../../../types/profile';
 
 interface ClientsListProps { onNavigate: (page: NavPage) => void; }
 
@@ -28,28 +33,32 @@ const getEnabledBrokers = (client: any): string[] => {
 };
 
 export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
-  const dispatch = useAppDispatch();
+  const dispatch   = useAppDispatch();
   const { showToast } = useToast();
+
   const { data: clients, loading, authenticatingAll, isFetched } = useAppSelector(s => s.clients);
-  const { user } = useAppSelector(s => s.auth);
-  const isMaster = user?.role === 'MASTER';
-  const { data: groups = {}, isLoading: groupsLoading, refetch: refetchGroups } = useFetchGroupsQuery();
-  const [deleteGroup] = useDeleteGroupMutation();
+  const { user }    = useAppSelector(s => s.auth);
+  const isMaster    = user?.role === 'MASTER';
 
-  const [showAddModal,        setShowAddModal]        = useState(false);
+  const groups        = useAppSelector(selectGroups);
+  const groupsLoading = useAppSelector(selectGroupsLoading);
+  const groupsFetched = useAppSelector(selectGroupsFetched);
+
+  const [showAddModal,         setShowAddModal]         = useState(false);
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
-  const [addToGroup,          setAddToGroup]          = useState<string | null>(null);
-  const [expandedGroups,      setExpandedGroups]      = useState<Set<string>>(new Set());
-  const [selectedGroups,      setSelectedGroups]      = useState<Set<string>>(new Set());
-  const [confirmDeleteGroup,  setConfirmDeleteGroup]  = useState<string | null>(null);
-
+  const [addToGroup,           setAddToGroup]           = useState<string | null>(null);
+  const [expandedGroups,       setExpandedGroups]       = useState<Set<string>>(new Set());
+  const [selectedGroups,       setSelectedGroups]       = useState<Set<string>>(new Set());
+  const [confirmDeleteGroup,   setConfirmDeleteGroup]   = useState<string | null>(null);
   const [addBrokerTarget, setAddBrokerTarget] = useState<{
     clientCode: string;
     clientName?: string;
     existingBrokers: string[];
   } | null>(null);
 
-  useEffect(() => { if (!isFetched) dispatch(fetchClients()); }, [isFetched, dispatch]);
+  // Fetch clients + groups on mount
+  useEffect(() => { if (!isFetched)     dispatch(fetchClients());  }, [isFetched, dispatch]);
+  useEffect(() => { if (!groupsFetched) dispatch(fetchGroups());   }, [groupsFetched, dispatch]);
 
   const clientsList    = Object.values(clients) as any[];
   const allClientCodes = clientsList.map((c: any) => c.client_code);
@@ -71,15 +80,9 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
     onNavigate('bulk-trading');
   };
 
-  const confirmDelete = async () => {
-    if (!confirmDeleteGroup) return;
-    try {
-      await deleteGroup(confirmDeleteGroup).unwrap();
-      setSelectedGroups(prev => { const n = new Set(prev); n.delete(confirmDeleteGroup); return n; });
-      showToast(`Group "${confirmDeleteGroup}" deleted`, 'success');
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to delete group', 'error');
-    } finally { setConfirmDeleteGroup(null); }
+  const handleRefresh = () => {
+    dispatch(fetchClients());
+    dispatch(fetchGroups());
   };
 
   const handleAuthAll = async () => {
@@ -89,9 +92,20 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
       : showToast((r.payload as string) || 'Authentication failed', 'error');
   };
 
-  const handleRefresh = () => { dispatch(fetchClients()); refetchGroups(); };
+  const confirmDelete = async () => {
+    if (!confirmDeleteGroup) return;
+    try {
+      await dispatch(deleteGroup(confirmDeleteGroup)).unwrap();
+      setSelectedGroups(prev => { const n = new Set(prev); n.delete(confirmDeleteGroup); return n; });
+      showToast(`Group "${confirmDeleteGroup}" deleted`, 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete group', 'error');
+    } finally {
+      setConfirmDeleteGroup(null);
+    }
+  };
 
-  // Non-master: show UserPortal only (no Add Client for non-master)
+  // Non-master: show UserPortal only
   if (!isMaster) {
     return (
       <UserPortal
@@ -118,12 +132,9 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
         <button className="cm__btn cm__btn--ghost" onClick={handleRefresh} disabled={loading || groupsLoading}>
           <RefreshIcon className={(loading || groupsLoading) ? 'spin' : ''} />Refresh
         </button>
-
-        {/* ✅ Add Client — sirf master ko */}
         <button className="cm__btn cm__btn--soft" onClick={() => setShowAddModal(true)}>
           <AddIcon />Add Client
         </button>
-
         <button className="cm__btn cm__btn--primary" onClick={() => setShowCreateGroupModal(true)}>
           <AddIcon />New Group
         </button>
@@ -176,42 +187,43 @@ export const ClientsList: React.FC<ClientsListProps> = ({ onNavigate }) => {
                         </thead>
                         <tbody>
                           {!grpClients.length
-                            ? <tr><td colSpan={5} className="cm__empty-row">No clients</td></tr>
+                            ? <tr><td colSpan={4} className="cm__empty-row">No clients</td></tr>
                             : grpClients.map(([code, d]) => {
-                               const fullClient = (clients[code] ??clients[code?.toUpperCase()] ??clients[code?.toLowerCase()] ?? Object.values(clients).find((c: any) =>   c.client_code?.toLowerCase() === code?.toLowerCase() )) as any;
+                                const fullClient = (
+                                  clients[code] ??
+                                  clients[code?.toUpperCase()] ??
+                                  Object.values(clients).find(
+                                    (c: any) => c.client_code?.toLowerCase() === code?.toLowerCase()
+                                  )
+                                ) as any;
                                 const existingBrokers = fullClient ? getEnabledBrokers(fullClient) : [];
-                                const allBrokers = ['MOTILAL', 'SHOONYA'];
-                                const canAddBroker = existingBrokers.length < allBrokers.length;
+                                const canAddBroker    = existingBrokers.length < 2; // MOTILAL + SHOONYA
 
                                 return (
                                   <tr key={code}>
                                     <td><span className="cm__mono">{code}</span></td>
-                                    <td>{d.email ?? '—'}</td>
+                                    <td>{(d as any).email ?? '—'}</td>
                                     <td>
-                                      <span className={`cm__dot cm__dot--${d.is_active ? 'on' : 'off'}`}>
-                                        {d.is_active ? 'Active' : 'Inactive'}
+                                      <span className={`cm__dot cm__dot--${(d as any).is_active ? 'on' : 'off'}`}>
+                                        {(d as any).is_active ? 'Active' : 'Inactive'}
                                       </span>
                                     </td>
                                     <td>
                                       <div className="cm__broker-cell">
                                         {existingBrokers.map(b => (
-                                          <span
-                                            key={b}
-                                            className={`cm__broker-badge cm__broker-badge--${b.toLowerCase()}`}
-                                          >
+                                          <span key={b}
+                                            className={`cm__broker-badge cm__broker-badge--${b.toLowerCase()}`}>
                                             {b.substring(0, 2)}
                                           </span>
                                         ))}
                                         {canAddBroker && (
-                                          <button
-                                            className="cm__add-broker-btn"
+                                          <button className="cm__add-broker-btn"
                                             title="Add broker to this client"
                                             onClick={() => setAddBrokerTarget({
                                               clientCode:      code,
                                               clientName:      fullClient?.client_name ?? fullClient?.name,
                                               existingBrokers,
-                                            })}
-                                          >
+                                            })}>
                                             <AddIcon style={{ fontSize: 13 }} />
                                           </button>
                                         )}

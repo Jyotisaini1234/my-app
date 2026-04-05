@@ -5,32 +5,47 @@ import { RootState } from '../../store';
 import { BROKER_BASE } from '../../../utils/ApiConstants';
 
 const toClientMap = (input: Client[] | Record<string, Client>): Record<string, Client> => {
-  if (Array.isArray(input)) {
-    return input.reduce((acc, c) => {
-      if (c.client_code) acc[c.client_code] = c;
-      return acc;
-    }, {} as Record<string, Client>);
-  }
-  return input ?? {};
+  const raw: Client[] = Array.isArray(input) ? input : Object.values(input ?? {});
+  
+  return raw.reduce((acc, c) => {
+    if (!c.client_code) return acc;
+    const brokers = (c as any).brokers ?? {};
+    const isAuth = Object.values(brokers).some(
+      (b: any) => b?.is_authenticated === true
+    );
+    
+    acc[c.client_code] = {
+      ...c,
+      is_authenticated: isAuth,
+      is_active: c.is_active ?? (c as any).isActive ?? false,
+    };
+    return acc;
+  }, {} as Record<string, Client>);
 };
-
 const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
   const url = `${BROKER_BASE}/api/client/details/${clientCode.trim().toUpperCase()}/enriched`;
   const res = await fetch(url, {
-    method:  'GET',
+    method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Enriched fetch failed: ${res.status} — ${text}`); 
+    throw new Error(`Enriched fetch failed: ${res.status} — ${text}`);
   }
   const json = await res.json();
-  if (json?.data) return json.data as Client;
-  return json as Client;
-};
+  const client = (json?.data ?? json) as any;
 
+  const brokers = client.brokers ?? {};
+  const isAuth = Object.values(brokers).some((b: any) => b?.is_authenticated === true);
+
+  return {
+    ...client,
+    is_authenticated: isAuth,
+    is_active: client.is_active ?? client.isActive ?? false,
+  } as Client;
+};
 
 export const fetchClients = createAsyncThunk(
   'clients/fetchAll',

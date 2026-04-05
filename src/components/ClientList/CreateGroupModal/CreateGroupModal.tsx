@@ -1,23 +1,27 @@
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import { useCreateGroupMutation } from "../../../store/slice/groupsSlice/groupsSlice";
-import { NewClientEntry } from "../AddToGroupModal/AddToGroupModal";
-
+import { Plus }           from 'lucide-react';
+import { useState }        from 'react';
+import { useAppDispatch }  from '../../../store/hooks';
+import { createGroup }     from '../../../store/slice/groupsSlice/groupsSlice';
+import { NewClientEntry }  from '../AddToGroupModal/AddToGroupModal';
 
 interface CreateGroupModalProps {
   allClientCodes: string[];
-  masterCode: string;
-  onClose: () => void;
+  masterCode:     string;
+  onClose:        () => void;
 }
 
-export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ allClientCodes, masterCode, onClose }) => {
-  const [createGroup, { isLoading }] = useCreateGroupMutation();
-  const [groupName, setGroupName] = useState('');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [error, setError] = useState('');
-  const [newCode, setNewCode]= useState('');
-  const [newName, setNewName]= useState('');
-  const [extraClients, setExtraClients] = useState<NewClientEntry[]>([]);
+export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
+  allClientCodes, masterCode, onClose,
+}) => {
+  const dispatch = useAppDispatch();
+
+  const [groupName,     setGroupName]     = useState('');
+  const [selected,      setSelected]      = useState<Set<string>>(new Set());
+  const [error,         setError]         = useState('');
+  const [isLoading,     setIsLoading]     = useState(false);
+  const [newCode,       setNewCode]       = useState('');
+  const [newName,       setNewName]       = useState('');
+  const [extraClients,  setExtraClients]  = useState<NewClientEntry[]>([]);
 
   const toggle = (code: string) =>
     setSelected(prev => {
@@ -37,17 +41,19 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ allClientCod
 
   const handleCreate = async () => {
     if (!groupName.trim()) { setError('Group name is required'); return; }
+    setIsLoading(true);
     try {
       const allCodes = [...Array.from(selected), ...extraClients.map(c => c.client_code)];
-      await createGroup({
-        group_name:    groupName.trim(),
-        created_by:    masterCode,
-        client_codes:  allCodes,
-        extra_clients: extraClients,
-      } as any).unwrap();
+      await dispatch(createGroup({
+        group_name:   groupName.trim(),
+        created_by:   masterCode,
+        client_codes: allCodes,
+      })).unwrap();
       onClose();
     } catch (e: any) {
-      setError(e?.data?.message ?? 'Failed to create group');
+      setError(e ?? 'Failed to create group');
+    } finally {
+      setIsLoading(false);
     }
   };
 

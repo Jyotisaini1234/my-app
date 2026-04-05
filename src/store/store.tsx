@@ -5,9 +5,9 @@ import uiReducer from './slice/uiSlice/uiSlice';
 import bulkTradeReducer from './slice/bulkTradeSlice/bulkTradeSlice';
 import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 import authReducer from './slice/authSlice/authSlice';
-import { groupApi } from './slice/groupsSlice/groupsSlice';
 import logExportReducer from './slice/logExportSlice/logExportSlice';
 import notificationsReducer from './slice/notificationsSlice/notificationsSlice';
+import groupsReducer from './slice/groupsSlice/groupsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,11 +16,10 @@ export const store = configureStore({
     bulkTrade: bulkTradeReducer,
     tradeHistory: tradeHistoryReducer,
     auth: authReducer,
-    groupApi: groupApi.reducer,
     logExport: logExportReducer,
     notifications: notificationsReducer,
+    groups: groupsReducer,
   },
-  middleware: (get) => get().concat(groupApi.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

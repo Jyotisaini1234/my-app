@@ -1,28 +1,31 @@
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import { useAddClientsToGroupMutation } from "../../../store/slice/groupsSlice/groupsSlice";
+import { Plus }               from 'lucide-react';
+import { useState }            from 'react';
+import { useAppDispatch }      from '../../../store/hooks';
+import { addClientsToGroup }   from '../../../store/slice/groupsSlice/groupsSlice';
 
 interface AddToGroupModalProps {
-  groupName: string;
-  existingCodes: string[];
+  groupName:      string;
+  existingCodes:  string[];
   allClientCodes: string[];
-  onClose: () => void;
+  onClose:        () => void;
 }
+
 export interface NewClientEntry {
   client_code: string;
   client_name: string;
 }
 
-
 export const AddToGroupModal: React.FC<AddToGroupModalProps> = ({
   groupName, existingCodes, allClientCodes, onClose,
 }) => {
-  const [addClients, { isLoading }]     = useAddClientsToGroupMutation();
-  const available                       = allClientCodes.filter(c => !existingCodes.includes(c));
-  const [selected, setSelected]         = useState<Set<string>>(new Set());
-  const [newCode, setNewCode]           = useState('');
-  const [newName, setNewName]           = useState('');
-  const [extraClients, setExtraClients] = useState<NewClientEntry[]>([]);
+  const dispatch  = useAppDispatch();
+  const available = allClientCodes.filter(c => !existingCodes.includes(c));
+
+  const [selected,      setSelected]      = useState<Set<string>>(new Set());
+  const [isLoading,     setIsLoading]     = useState(false);
+  const [newCode,       setNewCode]       = useState('');
+  const [newName,       setNewName]       = useState('');
+  const [extraClients,  setExtraClients]  = useState<NewClientEntry[]>([]);
 
   const toggle = (code: string) =>
     setSelected(prev => {
@@ -46,9 +49,14 @@ export const AddToGroupModal: React.FC<AddToGroupModalProps> = ({
 
   const handleAdd = async () => {
     const allCodes = [...Array.from(selected), ...extraClients.map(c => c.client_code)];
-    if (allCodes.length === 0) return;
-    await addClients({ groupName, client_codes: allCodes, extra_clients: extraClients } as any);
-    onClose();
+    if (!allCodes.length) return;
+    setIsLoading(true);
+    try {
+      await dispatch(addClientsToGroup({ groupName, client_codes: allCodes })).unwrap();
+      onClose();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const totalSelected = selected.size + extraClients.length;
