@@ -8,6 +8,7 @@ import authReducer from './slice/authSlice/authSlice';
 import logExportReducer from './slice/logExportSlice/logExportSlice';
 import notificationsReducer from './slice/notificationsSlice/notificationsSlice';
 import groupsReducer from './slice/groupsSlice/groupsSlice';
+import fnoWatchlistReducer from './slice/Fnoslice/fnoWatchlistSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,8 @@ export const store = configureStore({
     logExport: logExportReducer,
     notifications: notificationsReducer,
     groups: groupsReducer,
+    fnoWatchlist: fnoWatchlistReducer,
+ 
   },
 });
 

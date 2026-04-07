@@ -412,11 +412,10 @@
 
   &__label    { color: rgba(255, 255, 255, 0.5); }
   &__name     { color: $success; font-weight: 600; }
-  &__token    { color: rgba(255, 255, 255, 0.3); }
+  &__token    { color:$text-2 }
   &__exchange { color: rgba(255, 255, 255, 0.3); }
 }
 
-// ── Result Panel ───────────────────────────────────────────────────────────────
 .trade-result {
   background:    $bg-card;
   border:        1px solid $border;

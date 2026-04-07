@@ -15,6 +15,7 @@ import { SettingsPage }         from '../pages/Settings/Settingspage';
 import { LogExportPage }        from '../pages/Logexportpage/Logexportpage';
 import { PortfolioPage }        from '../pages/PortfolioPage/PortfolioPage';
 import OrderNotifications from '../components/common/Ordernotifications/Ordernotifications';
+import { FnoWatchlistPage } from '../pages/Fnowatchlistpage/FnoWatchlistPage';
 
 
 const PageRenderer: React.FC<{
@@ -29,6 +30,7 @@ const PageRenderer: React.FC<{
     case 'trade-history': return <TradeHistoryPage />;
     case 'order-logs':    return <OrderLogsPage />;
     case 'log-export':    return <LogExportPage />;
+    case 'fno-watchlist': return <FnoWatchlistPage />;
     case 'settings':      return <SettingsPage />;
     default:              return <DashboardPage onNavigate={onNavigate} />;
   }

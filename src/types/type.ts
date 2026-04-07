@@ -179,7 +179,8 @@ export type NavPage =
   | 'trade-history'
   | 'settings'
   | 'order-logs'
-  | 'log-export';
+  | 'log-export'
+  |  'fno-watchlist';
 
 export interface NewClientData {
   clientCode: string;

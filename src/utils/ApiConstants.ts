@@ -30,7 +30,14 @@ export const API_ENDPOINTS = {
     HEALTH:       '/api/trade/health',
     CONFIG:       '/api/trade/config',
   },
-
+ FNO: {
+    SCRIP_MASTER: (exchange: string) => `/api/broker/fno/scrip-master?exchange=${exchange}`,
+    LTP: '/api/broker/fno/ltp',
+    EXPIRY: (symbol: string) => `/api/broker/fno/expiry?symbol=${symbol}`,
+    OPTION_CHAIN: (symbol: string, expiry: string) =>
+      `/api/broker/fno/option-chain?symbol=${symbol}&expiry=${expiry}`,
+  },
+ 
   NOTIFICATIONS: {
     SUBSCRIBE: (clientCode: string) =>
       `/api/notifications/subscribe?clientCode=${encodeURIComponent(clientCode)}`,

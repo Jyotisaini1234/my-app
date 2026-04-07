@@ -4,16 +4,13 @@ import { clientService } from '../../../services/api';
 import { RootState } from '../../store';
 import { BROKER_BASE } from '../../../utils/ApiConstants';
 
+// ── Helper: raw list → map ────────────────────────────────────────────────────
 const toClientMap = (input: Client[] | Record<string, Client>): Record<string, Client> => {
   const raw: Client[] = Array.isArray(input) ? input : Object.values(input ?? {});
-  
   return raw.reduce((acc, c) => {
     if (!c.client_code) return acc;
     const brokers = (c as any).brokers ?? {};
-    const isAuth = Object.values(brokers).some(
-      (b: any) => b?.is_authenticated === true
-    );
-    
+    const isAuth  = Object.values(brokers).some((b: any) => b?.is_authenticated === true);
     acc[c.client_code] = {
       ...c,
       is_authenticated: isAuth,
@@ -22,11 +19,13 @@ const toClientMap = (input: Client[] | Record<string, Client>): Record<string, C
     return acc;
   }, {} as Record<string, Client>);
 };
+
+// ── Helper: single enriched client fetch ──────────────────────────────────────
 const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
   const url = `${BROKER_BASE}/api/client/details/${clientCode.trim().toUpperCase()}/enriched`;
   const res = await fetch(url, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    method:      'GET',
+    headers:     { 'Content-Type': 'application/json' },
     credentials: 'include',
   });
 
@@ -34,11 +33,11 @@ const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
     const text = await res.text();
     throw new Error(`Enriched fetch failed: ${res.status} — ${text}`);
   }
-  const json = await res.json();
-  const client = (json?.data ?? json) as any;
 
+  const json   = await res.json();
+  const client = (json?.data ?? json) as any;
   const brokers = client.brokers ?? {};
-  const isAuth = Object.values(brokers).some((b: any) => b?.is_authenticated === true);
+  const isAuth  = Object.values(brokers).some((b: any) => b?.is_authenticated === true);
 
   return {
     ...client,
@@ -47,20 +46,51 @@ const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
   } as Client;
 };
 
+// ── Helper: list se saare clients enriched fetch karo ─────────────────────────
+const fetchAllEnriched = async (
+  listResult: Client[] | Record<string, Client>
+): Promise<Record<string, Client>> => {
+  const basicMap = toClientMap(listResult);
+  const codes    = Object.keys(basicMap);
+
+  const results = await Promise.allSettled(
+    codes.map(code => fetchEnrichedClient(code))
+  );
+
+  const enrichedMap: Record<string, Client> = {};
+  results.forEach((result, idx) => {
+    const code = codes[idx];
+    if (result.status === 'fulfilled') {
+      enrichedMap[code] = result.value;
+    } else {
+      // Enriched fail ho toh basic data use karo
+      enrichedMap[code] = basicMap[code];
+    }
+  });
+
+  return enrichedMap;
+};
+
+// ── Thunks ────────────────────────────────────────────────────────────────────
+
 export const fetchClients = createAsyncThunk(
   'clients/fetchAll',
   async (_, { rejectWithValue, getState }) => {
     try {
       const state = getState() as RootState;
       const user  = state.auth.user;
+
+      // Non-master: sirf apna enriched data
       if (user && user.role !== 'MASTER') {
         const clientCode = user.clientCode || user.id;
         if (!clientCode) return rejectWithValue('No client code linked to your account.');
         const clientData = await fetchEnrichedClient(clientCode);
         return { [clientCode]: clientData } as Record<string, Client>;
       }
+
+      // Master: sab clients ka enriched data
       const res = await clientService.list();
-      return toClientMap(res.clients);
+      return await fetchAllEnriched(res.clients);
 
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -75,6 +105,7 @@ export const fetchActiveClients = createAsyncThunk(
       const state = getState() as RootState;
       const user  = state.auth.user;
 
+      // Non-master: sirf apna enriched data
       if (user && user.role !== 'MASTER') {
         const clientCode = user.clientCode || user.id;
         if (!clientCode) return rejectWithValue('No client code linked to your account.');
@@ -82,8 +113,10 @@ export const fetchActiveClients = createAsyncThunk(
         return { [clientCode]: clientData } as Record<string, Client>;
       }
 
+      // Master: active clients basic data (BulkTrade ke liye — fast chahiye)
       const res = await clientService.listActive();
-      return toClientMap(res.clients);
+      return toClientMap(res.clients); // enriched nahi — BulkTrade ko portfolio nahi chahiye
+
     } catch (err: any) {
       return rejectWithValue(err.message);
     }
@@ -144,7 +177,6 @@ export const deleteClient = createAsyncThunk(
   }
 );
 
-// ── Update client (broker upsert) ─────────────────────────────────────────────
 export const updateClient = createAsyncThunk(
   'clients/update',
   async (
@@ -158,32 +190,31 @@ export const updateClient = createAsyncThunk(
         credentials: 'include',
         body:        JSON.stringify(body),
       });
-
       const data = await res.json();
-      if (data.status !== 'SUCCESS') {
-        return rejectWithValue(data.message ?? 'Update failed');
-      }
-
-      dispatch(fetchClients()); // refresh list after update
+      if (data.status !== 'SUCCESS') return rejectWithValue(data.message ?? 'Update failed');
+      dispatch(fetchClients());
       return data;
     } catch (err: any) {
       return rejectWithValue(err.message ?? 'Network error');
     }
   }
 );
+
+// ── Initial State ─────────────────────────────────────────────────────────────
 const initialState: ClientsState = {
-  data: {},
-  loading: false,
-  error: null,
+  data:              {},
+  loading:           false,
+  error:             null,
   authenticatingAll: false,
-  isFetched: false,
+  isFetched:         false,
 };
 
+// ── Slice ─────────────────────────────────────────────────────────────────────
 const clientsSlice = createSlice({
   name: 'clients',
   initialState,
   reducers: {
-    clearError(state) { state.error = null; },
+    clearError(state)   { state.error = null; },
     resetClients(state) {
       state.data      = {};
       state.isFetched = false;
@@ -209,7 +240,8 @@ const clientsSlice = createSlice({
       .addCase(fetchActiveClients.fulfilled, (state, action) => {
         state.loading   = false;
         state.isFetched = true;
-        state.data      = action.payload;
+        // Existing enriched data preserve karo, sirf naye add karo
+        state.data = { ...state.data, ...action.payload };
       })
       .addCase(fetchActiveClients.rejected,  (state, action) => {
         state.loading = false;
@@ -232,15 +264,21 @@ const clientsSlice = createSlice({
         state.error             = action.payload as string;
       });
 
-    builder.addCase(authenticateClient.rejected, (state, action) => { state.error = action.payload as string; });
-    builder.addCase(deleteClient.rejected,        (state, action) => { state.error = action.payload as string; });
+    builder.addCase(authenticateClient.rejected, (state, action) => {
+      state.error = action.payload as string;
+    });
+
+    builder.addCase(deleteClient.rejected, (state, action) => {
+      state.error = action.payload as string;
+    });
+
     builder
-  .addCase(updateClient.pending,   (state) => { state.loading = true;  state.error = null; })
-  .addCase(updateClient.fulfilled, (state) => { state.loading = false; })
-  .addCase(updateClient.rejected,  (state, action) => {
-    state.loading = false;
-    state.error   = action.payload as string;
-  });
+      .addCase(updateClient.pending,   (state) => { state.loading = true; state.error = null; })
+      .addCase(updateClient.fulfilled, (state) => { state.loading = false; })
+      .addCase(updateClient.rejected,  (state, action) => {
+        state.loading = false;
+        state.error   = action.payload as string;
+      });
   },
 });
 

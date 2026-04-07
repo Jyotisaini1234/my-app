@@ -12,7 +12,8 @@ const pageTitles: Record<NavPage, string> = {
   settings: 'Settings',
   'order-logs': 'Order Logs',
   'log-export': 'Log Export',
-  portfolio: 'Portfolio'
+  portfolio: 'Portfolio',
+  'fno-watchlist': 'fno-watchlist'
 };
 
 interface NavbarProps {

@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  LayoutDashboard, Users, TrendingUp, History,
-  Settings, BarChart3, ScrollText,
-  ChevronLeft, ChevronRight, LogOut, FolderArchive,
-  PieChart,   // ← NEW: portfolio icon
-} from 'lucide-react';
+import {LayoutDashboard, Users, TrendingUp, History,Settings, BarChart3, ScrollText, ChevronLeft, ChevronRight, LogOut, FolderArchive,PieChart,LineChart,} from 'lucide-react';
 import { NavPage } from '../../../types/type';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { logoutThunk } from '../../../store/slice/authSlice/authSlice';
@@ -25,11 +20,12 @@ const allNavItems: {
 }[] = [
   { id: 'dashboard',     label: 'Dashboard',    icon: <LayoutDashboard size={18} /> },
   { id: 'clients',       label: 'Clients',      icon: <Users size={18} /> },
-  { id: 'portfolio',     label: 'Portfolio',    icon: <PieChart size={18} />, masterOnly: true },  // ← NEW
+  { id: 'portfolio',     label: 'Portfolio',    icon: <PieChart size={18} />, masterOnly: true }, 
   { id: 'bulk-trading',  label: 'Bulk Trading', icon: <TrendingUp size={18} /> },
   { id: 'trade-history', label: 'Trade History',icon: <History size={18} /> },
   { id: 'order-logs',    label: 'Order Logs',   icon: <ScrollText size={18} />, masterOnly: true },
   { id: 'log-export',    label: 'Log Export',   icon: <FolderArchive size={18} />, masterOnly: true },
+  { id: 'fno-watchlist', label: 'FNO Watchlist', icon: <LineChart size={18} /> },
   { id: 'settings',      label: 'Settings',     icon: <Settings size={18} /> },
 ];
 
