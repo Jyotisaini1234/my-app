@@ -49,6 +49,18 @@ export const SettingsPage: React.FC = () => {
             <span className="settings-status settings-status--active">Connected</span>
           </div>
         </div>
+
+        <div className="settings-card">
+          <div className="settings-row">
+            <div className="settings-row__icon settings-row__icon--green">
+              <Wifi size={16} />
+            </div>
+            <div className="settings-row__info">
+              <strong>Shoonya</strong>
+            </div>
+            <span className="settings-status settings-status--active">Connected</span>
+          </div>
+        </div>
       </div>
 
       {/* ── Coming Soon ── */}
@@ -56,7 +68,7 @@ export const SettingsPage: React.FC = () => {
         <h3>Coming Soon</h3>
         <div className="settings-card settings-card--muted">
           <div className="broker-list">
-            {['Shoonya', 'Zerodha', 'ICICI Direct'].map(name => (
+            {['Zerodha', 'ICICI Direct'].map(name => (
               <div key={name} className="broker-item">
                 <div className="broker-item__left">
                   <Clock size={14} className="broker-item__icon" />

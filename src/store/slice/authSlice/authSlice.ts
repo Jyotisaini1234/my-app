@@ -11,13 +11,13 @@ const fetchWithTimeout = (url: string, options: RequestInit, timeoutMs = 15000):
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
 };
 
-const apiPost = async (path: string, body: any) => {
+const apiPost = async (path: string, body: any, timeoutMs = 15000) => {
   let res: Response;
   try {
     res = await fetchWithTimeout(
       `${AUTH_BASE}${path}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) },
-      15000
+      timeoutMs  
     );
   } catch (e: any) {
     if (e.name === 'AbortError') throw new Error('Request timed out. Server is not responding — please try again.');
@@ -61,7 +61,7 @@ const fetchProfileNameAsync = async (clientCode: string): Promise<string> => {
 export const loginThunk = createAsyncThunk('auth/login',
   async (payload: { identifier: string; password: string }, { rejectWithValue, dispatch }) => {
     try {
-      const loginData  = await apiPost('/login', payload);
+      const loginData  = await apiPost('/login', payload,65000);
       const clientCode = loginData.clientCode ?? '';
       if (clientCode) {
         fetchProfileNameAsync(clientCode)

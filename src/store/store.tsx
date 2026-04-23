@@ -6,7 +6,6 @@ import bulkTradeReducer from './slice/bulkTradeSlice/bulkTradeSlice';
 import tradeHistoryReducer from './slice/tradeHistorySlice/tradeHistorySlice';
 import authReducer from './slice/authSlice/authSlice';
 import logExportReducer from './slice/logExportSlice/logExportSlice';
-import notificationsReducer from './slice/notificationsSlice/notificationsSlice';
 import groupsReducer from './slice/groupsSlice/groupsSlice';
 import fnoWatchlistReducer from './slice/Fnoslice/fnoWatchlistSlice';
 
@@ -18,7 +17,6 @@ export const store = configureStore({
     tradeHistory: tradeHistoryReducer,
     auth: authReducer,
     logExport: logExportReducer,
-    notifications: notificationsReducer,
     groups: groupsReducer,
     fnoWatchlist: fnoWatchlistReducer,
  

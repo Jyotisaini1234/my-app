@@ -4,33 +4,33 @@ import { BROKER_BASE } from '../../../utils/ApiConstants';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface FnoInstrument {
-  token:          string;   
-  symbol:         string;  
-  tradingSymbol:  string;   
-  name:           string;   
-  expiry:         string;   
-  strikePrice:    string;   
-  optionType:     string;   
-  lotSize:        string;   
-  exchange:       string;   
-  exchangeName:   string;   
-  instrumentType: string;   
+  token:          string;
+  symbol:         string;
+  tradingSymbol:  string;
+  name:           string;
+  expiry:         string;
+  strikePrice:    string;
+  optionType:     string;
+  lotSize:        string;
+  exchange:       string;
+  exchangeName:   string;
+  instrumentType: string;
   isSuspended:    boolean;
   isBan:          boolean;
 }
 
 export interface FnoQuote {
-  token:      string;
+  token:        string;
   tradingSymbol: string;
-  ltp:        number;
-  open:       number;
-  high:       number;
-  low:        number;
-  close:      number;
-  change:     number;
-  changePct:  number;
-  volume:     number;
-  oi:         number;
+  ltp:          number;
+  open:         number;
+  high:         number;
+  low:          number;
+  close:        number;
+  change:       number;
+  changePct:    number;
+  volume:       number;
+  oi:           number;
 }
 
 export interface WatchlistEntry {
@@ -50,7 +50,7 @@ export interface FnoWatchlistState {
   instrumentsLoading: boolean;
   instrumentsError:   string | null;
   instrumentsFetched: boolean;
-  watchlist: WatchlistEntry[];
+  watchlist:          WatchlistEntry[];
 
   quotes:        FnoQuote[];
   quotesLoading: boolean;
@@ -67,10 +67,11 @@ export interface FnoWatchlistState {
 
 interface BackendInstrument {
   scripCode:      string | number;
+  tradingSymbol:  string;
   symbol:         string;
   fullName:       string;
-  instType:       string;       
-  instrumentName: string;       
+  instType:       string;
+  instrumentName: string;
   expiry:         string;
   strikePrice:    string;
   optionType:     string;
@@ -81,21 +82,89 @@ interface BackendInstrument {
   isBan:          boolean;
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const MONTH_NAMES = ['JAN','FEB','MAR','APR','MAY','JUN',
+                     'JUL','AUG','SEP','OCT','NOV','DEC'] as const;
+
+const MONTH_MAP: Record<string, number> = {
+  jan:0, feb:1, mar:2, apr:3, may:4,  jun:5,
+  jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+};
+
+/** Parse expiry into { day, month, year } in IST, regardless of input format. */
+function parseExpiry(expiry: string | number | undefined): { d: number; m: number; y: number } | null {
+  if (expiry == null) return null;
+
+  const num = Number(expiry);
+
+  if (!isNaN(num) && num > 1_000_000_000) {
+    // Unix timestamp (seconds) — convert to IST (UTC+5:30)
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    const ist = new Date(num * 1000 + IST_OFFSET_MS);
+    return { d: ist.getUTCDate(), m: ist.getUTCMonth(), y: ist.getUTCFullYear() };
+  }
+
+  if (typeof expiry === 'string' && expiry.includes('-')) {
+    // "26-May-2026"
+    const parts = expiry.trim().split('-');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0], 10);
+      const y = parseInt(parts[2], 10);
+      const m = MONTH_MAP[parts[1].toLowerCase()];
+      if (m !== undefined && !isNaN(d) && !isNaN(y)) return { d, m, y };
+    }
+  }
+
+  return null;
+}
+
+function buildShoonyaTsym(raw: BackendInstrument): string {
+  const sym = (raw.symbol ?? '').trim().toUpperCase();
+
+  const exp = parseExpiry(raw.expiry);
+  if (!exp) return raw.fullName?.trim() || sym;
+
+  // Shoonya format: no zero-padding on day
+  const dd  = String(exp.d);
+  const mon = MONTH_NAMES[exp.m];
+  const yy  = String(exp.y).slice(-2);   // 2026 → "26"
+
+  const instType = (raw.instType ?? raw.instrumentName ?? '').toUpperCase();
+  const optType  = (raw.optionType ?? '').toUpperCase();  // ONLY optionType, no instType fallback
+
+  // Futures
+  if (instType.startsWith('FUT')) {
+    return `${sym}${dd}${mon}${yy}FUT`;          // e.g. NIFTY29MAY26FUT
+  }
+
+  // Options
+  if (optType === 'CE' || optType === 'PE') {
+    const side   = optType === 'CE' ? 'C' : 'P';
+    const strike = raw.strikePrice
+      ? String(Math.round(parseFloat(raw.strikePrice)))  // 184.0 → "184"
+      : '';
+    return `${sym}${dd}${mon}${yy}${side}${strike}`;    // e.g. IOC26MAY26P184
+  }
+
+  return raw.fullName?.trim() || sym;
+}
+
 function normalize(raw: BackendInstrument): FnoInstrument {
   return {
     token:          String(raw.scripCode),
-    symbol:         raw.symbol         ?? '',
-    tradingSymbol:  raw.fullName        ?? '',
-    name:           raw.fullName        ?? '',
-    expiry:         raw.expiry          ?? '',
-    strikePrice:    raw.strikePrice     ?? '0',
-    optionType:     raw.instType        ?? raw.optionType ?? '',   
-    lotSize:        String(raw.lotSize  ?? ''),
-    exchange:       raw.exchange        ?? '',
-    exchangeName:   raw.exchangeName    ?? '',
-    instrumentType: raw.instrumentName  ?? '',                     
-    isSuspended:    raw.isSuspended     ?? false,
-    isBan:          raw.isBan           ?? false,
+    symbol:         raw.symbol              ?? '',
+    tradingSymbol:  buildShoonyaTsym(raw),
+    name:           raw.fullName            ?? '',
+    expiry:         raw.expiry              ?? '',
+    strikePrice:    raw.strikePrice         ?? '0',
+    optionType:     raw.optionType          ?? '',   // ✅ Fixed: was raw.instType
+    lotSize:        String(raw.lotSize      ?? ''),
+    exchange:       raw.exchange            ?? '',
+    exchangeName:   raw.exchangeName        ?? '',
+    instrumentType: raw.instType            ?? raw.instrumentName ?? '',  // ✅ Fixed
+    isSuspended:    raw.isSuspended         ?? false,
+    isBan:          raw.isBan               ?? false,
   };
 }
 
@@ -117,7 +186,7 @@ const initialState: FnoWatchlistState = {
   instrumentsLoading: false,
   instrumentsError:   null,
   instrumentsFetched: false,
-  watchlist: loadWatchlist(),
+  watchlist:          loadWatchlist(),
 
   quotes:        [],
   quotesLoading: false,
@@ -203,27 +272,42 @@ const fnoWatchlistSlice = createSlice({
       state.searchQuery = action.payload;
     },
     setSelectedExchange(state, action: PayloadAction<string>) {
-      state.selectedExchange = action.payload;
-      state.instruments      = [];
+      state.selectedExchange   = action.payload;
+      state.instruments        = [];
       state.instrumentsFetched = false;
     },
     setSelectedType(state, action: PayloadAction<string>) {
       state.selectedType = action.payload;
     },
     setActiveView(state, action: PayloadAction<'instruments' | 'watchlist'>) {
-      state.activeView  = action.payload;
-      state.searchQuery = '';
+      state.activeView   = action.payload;
+      state.searchQuery  = '';
       state.selectedType = 'ALL';
     },
   },
   extraReducers: builder => {
     builder
-      .addCase(fetchScripMaster.pending,   state => { state.instrumentsLoading = true; state.instrumentsError = null; state.instruments = []; })
-      .addCase(fetchScripMaster.fulfilled, (state, { payload }) => { state.instrumentsLoading = false; state.instruments = payload; state.instrumentsFetched  = true;})
-      .addCase(fetchScripMaster.rejected,  (state, { payload }) => { state.instrumentsLoading = false; state.instrumentsError = payload as string;  state.instrumentsFetched  = false;});
+      .addCase(fetchScripMaster.pending,   state => {
+        state.instrumentsLoading = true;
+        state.instrumentsError   = null;
+        state.instruments        = [];
+      })
+      .addCase(fetchScripMaster.fulfilled, (state, { payload }) => {
+        state.instrumentsLoading = false;
+        state.instruments        = payload;
+        state.instrumentsFetched = true;
+      })
+      .addCase(fetchScripMaster.rejected,  (state, { payload }) => {
+        state.instrumentsLoading = false;
+        state.instrumentsError   = payload as string;
+        state.instrumentsFetched = false;
+      });
 
     builder
-      .addCase(fetchWatchlistLtp.pending,   state => { state.quotesLoading = true; state.quotesError = null; })
+      .addCase(fetchWatchlistLtp.pending,   state => {
+        state.quotesLoading = true;
+        state.quotesError   = null;
+      })
       .addCase(fetchWatchlistLtp.fulfilled, (state, { payload }) => {
         state.quotesLoading = false;
         const map: Record<string, FnoQuote> = {};
@@ -232,7 +316,10 @@ const fnoWatchlistSlice = createSlice({
         state.quotes        = Object.values(map);
         state.lastRefreshed = new Date().toISOString();
       })
-      .addCase(fetchWatchlistLtp.rejected, (state, { payload }) => { state.quotesLoading = false; state.quotesError = payload as string; });
+      .addCase(fetchWatchlistLtp.rejected,  (state, { payload }) => {
+        state.quotesLoading = false;
+        state.quotesError   = payload as string;
+      });
   },
 });
 

@@ -33,19 +33,20 @@ function isCancellable(row: TradeLogEntry): boolean {
   return (
     row.action === 'PLACE_ORDER' &&
     !!uid &&
-    (status === 'success' || status === 'open' ||
-     status === 'estimated' || status === 'executing')
+    (status === 'pending' || status === 'open' || status === 'trigger_pending')
   );
 }
+
 function getCancelBlockReason(row: TradeLogEntry): string {
   const uid    = getUniqueOrderId(row);
   const status = row.status?.toLowerCase();
-  if (row.action !== 'PLACE_ORDER') return 'Only PLACE orders can be cancelled';
-  if (!uid)                          return 'Order ID missing — cancel not possible';
-  if (status === 'error')            return 'Order was never placed (ERROR)';
-  if (status === 'cancelled')        return 'This order is already cancelled';
-  if (status === 'complete' || status === 'executed') return 'Order has been executed — cannot be cancelled';
-  return 'Cancel not allowed in this status';
+  if (row.action !== 'PLACE_ORDER')                    return 'Only PLACE orders can be cancelled';
+  if (!uid)                                             return 'Order ID missing';
+  if (status === 'error' || status === 'failed')        return 'Order was never placed';
+  if (status === 'cancelled')                           return 'Already cancelled';
+  if (status === 'success' || status === 'complete')    return 'Order executed — cannot cancel';
+  if (status === 'pending' || status === 'open' || status === 'trigger_pending') return '';
+  return 'Cancel not available in this status';
 }
 
 const statusColor = ( s?: string): 'default' | 'warning' | 'info' | 'success' | 'error' => {

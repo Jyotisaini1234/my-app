@@ -46,7 +46,6 @@ const fetchEnrichedClient = async (clientCode: string): Promise<Client> => {
   } as Client;
 };
 
-// ── Helper: list se saare clients enriched fetch karo ─────────────────────────
 const fetchAllEnriched = async (
   listResult: Client[] | Record<string, Client>
 ): Promise<Record<string, Client>> => {
@@ -63,7 +62,6 @@ const fetchAllEnriched = async (
     if (result.status === 'fulfilled') {
       enrichedMap[code] = result.value;
     } else {
-      // Enriched fail ho toh basic data use karo
       enrichedMap[code] = basicMap[code];
     }
   });
@@ -80,7 +78,6 @@ export const fetchClients = createAsyncThunk(
       const state = getState() as RootState;
       const user  = state.auth.user;
 
-      // Non-master: sirf apna enriched data
       if (user && user.role !== 'MASTER') {
         const clientCode = user.clientCode || user.id;
         if (!clientCode) return rejectWithValue('No client code linked to your account.');
@@ -88,7 +85,6 @@ export const fetchClients = createAsyncThunk(
         return { [clientCode]: clientData } as Record<string, Client>;
       }
 
-      // Master: sab clients ka enriched data
       const res = await clientService.list();
       return await fetchAllEnriched(res.clients);
 
@@ -105,7 +101,6 @@ export const fetchActiveClients = createAsyncThunk(
       const state = getState() as RootState;
       const user  = state.auth.user;
 
-      // Non-master: sirf apna enriched data
       if (user && user.role !== 'MASTER') {
         const clientCode = user.clientCode || user.id;
         if (!clientCode) return rejectWithValue('No client code linked to your account.');
@@ -113,9 +108,8 @@ export const fetchActiveClients = createAsyncThunk(
         return { [clientCode]: clientData } as Record<string, Client>;
       }
 
-      // Master: active clients basic data (BulkTrade ke liye — fast chahiye)
       const res = await clientService.listActive();
-      return toClientMap(res.clients); // enriched nahi — BulkTrade ko portfolio nahi chahiye
+      return toClientMap(res.clients);
 
     } catch (err: any) {
       return rejectWithValue(err.message);
@@ -240,7 +234,6 @@ const clientsSlice = createSlice({
       .addCase(fetchActiveClients.fulfilled, (state, action) => {
         state.loading   = false;
         state.isFetched = true;
-        // Existing enriched data preserve karo, sirf naye add karo
         state.data = { ...state.data, ...action.payload };
       })
       .addCase(fetchActiveClients.rejected,  (state, action) => {

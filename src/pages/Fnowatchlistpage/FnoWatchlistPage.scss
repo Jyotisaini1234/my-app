@@ -246,7 +246,7 @@
   flex-direction: column;
   gap: 0.0625rem;
 
-  &__name { font-weight: 700; font-size: 0.8125rem; }
+  &__name { font-weight: 700; font-size: 0.8125rem; color: $text-2; }
   &__full { font-size: 0.625rem; color: $text-2; max-width: 12.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   &__exch { font-size: 0.5625rem; color: $text-3; text-transform: uppercase; letter-spacing: 0.04em; }
 }
@@ -552,7 +552,7 @@
     border-bottom: 1px solid $border;
     &:last-child  { border-bottom: none; }
     span:first-child { color: $text-2; }
-    span:last-child  { font-weight: 600; color: $text-1; }
+    span:last-child  { font-weight: 600; color: $text-2; }
   }
 
   &__dir  { &--buy { color: $success !important; } &--sell { color: $error !important; } }

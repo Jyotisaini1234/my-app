@@ -36,7 +36,7 @@
 .acm__tabs {
   display: flex;
   border-bottom: 1px solid $border;
-  background: $bg-1;
+  background: $primary;
   flex-shrink: 0;
 }
 
@@ -66,7 +66,7 @@
 
   &--active {
     color: $text-1;
-    background: $bg-panel;
+    background: $primary;
     &::after { transform: scaleX(1); }
   }
 
@@ -186,7 +186,7 @@
 
 .acm__input {
   width: 100%;
-  background:#1d2130;
+  background:transparent;
   border: 1px solid $border;
   border-radius: $radius-sm;
   padding: 7px 10px;
@@ -220,7 +220,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px;
-  background: #1d2130;
+  background: transparent;
   border: 1px solid $border;
   border-radius: $radius-sm;
 }
@@ -268,7 +268,7 @@
 .acm__broker-block {
   border: 1px solid $border;
   border-radius: $radius-sm;
-  background: #1d2130;
+  background: transparent;
 
   &--open { border-color: $border-hi; }
 }
@@ -278,7 +278,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 10px 0 4px;
-  background: $bg-1;
+  background: transparent;
 }
 
 .acm__broker-expand {
@@ -474,7 +474,7 @@
   padding: 12px 20px;
   border-top: 1px solid $border;
   flex-shrink: 0;
-  background: $bg-1;
+  background: $primary-dark;
 }
 
 // ── Right panel ───────────────────────────────────────────────────────────────
@@ -483,7 +483,7 @@
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: $bg-1;
+  background: $primary-dark;
   overflow: hidden;
 }
 
@@ -525,7 +525,7 @@
 
 .acm__search {
   width: 100%;
-  background: #1d2130;
+  background: transparent;
   border: 1px solid $border;
   border-radius: $radius-sm;
   padding: 7px 10px 7px 30px;

@@ -157,12 +157,6 @@ export const clientService = {
 
 export const brokerService = {
 
-  placeOrder: (orderRequest: any) =>
-    request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.PLACE_ORDER}`, {
-      method: 'POST',
-      body: JSON.stringify(orderRequest),
-    }),
-
   cancelOrder: (cancelRequest: any) =>
     request(`${BROKER_BASE}${API_ENDPOINTS.BROKER.CANCEL_ORDER}`, {
       method: 'POST',
@@ -185,21 +179,30 @@ export const brokerService = {
 export const tradeService = {
 
   placeOrder: (orderRequest: any) => {
-    const payload = {
+    const payload: Record<string, any> = {
       clientcode:        orderRequest.clientcode,
       exchange:          orderRequest.exchange,
       symboltoken:       Number(orderRequest.symboltoken),
       buyorsell:         orderRequest.buyorsell || orderRequest.transactiontype,
       ordertype:         orderRequest.ordertype,
       producttype:       orderRequest.producttype,
-      orderduration:     orderRequest.duration || orderRequest.orderduration || 'DAY',
-      price:             Number(orderRequest.price)             || 0,
-      triggerprice:      Number(orderRequest.triggerprice)      || 0,
-      quantityinlot:     Number(orderRequest.quantity)          || Number(orderRequest.quantityinlot),
+      orderduration:     orderRequest.orderduration || orderRequest.duration || 'DAY',
+      price:             Number(orderRequest.price) || 0,
+      triggerprice:      Number(orderRequest.triggerprice) || 0,
+      quantityinlot:     Number(orderRequest.quantityinlot) || Number(orderRequest.quantity) || 1,
       disclosedquantity: Number(orderRequest.disclosedquantity) || 0,
       amoorder:          orderRequest.amoorder || 'N',
       selectedClients:   orderRequest.selectedClients || [],
+      tradingsymbol:     orderRequest.tradingsymbol || '',
+
+      tsym:     orderRequest.tsym     || '',
+      exch:     orderRequest.exch     || orderRequest.exchange || 'NSE',
+      prctyp:   orderRequest.prctyp   || (orderRequest.ordertype === 'MARKET' ? 'MKT' : 'LMT'),
+      prd:      orderRequest.prd      || (orderRequest.producttype === 'INTRADAY' ? 'I' : 'C'),
+      ret:      orderRequest.ret      || 'DAY',
+      trantype: orderRequest.trantype || (orderRequest.buyorsell === 'BUY' ? 'B' : 'S'),
     };
+
     return request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.PLACE_ORDER}`, {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -218,7 +221,6 @@ export const tradeService = {
   health: () =>
     request(`${TRADE_BASE}${API_ENDPOINTS.TRADE.HEALTH}`),
 };
-
 export const logService = {
 
   getTrace: (traceId: string) =>

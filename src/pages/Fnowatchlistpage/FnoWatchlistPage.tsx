@@ -258,7 +258,7 @@ export const FnoWatchlistPage: React.FC = () => {
     } else {
       dispatch(addToWatchlist({
         token: instr.token, symbol: instr.symbol,
-        tradingSymbol: instr.tradingSymbol, exchange: instr.exchange,
+        tradingSymbol:  instr.tradingSymbol, exchange: instr.exchange,
         instrumentType: instr.instrumentType, optionType: instr.optionType,
         expiry: instr.expiry, strikePrice: instr.strikePrice, lotSize: instr.lotSize,
       }));
@@ -288,16 +288,20 @@ export const FnoWatchlistPage: React.FC = () => {
     if (!loggedInClientCode || !selectedInstr) { showToast('No client / instrument', 'error'); return; }
     if (!orderForm.quantity || Number(orderForm.quantity) < 1) { showToast('Enter valid quantity', 'error'); return; }
     if (!panelClients.length) { showToast('Select at least one account', 'error'); return; }
+   const shoonyaTsym = selectedInstr.tradingSymbol || (selectedInstr as FnoInstrument).symbol;
 
-    const payload = {
+
+     const payload = {
       clientcode: loggedInClientCode, exchange: selectedInstr.exchange,
       symboltoken: Number(selectedInstr.token), buyorsell: direction,
       ordertype: orderForm.ordertype, producttype: orderForm.producttype,
       orderduration: orderForm.duration, price: Number(orderForm.price),
       triggerprice: 0, quantityinlot: Number(orderForm.quantity),
       disclosedquantity: 0, amoorder: 'N', selectedClients: panelClients,
-      tradingsymbol: selectedInstr.tradingSymbol, tsym: selectedInstr.tradingSymbol,
-      exch: selectedInstr.exchange, prctyp: orderForm.ordertype === 'MARKET' ? 'MKT' : 'LMT',
+      tradingsymbol: shoonyaTsym,
+      tsym: shoonyaTsym, 
+      exch: selectedInstr.exchange,
+      prctyp: orderForm.ordertype === 'MARKET' ? 'MKT' : 'LMT',
       prd: orderForm.producttype === 'INTRADAY' ? 'I' : 'C', ret: 'DAY',
       trantype: direction === 'BUY' ? 'B' : 'S',
     };

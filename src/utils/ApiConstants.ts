@@ -39,8 +39,8 @@ export const API_ENDPOINTS = {
   },
  
   NOTIFICATIONS: {
-    SUBSCRIBE: (clientCode: string) =>
-      `/api/notifications/subscribe?clientCode=${encodeURIComponent(clientCode)}`,
+    // SUBSCRIBE: (clientCode: string) =>
+    //   `/api/notifications/subscribe?clientCode=${encodeURIComponent(clientCode)}`,
   },
 
   LOGS: {

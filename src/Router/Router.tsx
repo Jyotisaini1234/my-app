@@ -14,8 +14,8 @@ import { OrderLogsPage }        from '../pages/Orderlogs/Orderlogspage';
 import { SettingsPage }         from '../pages/Settings/Settingspage';
 import { LogExportPage }        from '../pages/Logexportpage/Logexportpage';
 import { PortfolioPage }        from '../pages/PortfolioPage/PortfolioPage';
-import OrderNotifications from '../components/common/Ordernotifications/Ordernotifications';
-import { FnoWatchlistPage } from '../pages/Fnowatchlistpage/FnoWatchlistPage';
+import { FnoWatchlistPage }     from '../pages/Fnowatchlistpage/FnoWatchlistPage';
+import { useOrderNotifications } from '../store/useOrderNotifications';
 
 
 const PageRenderer: React.FC<{
@@ -37,10 +37,20 @@ const PageRenderer: React.FC<{
 };
 
 
+const AuthenticatedApp: React.FC<{activePage: NavPage;onNavigate: (p: NavPage) => void;}> = ({ activePage, onNavigate }) => {
+  useOrderNotifications();
+
+  return (
+    <Layout activePage={activePage} onNavigate={onNavigate}>
+      <PageRenderer activePage={activePage} onNavigate={onNavigate} />
+    </Layout>
+  );
+};
+
+
 export const Router: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const dispatch        = useAppDispatch();
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
-  const clientCode = useAppSelector(s => s.auth.user?.clientCode);
   const [activePage,     setActivePage]     = useState<NavPage>('dashboard');
   const [sessionChecked, setSessionChecked] = useState(false);
 
@@ -57,13 +67,5 @@ export const Router: React.FC = () => {
   if (!sessionChecked) return <AppLoader />;
   if (!isAuthenticated) return <AuthPage />;
 
-  return (
-    <>
-      {clientCode && <OrderNotifications clientCode={clientCode} />}
-
-      <Layout activePage={activePage} onNavigate={setActivePage}>
-        <PageRenderer activePage={activePage} onNavigate={setActivePage} />
-      </Layout>
-    </>
-  );
+  return <AuthenticatedApp activePage={activePage} onNavigate={setActivePage} />;
 };

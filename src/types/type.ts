@@ -313,22 +313,33 @@ export interface ClientsState {
 
 
 export interface OrderRequest {
-  clientcode: string;
-  variety: string;
-  tradingsymbol: string;
-  symboltoken: string;
-  transactiontype: 'BUY' | 'SELL';
-  exchange: string;
-  ordertype: string;
-  producttype: string;
-  duration: string;
-  price: string;
-  squareoff: string;
-  stoploss: string;
-  quantity: number;
-  buyorsell?: string;
-  selectedClients?: string[];  
-
+  clientcode:        string;
+  exchange:          string;
+  symboltoken:       number;
+  buyorsell:         'BUY' | 'SELL';
+  ordertype:         string;
+  producttype:       string;
+  orderduration?:    string;   
+  duration?:         string;   
+  price:             number;
+  triggerprice?:     number;   
+  quantityinlot:     number;
+  quantity?:         number;   
+  disclosedquantity?: number;  
+  amoorder?:         string;   
+  selectedClients:   string[]
+  tradingsymbol?:    string;   
+  tsym?:             string;   
+  exch?:             string;   
+  prctyp?:           string;   
+  prd?:              string;   
+  ret?:              string;   
+  trantype?:         string;   
+  variety?:          string;
+  transactiontype?:  string;
+  squareoff?:        number;
+  stoploss?:         number;
+  trailingStopLoss?: number;
 }
 
 export interface OrderResponse {
